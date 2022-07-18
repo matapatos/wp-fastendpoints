@@ -18,18 +18,19 @@ class Schema {
      * Should the schema allow additional properties?
      * If set to null it will use the value set in the schema
      */
-    private $additionalProperties;
+    private ?bool $additional_properties;
 
-    public function __construct($filepath, $additionalProperties = null) {
-        $this->additionalProperties = $additionalProperties;
-        if (is_array($filepath)) {
+    public function __construct($filepath, ?bool $additional_properties = null) {
+        $this->additional_properties = $additional_properties;
+        if (is_string($filepath)) {
+            $this->filepath = Str::finish($filepath, '.json');
+        } else if (is_array($filepath)) {
             $this->contents = $filepath;
-            if ($this->additionalProperties !== null) {
-                $this->contents['additionalProperties'] = $this->additionalProperties;
+            if ($this->additional_properties !== null) {
+                $this->contents['additionalProperties'] = $this->additional_properties;
             }
-        } else {
-            if (!file_exists($filepath)) {
-                return wp_die("Schema not found: {$filepath}");
+        }
+    }
             }
             $this->filepath = $filepath;
         }
@@ -48,17 +49,17 @@ class Schema {
         // Read JSON file and retrieve it's content
         $result = file_get_contents($this->filepath);
         if ($result === false) {
-            return new \WP_Error(500, "Unable to read json schema file: {$this->filepath}");
+            return wp_die("Unable to read json schema file: {$this->filepath}");
         }
 
         $this->contents = json_decode($result, true);
         if (!$this->contents) {
-            return new \WP_Error(500, "Invalid json schema: {$this->filepath}")
+            return wp_die("Invalid json schema: {$this->filepath}");
         }
 
-        // Update additionalProperties value if set
-        if ($this->additionalProperties !== null) {
-            $this->contents['additionalProperties'] = $this->additionalProperties;
+        // Update additional_properties value if set
+        if ($this->additional_properties !== null) {
+            $this->contents['additionalProperties'] = $this->additional_properties;
         }
         return $this->contents;
     }

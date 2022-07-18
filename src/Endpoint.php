@@ -37,29 +37,29 @@ class Endpoint {
     /**
      * JSON Schema to validate body
      */
-    public Schema $jsonSchema;
+    public Schema $json_schema;
 
     /**
      * Set of functions used inside the permission_callback endpoint
      */    
-    private array $permissionHandlers = [];
+    private array $permission_handlers = [];
 
     /**
      * Set of functions used to validate request before being handled
      */
-    private array $validationHandlers = [];
+    private array $validation_handlers = [];
 
     /**
      * Set of middlewares to run before the main handler
      */
-    private array $middlewareHandlers = [];
+    private array $middleware_handlers = [];
 
     /**
      * Set of functions to be run after processing the request - usually to handle response
      */
-    private array $postHandlers = [];
+    private array $post_handlers = [];
 
-    public function __construct(string $method, string $route, Callable $handler, array $args = [], $override = false) {
+    public function __construct(string $method, string $route, callable $handler, array $args = [], $override = false) {
         $this->method = $method;
         $this->route = $route;
         $this->handler = $handler;
@@ -73,25 +73,25 @@ class Endpoint {
      *
      * @since 0.9.0
      */
-    public function register(string $baseNamespace, string $endpointNamespace): bool {
+    public function register(string $base_namespace, string $endpoint_namespace, ?string $schema_dir = null): bool {
         $args = [[
             'methods'               => $this->method,
             'callback'              => [$this, 'callback'],
-            'permission_callback'   => $this->permissionHandlers ? [$this, 'permissionCallback'] : '__return_true',
+            'permission_callback'   => $this->permission_handlers ? [$this, 'permission_callback'] : '__return_true',
         ]];
-        if (isset($this->jsonSchema)) {
-            $args['schema'] = $this->jsonSchema->get();
+        if (isset($this->json_schema)) {
+            $args['schema'] = $this->json_schema->get($schema_dir);
         }
         // Override default arguments
         $args = array_merge($args, $this->args);
-        $args = apply_filters('wp_fastapi_endpoint_args', $args, $this, $baseNamespace, $endpointNamespace);
+        $args = apply_filters('wp_fastapi_endpoint_args', $args, $this, $base_namespace, $endpoint_namespace);
 
         // Skip registration if no args specified
         if (!$args) {
             return false;
         }
-        $route = $this->getRoute($endpointNamespace);
-        register_rest_route($baseNamespace, $route, $args, $this->override);
+        $route = $this->get_route($endpoint_namespace);
+        register_rest_route($base_namespace, $route, $args, $this->override);
         return true;
     }
 
@@ -103,7 +103,7 @@ class Endpoint {
      *
      * @since 0.9.0
      */
-    public function hasCap($capabilities, int $priority = 10): Endpoint {
+    public function has_cap($capabilities, int $priority = 10): Endpoint {
         $capabilities = Arr::wrap($capabilities);
         $this->permission(function (\WP_REST_Request $req) use ($capabilities) {
             foreach ($capabilities as $cap) {
@@ -113,7 +113,7 @@ class Endpoint {
                     }
                 } elseif (is_array($cap)) {
                     if (count($cap) > 1) {
-                        $cap[1] = $this->replaceSpecialValue($req, $cap[1]);
+                        $cap[1] = $this->replace_special_value($req, $cap[1]);
                     }
                     if (!current_user_can(...$cap)) {
                         return new \WP_Error(403, 'Not enough permissions');   
@@ -134,7 +134,7 @@ class Endpoint {
      * @since 0.9.0
      */
     public function schema($schema, $additionalProperties = false): Endpoint {
-        $this->jsonSchema = new Schema($schema, $additionalProperties);
+        $this->json_schema = new Schema($schema, $additionalProperties);
         return $this;
     }
 
@@ -145,7 +145,7 @@ class Endpoint {
      */
     public function returns($schema, int $priority = 10, $additionalProperties = false): Endpoint {
         $this->schema = new Schema($schema, $additionalProperties);
-        $this->append($this->postHandlers, $this->schema, $priority);
+        $this->append($this->post_handlers, $this->schema, $priority);
         return $this;
     }
 
@@ -154,8 +154,8 @@ class Endpoint {
      *
      * @since 0.9.0
      */
-    public function middleware(Callable $middleware, int $priority = 10): Endpoint {
-        $this->append($this->middlewareHandlers, $middleware, $priority);
+    public function middleware(callable $middleware, int $priority = 10): Endpoint {
+        $this->append($this->middleware_handlers, $middleware, $priority);
         return $this;
     }
 
@@ -163,7 +163,7 @@ class Endpoint {
      * Registers an argument
      *
      * @param string $name - Name of the parameter
-     * @param array|Callable $validate - array to be used in WP (e.g. ['required'=>true, 'default'=>null])
+     * @param array|callable $validate - array to be used in WP (e.g. ['required'=>true, 'default'=>null])
      *                                   or validation callback to be used 
      *
      * @since 0.9.0
@@ -190,25 +190,27 @@ class Endpoint {
      *
      * @since 0.9.0
      */
-    public function permission(Callable $permissionCb, int $priority = 10): Endpoint {
-        $this->append($this->permissionHandlers, $permissionCb, $priority);
+    public function permission(callable $permissionCb, int $priority = 10): Endpoint {
+        $this->append($this->permission_handlers, $permissionCb, $priority);
         return $this;
     }
 
     /**
      * WP function callback to handle this endpoint
      *
+     * NOTE: For internal use only!
+     *
      * @since 0.9.0
      */
     public function callback(\WP_REST_Request $req) {
         // Run pre validation methods
-        $result = $this->runHandlers($this->validationHandlers, $req);
+        $result = $this->run_handlers($this->validation_handlers, $req);
         if (is_wp_error($result)) {
             return rest_ensure_response($result);
         }
 
         // Middleware methods
-        $result = $this->runHandlers($this->middlewareHandlers, $req);
+        $result = $this->run_handlers($this->middleware_handlers, $req);
         if (is_wp_error($result)) {
             return rest_ensure_response($result);
         }
@@ -220,17 +222,19 @@ class Endpoint {
         }
 
         // Post handlers
-        $result = $this->runHandlers($this->postHandlers, $req, $result);
+        $result = $this->run_handlers($this->post_handlers, $req, $result);
         return rest_ensure_response($result);
     }
 
     /**
      * WP function callback to check permissions for this endpoint
      *
+     * NOTE: For internal use only!
+     *
      * @since 0.9.0
      */
-    public function permissionCallback(\WP_REST_Request $req) {
-        return $this->runHandlers($this->permissionHandlers, $req);
+    public function permission_callback(\WP_REST_Request $req) {
+        return $this->run_handlers($this->permission_handlers, $req);
     }
 
     /**
@@ -238,8 +242,8 @@ class Endpoint {
      *
      * @since 0.9.0
      */
-    protected function getRoute(string $endpointNamespace): string {
-        $route = Str::finish($endpointNamespace, '/');
+    protected function get_route(string $endpoint_namespace): string {
+        $route = Str::finish($endpoint_namespace, '/');
         $route .= $this->route;
         return apply_filters('wp_fastapi_endpoint_route', $route, $this);
     }
@@ -249,7 +253,7 @@ class Endpoint {
      *
      * @since 0.9.0
      */
-    protected function replaceSpecialValue(\WP_REST_Request $req, $value) {
+    protected function replace_special_value(\WP_REST_Request $req, $value) {
         if (!is_string($value)) {
             return $value;
         }
@@ -264,7 +268,7 @@ class Endpoint {
      *
      * @since 0.9.0
      */
-    protected function runHandlers(array &$allHandlers, ...$args) {
+    protected function run_handlers(array &$allHandlers, ...$args) {
         // If no handlers are set we have to make sure to return the previous result if set
         $result = (count($args) >= 2) ? $args[1] : null;
         // Sort dictionary by keys
@@ -281,11 +285,11 @@ class Endpoint {
     }
 
     /**
-     * Appends a Callable to a given array, regarding it's priority
+     * Appends a callable to a given array, regarding it's priority
      *
      * @since 0.9.0
      */
-    protected function append(array &$arrVar, Callable $cb, int $priority): void {
+    protected function append(array &$arrVar, callable $cb, int $priority): void {
         if (!isset($arrVar[$priority])) {
             $arrVar[$priority] = [];
         }

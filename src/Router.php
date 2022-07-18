@@ -34,7 +34,7 @@ class Router {
      *
      * @since 0.9.0
      */
-    private array $subRouters = [];
+    private array $sub_routers = [];
 
     /**
      * REST Router endpoints
@@ -96,9 +96,10 @@ class Router {
      *
      * @since 0.9.0
      */
-    public function includeRouter(Router &$router) {
+    public function include_router(Router &$router) {
         $router->parent = $this;
-        $this->subRouters[] = $router;
+        $this->sub_routers[] = $router;
+    }
     }
 
     /**
@@ -109,24 +110,24 @@ class Router {
     public function register() {
         if ($this->parent) {
             if (!$this->parent->registered) {
-                throw new Exception('You are trying to build a sub-router before building the parent router. ' .
+                wp_die('You are trying to build a sub-router before building the parent router. ' .
                 'Call the build() function on the parent router only!');
             }
 
             if ($this->namespace) {
-                throw new Exception('No api namespace specified in parent router');
+                wp_die('No api namespace specified in parent router');
             }
 
             if ($this->version) {
-                throw new Exception('No api version specified in the parent router');
+                wp_die('No api version specified in the parent router');
             }
         }
 
         // Build current router endpoints
-        add_action('rest_api_init', [$this, 'registerEndpoints']);
+        add_action('rest_api_init', [$this, 'register_endpoints']);
 
         // Call the build function of each sub router
-        foreach ($this->subRouters as $router) {
+        foreach ($this->sub_routers as $router) {
             $router->build();
         }
         return true;
@@ -135,13 +136,15 @@ class Router {
     /**
      * Registers the current router REST endpoints
      *
+     * NOTE: For internal use only!
+     *
      * @since 0.9.0
      */
-    public function registerEndpoints() {
-        $baseNamespace = $this->getBaseNamespace();
-        $endpointNamespace = $this->getEndpointNamespace();
+    public function register_endpoints() {
+        $base_namespace = $this->get_base_namespace();
+        $endpoint_namespace = $this->get_endpoint_namespace();
         foreach ($this->endpoints as $e) {
-            $e->register($baseNamespace, $endpointNamespace);
+            $e->register($base_namespace, $endpoint_namespace, $this->schema_dir);
         }
         $this->registered = true;
     }
@@ -151,9 +154,9 @@ class Router {
      *
      * @since 0.9.0
      */
-    private function getBaseNamespace($applyFilters = true) {
+    private function get_base_namespace($is_to_apply_filters = true) {
         if ($this->parent) {
-            return $this->parent->getNamespace(false);
+            return $this->parent->get_namespace(false);
         }
 
         $namespace = Str::of($this->namespace)
@@ -163,7 +166,7 @@ class Router {
         }
 
         // Ignore recursive call to apply_filters - without it, would be anoying for developers
-        if (!$applyFilters) {
+        if (!$is_to_apply_filters) {
             return $namespace;
         }
 
@@ -176,12 +179,12 @@ class Router {
      *
      * @since 0.9.0
      */
-    private function getEndpointNamespace($applyFilters = true) {
+    private function get_endpoint_namespace($is_to_apply_filters = true) {
         if (!$this->parent) {
             return '';
         }
 
-        $namespace = $this->parent->getEndpointNamespace(false);
+        $namespace = $this->parent->get_endpoint_namespace(false);
         if ($namespace) {
             $namespace .= '/';
         }
@@ -192,7 +195,7 @@ class Router {
         }
 
         // Ignore recursive call to apply_filters - without it, would be anoying for developers
-        if (!$applyFilters) {
+        if (!$is_to_apply_filters) {
             return $namespace;
         }
 
