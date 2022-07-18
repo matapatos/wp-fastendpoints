@@ -44,6 +44,13 @@ class Router {
     private array $endpoints = [];
 
     /**
+     * Schema directory path
+     *
+     * @since 0.9.0
+     */
+    private ?string $schema_dir = null;
+
+    /**
      * Router version - used only if it's a parent router
      *
      * @since 0.9.0
@@ -100,6 +107,18 @@ class Router {
         $router->parent = $this;
         $this->sub_routers[] = $router;
     }
+
+    /**
+     * Includes a router as a sub router
+     *
+     * @since 0.9.0
+     */
+    public function set_schema_dir(string $path) {
+        if (!is_dir($path)) {
+            wp_die("Schema directory is not a directory or it doesn\'t exists: {$path}");
+        }
+
+        $this->schema_dir = $path;
     }
 
     /**
