@@ -7,14 +7,22 @@ use Illuminate\Support\Str;
 class Schema {
 
     /**
-     * The filepath of the JSON Schema: absolute path or relative
+     * The filepath of the JSON Schema: absolute path or relative*
+     * @since 0.9.0
      */
     private string $filepath;
 
     /**
      * The JSON Schema
+     * @since 0.9.0
      */
     private $contents;
+
+    /**
+     * Directories where to look for a schema
+     * @since 0.9.0
+     */
+    private array $schema_dirs = [];
 
     /**
      * Should the schema allow additional properties?
@@ -38,24 +46,44 @@ class Schema {
     }
 
     /**
-     * Validates if the given JSON schema filepath is an absolute path or if it exists
-     * in the given schema directory
-     *
+     * Appends an additional directory where to look for the schema
      * @since 0.9.0
      */
-    private function validate_schema_filepath(?string $schema_dir = null) {
-        if ($schema_dir) {
-            if (!is_file($this->filepath)) {
-                if (!is_dir($schema_dir)) {
-                    wp_die("Expected a directory: {$schema_dir}");
-                }
+    public function append_schema_dir(string $schema_dir) {
+        if (!$schema_dir) {
+            wp_die('Invalid schema directory');
+        }
 
-                $this->filepath = path_join($schema_dir, $this->filepath);
+        if (is_file($schema_dir)) {
+            wp_die("Expected a directory with schemas but got a file: {$schema_dir}");
+        }
+
+        if (!is_dir($schema_dir)) {
+            wp_die("Schema directory not found: {$schema_dir}");
+        }
+
+        $this->schema_dirs[] = $schema_dir;
+    }
+
+    /**
+     * Validates if the given JSON schema filepath is an absolute path or if it exists
+     * in the given schema directory
+     * @since 0.9.0
+     */
+    private function get_valid_schema_filepath() {
+        if (!is_file($this->filepath)) {
+            return $this->filepath;
+        }
+
+        foreach ($this->schema_dirs as $dir) {
+            $filepath = path_join($this->schema_dir, $this->filepath);
+            if (is_file($filepath)) {
+                return $filepath;
             }
         }
 
-        if (!is_file($this->filepath)) {
-            wp_die("Unable to find schema file: {$this->filepath}");
+        wp_die("Unable to find schema file: {$this->filepath}");
+    }
         }
     }
 
