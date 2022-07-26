@@ -31,6 +31,9 @@ class Schema {
             if ($this->additional_properties !== null) {
                 $this->contents['additionalProperties'] = $this->additional_properties;
             }
+        } else {
+            $type = gettype($filepath);
+            wp_die("Schema expected an array or the filepath but {$type} given");
         }
     }
 
