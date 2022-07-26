@@ -11,51 +11,61 @@ class Endpoint {
 
     /**
      * HTTP endpoint method - supports the same as WP
+     * @since 0.9.0
      */
     private string $method;
 
     /**
      * HTTP route
+     * @since 0.9.0
      */
     private string $route;
 
     /**
      * WP endpoint $args argument
+     * @since 0.9.0
      */
     private array $args = [];
 
     /**
      * Main endpoint handler
+     * @since 0.9.0
      */
     private $handler;
 
     /**
      * register_rest_route $override argument
+     * @since 0.9.0
      */
     private bool $override;
 
     /**
      * JSON Schema to validate body
+     * @since 0.9.0
      */
-    public Schema $json_schema;
+    public ?Schema $resource_schema = null;
 
     /**
      * Set of functions used inside the permission_callback endpoint
+     * @since 0.9.0
      */    
     private array $permission_handlers = [];
 
     /**
      * Set of functions used to validate request before being handled
+     * @since 0.9.0
      */
     private array $validation_handlers = [];
 
     /**
      * Set of middlewares to run before the main handler
+     * @since 0.9.0
      */
     private array $middleware_handlers = [];
 
     /**
      * Set of functions to be run after processing the request - usually to handle response
+     * @since 0.9.0
      */
     private array $post_handlers = [];
 
@@ -70,28 +80,28 @@ class Endpoint {
     /**
      * Registers the current endpoint to using register_rest_route function.
      * Expects to be called inside the 'rest_api_init' WP action
-     *
      * @since 0.9.0
      */
-    public function register(string $base_namespace, string $endpoint_namespace, ?string $schema_dir = null): bool {
+    public function register(string $namespace, string $rest_base, ?string $schema_dir = null): bool {
         $args = [[
             'methods'               => $this->method,
             'callback'              => [$this, 'callback'],
             'permission_callback'   => $this->permission_handlers ? [$this, 'permission_callback'] : '__return_true',
         ]];
-        if (isset($this->json_schema)) {
-            $args['schema'] = $this->json_schema->get($schema_dir);
+        if ($this->resource_schema) {
+            $this->resource_schema->append_schema_dir($schema_dir);
+            $args['schema'] = [$this, 'resource_schema'];
         }
         // Override default arguments
         $args = array_merge($args, $this->args);
-        $args = apply_filters('wp_fastapi_endpoint_args', $args, $this, $base_namespace, $endpoint_namespace);
+        $args = apply_filters('wp_fastapi_endpoint_args', $args, $this, $namespace, $rest_base);
 
         // Skip registration if no args specified
         if (!$args) {
             return false;
         }
-        $route = $this->get_route($endpoint_namespace);
-        register_rest_route($base_namespace, $route, $args, $this->override);
+        $route = $this->get_route($rest_base);
+        register_rest_route($namespace, $route, $args, $this->override);
         return true;
     }
 
@@ -100,7 +110,6 @@ class Endpoint {
      *
      * @param string|array $capabilities - WP user capabilities
      * @param int $priority - permissions callback priority
-     *
      * @since 0.9.0
      */
     public function has_cap($capabilities, int $priority = 10): Endpoint {
@@ -130,17 +139,15 @@ class Endpoint {
 
     /**
      * Validates request body with a given schema
-     *
      * @since 0.9.0
      */
     public function schema($schema, $additionalProperties = false): Endpoint {
-        $this->json_schema = new Schema($schema, $additionalProperties);
+        $this->resource_schema = new Schema($schema, $additionalProperties);
         return $this;
     }
 
     /**
      * Response schema type - ignores additional fields
-     *
      * @since 0.9.0
      */
     public function returns($schema, int $priority = 10, $additionalProperties = false): Endpoint {
@@ -151,7 +158,6 @@ class Endpoint {
 
     /**
      * Registers a middleware with a given priority
-     *
      * @since 0.9.0
      */
     public function middleware(callable $middleware, int $priority = 10): Endpoint {
@@ -164,8 +170,7 @@ class Endpoint {
      *
      * @param string $name - Name of the parameter
      * @param array|callable $validate - array to be used in WP (e.g. ['required'=>true, 'default'=>null])
-     *                                   or validation callback to be used 
-     *
+     *                                   or validation callback to be used
      * @since 0.9.0
      */
     public function arg(string $name, $validate): Endpoint {
@@ -187,7 +192,6 @@ class Endpoint {
 
     /**
      * Registers a permission callback
-     *
      * @since 0.9.0
      */
     public function permission(callable $permissionCb, int $priority = 10): Endpoint {
@@ -199,7 +203,6 @@ class Endpoint {
      * WP function callback to handle this endpoint
      *
      * NOTE: For internal use only!
-     *
      * @since 0.9.0
      */
     public function callback(\WP_REST_Request $req) {
@@ -230,7 +233,6 @@ class Endpoint {
      * WP function callback to check permissions for this endpoint
      *
      * NOTE: For internal use only!
-     *
      * @since 0.9.0
      */
     public function permission_callback(\WP_REST_Request $req) {
@@ -239,18 +241,16 @@ class Endpoint {
 
     /**
      * Retrieves the current endpoint route
-     *
      * @since 0.9.0
      */
-    protected function get_route(string $endpoint_namespace): string {
-        $route = Str::finish($endpoint_namespace, '/');
+    protected function get_route(string $rest_base): string {
+        $route = Str::finish($rest_base, '/');
         $route .= $this->route;
         return apply_filters('wp_fastapi_endpoint_route', $route, $this);
     }
 
     /**
      * Replaces specials values, like: {jobId} by $req->get_param('jobId')
-     *
      * @since 0.9.0
      */
     protected function replace_special_value(\WP_REST_Request $req, $value) {
@@ -265,7 +265,6 @@ class Endpoint {
 
     /**
      * Calls each handler
-     *
      * @since 0.9.0
      */
     protected function run_handlers(array &$allHandlers, ...$args) {
@@ -286,7 +285,6 @@ class Endpoint {
 
     /**
      * Appends a callable to a given array, regarding it's priority
-     *
      * @since 0.9.0
      */
     protected function append(array &$arrVar, callable $cb, int $priority): void {
