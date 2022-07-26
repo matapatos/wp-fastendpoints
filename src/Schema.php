@@ -84,36 +84,89 @@ class Schema {
 
         wp_die("Unable to find schema file: {$this->filepath}");
     }
-        }
+
+    /**
+     * Retrieves the ID of the schema
+     * @since 0.9.0
+     */
+    private function get_schema_id() {
+        $schema_id = basename($this->filepath);
+        return apply_filters('wp_fastapi_schema_id', $schema_id, $this);
     }
 
     /**
-     * Retrieves the json schema
-     *
+     * Parses the JSON schema contents using the Opis/json-schema library
+     * @see https://opis.io/json-schema
+     * @since 0.9.0
+     */ 
+    protected function parse(\WP_REST_Request $req) {
+        $is_to_parse = apply_filters('wp_fastapi_schema_is_to_parse', true, $this);
+        if (!$is_to_parse) {
+            return;
+        }
+
+        if (!$this->contents) {
+            wp_die("Nothing to parse in schema {$this->filepath}");
+        }
+
+        $schema_id = $this->get_schema_id();
+        $validator = new Validator();
+        $resolver = $validator->resolver();
+        $resolver->registerFile($schema_id, $filepath);
+        $json = Helper::toJSON($req->get_params());
+        try {
+            $result = $validator->validate($json, $schema_id);
+        } catch (SchemaException $e) {
+            return new \WP_REST_Response("Unprocessable {$this->schema}", 422);
+        }
+
+        if (!$result->isValid()) {
+            $error = $this->getError($result);
+            return new \WP_REST_Response($error, 422);
+        }
+
+        return $res;
+    }
+
+    /**
+     * Retrieves the JSON contents of the schema
      * @since 0.9.0
      */
-    public function get(?string $schema_dir = null) {
+    public function get_contents() {
         if ($this->contents) {
+            $this->contents = apply_filters('wp_fastapi_schema_contents', $this->contents, $this);
             return $this->contents;
         }
 
-        $this->validate_schema_filepath($schema_dir);
+        $filepath = $this->get_valid_schema_filepath();
 
         // Read JSON file and retrieve it's content
-        $result = file_get_contents($this->filepath);
+        $result = file_get_contents($filepath);
         if ($result === false) {
-            return wp_die("Unable to read json schema file: {$this->filepath}");
+            return wp_die("Unable to read file: {$this->filepath}");
         }
 
         $this->contents = json_decode($result, true);
-        if (!$this->contents) {
-            return wp_die("Invalid json schema: {$this->filepath}");
+        if ($this->contents === null && \JSON_ERROR_NONE !== json_last_error()) {
+            return wp_die("Invalid json schema: {$this->filepath} " . json_last_error_msg());
         }
 
         // Update additional_properties value if set
-        if ($this->additional_properties !== null) {
+        if (is_array($this->contents) && $this->additional_properties !== null) {
             $this->contents['additionalProperties'] = $this->additional_properties;
         }
+
+        $this->contents = apply_filters('wp_fastapi_schema_contents', $this->contents, $this);
         return $this->contents;
+    }
+
+    /**
+     * Validates the JSON schema
+     * @see $this->parse()
+     * @since 0.9.0
+     */
+    public function validate(\WP_REST_Request $req) {
+        $this->contents = $this->get_contents();
+        return $this->parse($req);
     }
 }
