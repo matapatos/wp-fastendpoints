@@ -7,64 +7,56 @@ use Illuminate\Support\Str;
 class Router {
 
     /**
-     * Router namespace
-     *
+     * Router rest base
      * @since 0.9.0
      */
-    private string $namespace;
+    private string $base;
 
     /**
      * Flag to determine if the current router has already being built.
      * This is important to prevent building a subRouter before the parent
      * finishes the building process
-     *
      * @since 0.9.0
      */
     private bool $registered = false;
 
     /**
-     * Router namespace
-     *
+     * Parent router
      * @since 0.9.0
      */
     private ?Router $parent = null;
 
     /**
      * Sub routers
-     *
      * @since 0.9.0
      */
     private array $sub_routers = [];
 
     /**
      * REST Router endpoints
-     *
      * @since 0.9.0
      */
     private array $endpoints = [];
 
     /**
      * Schema directory path
-     *
      * @since 0.9.0
      */
     private ?string $schema_dir = null;
 
     /**
      * Router version - used only if it's a parent router
-     *
      * @since 0.9.0
      */
     private $version;
 
-    public function __construct(string $namespace = 'api', string $version = '') {
-        $this->namespace = $namespace;
+    public function __construct(string $base = 'api', string $version = '') {
+        $this->base = $base;
         $this->version = $version;
     }
 
     /**
      * GET WP Endpoint
-     *
      * @since 0.9.0
      */
     public function get(string $route, callable $handler, array $args = []) {
@@ -73,7 +65,6 @@ class Router {
 
     /**
      * POST WP Endpoint
-     *
      * @since 0.9.0
      */
     public function post(string $route, callable $handler, array $args = []) {
@@ -82,7 +73,6 @@ class Router {
 
     /**
      * PUT WP Endpoint
-     *
      * @since 0.9.0
      */
     public function put(string $route, callable $handler, array $args = []) {
@@ -91,7 +81,6 @@ class Router {
 
     /**
      * DELETE WP Endpoint
-     *
      * @since 0.9.0
      */
     public function delete(string $route, callable $handler, array $args = []) {
@@ -100,7 +89,6 @@ class Router {
 
     /**
      * Includes a router as a sub router
-     *
      * @since 0.9.0
      */
     public function include_router(Router &$router) {
@@ -110,7 +98,6 @@ class Router {
 
     /**
      * Includes a router as a sub router
-     *
      * @since 0.9.0
      */
     public function set_schema_dir(string $path) {
@@ -123,7 +110,6 @@ class Router {
 
     /**
      * Adds all actions required to register the defined endpoints
-     *
      * @since 0.9.0
      */ 
     public function register() {
@@ -133,8 +119,8 @@ class Router {
                 'Call the build() function on the parent router only!');
             }
 
-            if ($this->namespace) {
-                wp_die('No api namespace specified in parent router');
+            if ($this->base) {
+                wp_die('No api namespace specified in the parent router');
             }
 
             if ($this->version) {
@@ -145,9 +131,9 @@ class Router {
         // Build current router endpoints
         add_action('rest_api_init', [$this, 'register_endpoints']);
 
-        // Call the build function of each sub router
+        // Call the register function for each sub router
         foreach ($this->sub_routers as $router) {
-            $router->build();
+            $router->register();
         }
         return true;
     }
@@ -156,29 +142,27 @@ class Router {
      * Registers the current router REST endpoints
      *
      * NOTE: For internal use only!
-     *
      * @since 0.9.0
      */
     public function register_endpoints() {
-        $base_namespace = $this->get_base_namespace();
-        $endpoint_namespace = $this->get_endpoint_namespace();
+        $namespace = $this->get_namespace();
+        $rest_base = $this->get_rest_base();
         foreach ($this->endpoints as $e) {
-            $e->register($base_namespace, $endpoint_namespace, $this->schema_dir);
+            $e->register($namespace, $rest_base, $this->schema_dir);
         }
         $this->registered = true;
     }
 
     /**
      * Retrieves the base router namespace for each endpoint
-     *
      * @since 0.9.0
      */
-    private function get_base_namespace($is_to_apply_filters = true) {
+    private function get_namespace($is_to_apply_filters = true) {
         if ($this->parent) {
             return $this->parent->get_namespace(false);
         }
 
-        $namespace = Str::of($this->namespace)
+        $namespace = Str::of($this->base)
             ->trim('/');
         if ($this->version) {
             $namespace .= '/' . Str::of($this->version)->trim('/');
@@ -189,41 +173,39 @@ class Router {
             return $namespace;
         }
 
-        return apply_filters('wp_fastapi_router_base_namespace', $namespace, $this);
+        return apply_filters('wp_fastapi_router_namespace', $namespace, $this);
     }
 
     /**
-     * Retrieves the namespace - if any - after the base namespace. In other words, the namespaces + versions
-     * of sub routers
-     *
+     * Retrieves the base REST path of the current router, if any. This path
+     * is what follows the namespace
      * @since 0.9.0
      */
-    private function get_endpoint_namespace($is_to_apply_filters = true) {
+    private function get_rest_base($is_to_apply_filters = true) {
         if (!$this->parent) {
             return '';
         }
 
-        $namespace = $this->parent->get_endpoint_namespace(false);
-        if ($namespace) {
-            $namespace .= '/';
+        $rest_base = $this->parent->get_endpoint_namespace(false);
+        if ($rest_base) {
+            $rest_base .= '/';
         }
 
-        $namespace .= Str::of($this->namespace)->trim('/');
+        $rest_base .= Str::of($this->base)->trim('/');
         if ($this->version) {
-            $namespace .= '/' . Str::of($this->version)->trim('/');
+            $rest_base .= '/' . Str::of($this->version)->trim('/');
         }
 
         // Ignore recursive call to apply_filters - without it, would be anoying for developers
         if (!$is_to_apply_filters) {
-            return $namespace;
+            return $rest_base;
         }
 
-        return apply_filters('wp_fastapi_router_endpoint_namespace', $namespace, $this);
+        return apply_filters('wp_fastapi_router_rest_base', $rest_base, $this);
     }
 
     /**
      * Creates and retrieves a new endpoint instance
-     *
      * @since 0.9.0
      */
     private function endpoint(string $method, string $route, callable $handler, array $args = []) {
