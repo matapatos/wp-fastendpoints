@@ -117,12 +117,12 @@ class Schema {
         try {
             $result = $validator->validate($json, $schema_id);
         } catch (SchemaException $e) {
-            return new \WP_REST_Response("Unprocessable {$this->schema}", 422);
+            return new \WP_Error(\WP_Http::UNPROCESSABLE_ENTITY, "Unprocessable schema {$schema_id}", $e->getMessage());
         }
 
         if (!$result->isValid()) {
             $error = $this->getError($result);
-            return new \WP_REST_Response($error, 422);
+            return new \WP_Error(\WP_Http::UNPROCESSABLE_ENTITY, $error);
         }
 
         return $res;
