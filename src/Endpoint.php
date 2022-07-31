@@ -82,15 +82,15 @@ class Endpoint {
      * Expects to be called inside the 'rest_api_init' WP action
      * @since 0.9.0
      */
-    public function register(string $namespace, string $rest_base, ?string $schema_dir = null): bool {
+    public function register(string $namespace, string $rest_base, array $schema_dirs = []): bool {
         $args = [[
             'methods'               => $this->method,
             'callback'              => [$this, 'callback'],
             'permission_callback'   => $this->permission_handlers ? [$this, 'permission_callback'] : '__return_true',
         ]];
         if ($this->resource_schema) {
-            $this->resource_schema->append_schema_dir($schema_dir);
-            $args['schema'] = [$this, 'resource_schema'];
+            $this->resource_schema->append_schema_dir($schema_dirs);
+            $args['schema'] = [$this->resource_schema, 'get_contents'];
         }
         // Override default arguments
         $args = array_merge($args, $this->args);
@@ -144,8 +144,9 @@ class Endpoint {
      * Validates request body with a given schema
      * @since 0.9.0
      */
-    public function schema($schema, $additionalProperties = false): Endpoint {
+    public function schema($schema, $additionalProperties = false, int $priority = 10): Endpoint {
         $this->resource_schema = new Schema($schema, $additionalProperties);
+        $this->append($this->validation_handlers, [$this->resource_schema, 'validate'], $priority);
         return $this;
     }
 

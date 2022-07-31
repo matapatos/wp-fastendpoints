@@ -2,7 +2,18 @@
 
 namespace WP\FastAPI;
 
-use Illuminate\Support\Str;
+use Illuminate\Support\{
+    Str,
+    Arr,
+};
+use Opis\JsonSchema\{
+    Validator,
+    Helper,
+    ValidationResult,
+    Errors\ErrorFormatter,
+    Errors\ValidationError,
+    Exceptions\SchemaException,
+};
 
 class Schema {
 
@@ -49,20 +60,23 @@ class Schema {
      * Appends an additional directory where to look for the schema
      * @since 0.9.0
      */
-    public function append_schema_dir(string $schema_dir) {
+    public function append_schema_dir($schema_dir) {
         if (!$schema_dir) {
             wp_die('Invalid schema directory');
         }
 
-        if (is_file($schema_dir)) {
-            wp_die("Expected a directory with schemas but got a file: {$schema_dir}");
+        $schema_dir = Arr::wrap($schema_dir);
+        foreach ($schema_dir as $dir) {
+            if (is_file($dir)) {
+                wp_die("Expected a directory with schemas but got a file: {$dir}");
+            }
+
+            if (!is_dir($dir)) {
+                wp_die("Schema directory not found: {$dir}");
+            }
         }
 
-        if (!is_dir($schema_dir)) {
-            wp_die("Schema directory not found: {$schema_dir}");
-        }
-
-        $this->schema_dirs[] = $schema_dir;
+        $this->schema_dirs = $this->schema_dirs + $schema_dir;
     }
 
     /**
@@ -71,12 +85,12 @@ class Schema {
      * @since 0.9.0
      */
     private function get_valid_schema_filepath() {
-        if (!is_file($this->filepath)) {
+        if (is_file($this->filepath)) {
             return $this->filepath;
         }
 
         foreach ($this->schema_dirs as $dir) {
-            $filepath = path_join($this->schema_dir, $this->filepath);
+            $filepath = path_join($dir, $this->filepath);
             if (is_file($filepath)) {
                 return $filepath;
             }
@@ -89,9 +103,21 @@ class Schema {
      * Retrieves the ID of the schema
      * @since 0.9.0
      */
-    private function get_schema_id() {
-        $schema_id = basename($this->filepath);
-        return apply_filters('wp_fastapi_schema_id', $schema_id, $this);
+    private function get_schema_id(\WP_REST_Request $req) {
+        $filename = basename($this->filepath);
+        $route = Str::start('/wp-json', $req->get_route());
+        $route = Str::finish($route, $filename);
+        $schema_id = get_site_url(null, $route);
+        return apply_filters('wp_fastapi_schema_id', $schema_id, $this, $req);
+    }
+
+    /**
+     * Formats a Opis/json-schema error
+     * @since 0.9.0
+     */
+    private function get_error(ValidationResult $result) {
+        $formatter = new ErrorFormatter();
+        return apply_filters('wp_fastapi_schema_error', $formatter->formatKeyed($result->error()), $result, $this);
     }
 
     /**
@@ -106,26 +132,27 @@ class Schema {
         }
 
         if (!$this->contents) {
-            wp_die("Nothing to parse in schema {$this->filepath}");
+            return true;
         }
 
-        $schema_id = $this->get_schema_id();
+        $schema_id = $this->get_schema_id($req);
         $validator = new Validator();
         $resolver = $validator->resolver();
-        $resolver->registerFile($schema_id, $filepath);
-        $json = Helper::toJSON($req->get_params());
+        $params = apply_filters('wp_fastapi_schema_params', $req->get_params(), $req, $this);
+        $json = Helper::toJSON($params);
+        $schema = Helper::toJSON($this->contents);
         try {
-            $result = $validator->validate($json, $schema_id);
+            $result = $validator->validate($json, $schema);
         } catch (SchemaException $e) {
             return new \WP_Error(\WP_Http::UNPROCESSABLE_ENTITY, "Unprocessable schema {$schema_id}", $e->getMessage());
         }
 
         if (!$result->isValid()) {
-            $error = $this->getError($result);
+            $error = $this->get_error($result);
             return new \WP_Error(\WP_Http::UNPROCESSABLE_ENTITY, $error);
         }
 
-        return $res;
+        return true;
     }
 
     /**
@@ -148,7 +175,7 @@ class Schema {
 
         $this->contents = json_decode($result, true);
         if ($this->contents === null && \JSON_ERROR_NONE !== json_last_error()) {
-            return wp_die("Invalid json schema: {$this->filepath} " . json_last_error_msg());
+            return wp_die("Invalid json file: {$this->filepath} " . json_last_error_msg());
         }
 
         // Update additional_properties value if set

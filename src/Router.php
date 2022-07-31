@@ -42,7 +42,7 @@ class Router {
      * Schema directory path
      * @since 0.9.0
      */
-    private ?string $schema_dir = null;
+    private array $schema_dirs = [];
 
     /**
      * Router version - used only if it's a parent router
@@ -100,12 +100,16 @@ class Router {
      * Includes a router as a sub router
      * @since 0.9.0
      */
-    public function set_schema_dir(string $path) {
-        if (!is_dir($path)) {
-            wp_die("Schema directory is not a directory or it doesn\'t exists: {$path}");
+    public function append_schema_dir(string $path) {
+        if (!file_exists($path)) {
+            wp_die("Schema directory doesn't exists: {$path}");
         }
 
-        $this->schema_dir = $path;
+        if (!is_dir($path)) {
+            wp_die("Expected a directory but a file given: {$path}");
+        }
+
+        $this->schema_dirs[] = $path;
     }
 
     /**
@@ -126,6 +130,8 @@ class Router {
             if ($this->version) {
                 wp_die('No api version specified in the parent router');
             }
+        } else {
+            do_action('wp_fastapi_before_register', $this);
         }
 
         // Build current router endpoints
@@ -134,6 +140,10 @@ class Router {
         // Call the register function for each sub router
         foreach ($this->sub_routers as $router) {
             $router->register();
+        }
+
+        if (!$this->parent) {
+            do_action('wp_fastapi_after_register', $this);
         }
         return true;
     }
@@ -148,7 +158,7 @@ class Router {
         $namespace = $this->get_namespace();
         $rest_base = $this->get_rest_base();
         foreach ($this->endpoints as $e) {
-            $e->register($namespace, $rest_base, $this->schema_dir);
+            $e->register($namespace, $rest_base, $this->schema_dirs);
         }
         $this->registered = true;
     }
