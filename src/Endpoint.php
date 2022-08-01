@@ -118,19 +118,28 @@ class Endpoint {
             foreach ($capabilities as $cap) {
                 if (is_string($cap)) {
                     if (!current_user_can($cap)) {
-                        return new \WP_Error(\WP_Http::FORBIDDEN, 'Not enough permissions');
+                        return new \WP_Error(
+                            'rest_forbidden',
+                            'Not enough permissions',
+                            ['status' => \WP_Http::FORBIDDEN],
+                        );
                     }
                 } elseif (is_array($cap)) {
                     if (count($cap) > 1) {
                         $cap[1] = $this->replace_special_value($req, $cap[1]);
                     }
                     if (!current_user_can(...$cap)) {
-                        return new \WP_Error(\WP_Http::FORBIDDEN, 'Not enough permissions');   
+                        return new \WP_Error(
+                            'rest_forbidden',
+                            'Not enough permissions',
+                            ['status' => \WP_Http::FORBIDDEN],
+                        );   
                     }
                 } else {
                     return new \WP_Error(
-                        \WP_Http::INTERNAL_SERVER_ERROR,
-                        'Invalid capability. Expected string or array but ' . $cap . ' given'
+                        'internal_server_error',
+                        'Invalid capability. Expected string or array but ' . $cap . ' given',
+                        ['status' => \WP_Http::INTERNAL_SERVER_ERROR],
                     );
                 }
             }
