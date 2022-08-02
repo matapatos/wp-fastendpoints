@@ -83,11 +83,11 @@ class Endpoint {
      * @since 0.9.0
      */
     public function register(string $namespace, string $rest_base, array $schema_dirs = []): bool {
-        $args = [[
+        $args = [
             'methods'               => $this->method,
             'callback'              => [$this, 'callback'],
             'permission_callback'   => $this->permission_handlers ? [$this, 'permission_callback'] : '__return_true',
-        ]];
+        ];
         if ($this->resource_schema) {
             $this->resource_schema->append_schema_dir($schema_dirs);
             $args['schema'] = [$this->resource_schema, 'get_contents'];
