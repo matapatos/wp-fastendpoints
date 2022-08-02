@@ -136,11 +136,7 @@ class Endpoint {
                         );   
                     }
                 } else {
-                    return new \WP_Error(
-                        'internal_server_error',
-                        'Invalid capability. Expected string or array but ' . $cap . ' given',
-                        ['status' => \WP_Http::INTERNAL_SERVER_ERROR],
-                    );
+                    wp_die('Invalid capability. Expected string or array but ' . $cap . ' given');
                 }
             }
 
