@@ -1,47 +1,50 @@
 <?php
 
-namespace WP\FastAPI;
+namespace WP\FastAPI\Schemas;
 
 use Illuminate\Support\{
     Str,
     Arr,
 };
 use Opis\JsonSchema\{
-    Validator,
-    Helper,
     ValidationResult,
     Errors\ErrorFormatter,
-    Errors\ValidationError,
-    Exceptions\SchemaException,
 };
 
-class Schema {
+abstract class Base {
+
+    /**
+     * Filter suffix used in this class
+     * @since 0.9.0
+     */ 
+    protected string $suffix;
 
     /**
      * The filepath of the JSON Schema: absolute path or relative*
      * @since 0.9.0
      */
-    private string $filepath;
+    protected string $filepath;
 
     /**
      * The JSON Schema
      * @since 0.9.0
      */
-    private $contents;
+    protected $contents;
 
     /**
      * Directories where to look for a schema
      * @since 0.9.0
      */
-    private array $schema_dirs = [];
+    protected array $schema_dirs = [];
 
     /**
      * Should the schema allow additional properties?
      * If set to null it will use the value set in the schema
      */
-    private ?bool $additional_properties;
+    protected ?bool $additional_properties;
 
     public function __construct($filepath, ?bool $additional_properties = null) {
+        $this->suffix = $this->get_suffix();
         $this->additional_properties = $additional_properties;
         if (is_string($filepath)) {
             $this->filepath = Str::finish($filepath, '.json');
@@ -54,6 +57,14 @@ class Schema {
             $type = gettype($filepath);
             wp_die("Schema expected an array or the filepath but {$type} given");
         }
+    }
+
+    /**
+     * Retrieves the child class name in snake case
+     * @since 0.9.0
+     */
+    protected function get_suffix() {
+        return Str::snake(basename(Str::replace('\\', '/', get_class($this))));
     }
 
     /**
@@ -84,7 +95,7 @@ class Schema {
      * in the given schema directory
      * @since 0.9.0
      */
-    private function get_valid_schema_filepath() {
+    protected function get_valid_schema_filepath() {
         if (is_file($this->filepath)) {
             return $this->filepath;
         }
@@ -103,56 +114,21 @@ class Schema {
      * Retrieves the ID of the schema
      * @since 0.9.0
      */
-    private function get_schema_id(\WP_REST_Request $req) {
+    protected function get_schema_id(\WP_REST_Request $req) {
         $filename = basename($this->filepath);
         $route = Str::start('/wp-json', $req->get_route());
         $route = Str::finish($route, $filename);
         $schema_id = get_site_url(null, $route);
-        return apply_filters('wp_fastapi_schema_id', $schema_id, $this, $req);
+        return apply_filters($this->suffix . '_id', $schema_id, $this, $req);
     }
 
     /**
      * Formats a Opis/json-schema error
      * @since 0.9.0
      */
-    private function get_error(ValidationResult $result) {
+    protected function get_error(ValidationResult $result) {
         $formatter = new ErrorFormatter();
-        return apply_filters('wp_fastapi_schema_error', $formatter->formatKeyed($result->error()), $result, $this);
-    }
-
-    /**
-     * Parses the JSON schema contents using the Opis/json-schema library
-     * @see https://opis.io/json-schema
-     * @since 0.9.0
-     */ 
-    protected function parse(\WP_REST_Request $req) {
-        $is_to_parse = apply_filters('wp_fastapi_schema_is_to_parse', true, $this);
-        if (!$is_to_parse) {
-            return;
-        }
-
-        if (!$this->contents) {
-            return true;
-        }
-
-        $schema_id = $this->get_schema_id($req);
-        $validator = new Validator();
-        $resolver = $validator->resolver();
-        $params = apply_filters('wp_fastapi_schema_params', $req->get_params(), $req, $this);
-        $json = Helper::toJSON($params);
-        $schema = Helper::toJSON($this->contents);
-        try {
-            $result = $validator->validate($json, $schema);
-        } catch (SchemaException $e) {
-            return new \WP_Error(\WP_Http::UNPROCESSABLE_ENTITY, "Unprocessable schema {$schema_id}", $e->getMessage());
-        }
-
-        if (!$result->isValid()) {
-            $error = $this->get_error($result);
-            return new \WP_Error(\WP_Http::UNPROCESSABLE_ENTITY, $error);
-        }
-
-        return true;
+        return apply_filters($this->suffix . '_error', $formatter->formatKeyed($result->error()), $result, $this);
     }
 
     /**
@@ -161,7 +137,7 @@ class Schema {
      */
     public function get_contents() {
         if ($this->contents) {
-            $this->contents = apply_filters('wp_fastapi_schema_contents', $this->contents, $this);
+            $this->contents = apply_filters($this->suffix . '_contents', $this->contents, $this);
             return $this->contents;
         }
 
@@ -183,17 +159,7 @@ class Schema {
             $this->contents['additionalProperties'] = $this->additional_properties;
         }
 
-        $this->contents = apply_filters('wp_fastapi_schema_contents', $this->contents, $this);
+        $this->contents = apply_filters($this->suffix . '_contents', $this->contents, $this);
         return $this->contents;
-    }
-
-    /**
-     * Validates the JSON schema
-     * @see $this->parse()
-     * @since 0.9.0
-     */
-    public function validate(\WP_REST_Request $req) {
-        $this->contents = $this->get_contents();
-        return $this->parse($req);
     }
 }

@@ -6,6 +6,10 @@ use Illuminate\Support\{
     Arr,
     Str,
 };
+use WP\FastAPI\Schemas\{
+    Schema,
+    Resource,
+};
 
 class Endpoint {
 
@@ -40,10 +44,16 @@ class Endpoint {
     private bool $override;
 
     /**
-     * JSON Schema to validate body
+     * JSON Schema used to validate request params
      * @since 0.9.0
      */
-    public ?Schema $resource_schema = null;
+    public ?Schema $schema = null;
+
+    /**
+     * JSON Schema used to retrieve data to client - ignores additional properties
+     * @since 0.9.0
+     */
+    public ?Resource $resource = null;
 
     /**
      * Set of functions used inside the permission_callback endpoint
@@ -88,9 +98,12 @@ class Endpoint {
             'callback'              => [$this, 'callback'],
             'permission_callback'   => $this->permission_handlers ? [$this, 'permission_callback'] : '__return_true',
         ];
-        if ($this->resource_schema) {
-            $this->resource_schema->append_schema_dir($schema_dirs);
-            $args['schema'] = [$this->resource_schema, 'get_contents'];
+        if ($this->schema) {
+            $this->schema->append_schema_dir($schema_dirs);
+            $args['schema'] = [$this->schema, 'get_contents'];
+        }
+        if ($this->resource) {
+            $this->resource->append_schema_dir($schema_dirs);
         }
         // Override default arguments
         $args = array_merge($args, $this->args);
@@ -146,22 +159,25 @@ class Endpoint {
     }
 
     /**
-     * Validates request body with a given schema
+     * Validates request parameters according to this schema
      * @since 0.9.0
      */
     public function schema($schema, $additionalProperties = false, int $priority = 10): Endpoint {
-        $this->resource_schema = new Schema($schema, $additionalProperties);
-        $this->append($this->validation_handlers, [$this->resource_schema, 'validate'], $priority);
+        $this->schema = new Schema($schema, $additionalProperties);
+        $this->append($this->validation_handlers, [$this->schema, 'validate'], $priority);
         return $this;
     }
 
     /**
-     * Response schema type - ignores additional fields
+     * Sets the JSON schema to be used as a resource - data retrieved in endpoint.
+     * Resources have two main benefits:
+     * 1) ignore additional properties in WP_REST_Response, avoiding the leakage of unnecessary data and
+     * 2) making sure that the required data is retrieved
      * @since 0.9.0
      */
-    public function returns($schema, int $priority = 10, $additionalProperties = false): Endpoint {
-        $this->schema = new Schema($schema, $additionalProperties);
-        $this->append($this->post_handlers, $this->schema, $priority);
+    public function returns($schema, int $priority = 10): Endpoint {
+        $this->resource = new Resource($schema);
+        $this->append($this->post_handlers, [$this->resource, 'returns'], $priority);
         return $this;
     }
 
