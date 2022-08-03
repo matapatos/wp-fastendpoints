@@ -4,7 +4,9 @@
     "description": "Wordpress REST endpoints made easy",
     "keywords": ["Wordpress", "fastest", "REST", "API", "easy"],
     "license": "MIT",
-    "require": {},
+    "require": {
+        "opis/json-schema": "^2.3"
+    },
     "autoload": {
         "psr-4": {
             "WP\\FastAPI\\": "src/"
