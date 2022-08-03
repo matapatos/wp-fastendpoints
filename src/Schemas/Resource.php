@@ -39,11 +39,11 @@ class Resource extends Base {
         $schema_id = $this->get_schema_id($req);
         $validator = new Validator();
         $resolver = $validator->resolver();
-        $response = apply_filters($this->suffix . '_response', $res, $req, $this);
-        $json = Helper::toJSON($response);
+        $res = apply_filters($this->suffix . '_response', $res, $req, $this);
+        $res = Helper::toJSON($res);
         $schema = Helper::toJSON($this->contents);
         try {
-            $result = $validator->validate($json, $schema);
+            $result = $validator->validate($res, $schema);
         } catch (SchemaException $e) {
             return new \WP_Error(
                 'unprocessable_entity',
@@ -53,12 +53,20 @@ class Resource extends Base {
         }
 
         if (!$result->isValid()) {
-            $error = $this->get_error($result);
-            return new \WP_Error(
-                'unprocessable_entity',
-                $error,
-                ['status' => \WP_Http::UNPROCESSABLE_ENTITY],
-            );
+            $error = $result->error();
+            if ($error->keyword() !== 'additionalProperties') {
+                $error = $this->get_error($result);
+                return new \WP_Error(
+                    'unprocessable_entity',
+                    $error,
+                    ['status' => \WP_Http::UNPROCESSABLE_ENTITY],
+                );
+            }
+
+            // Remove additional data
+            foreach ($error->args()['properties'] as $index => $name) {
+                unset($res->{$name});
+            }
         }
 
         return $res;
