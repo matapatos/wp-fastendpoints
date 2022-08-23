@@ -1,2 +1,2 @@
-# WP-FastAPI
-Wordpress REST endpoints made easy
+# WP-FastEndpoints
+Fast to type and fast to run Wordpress REST endpoints
