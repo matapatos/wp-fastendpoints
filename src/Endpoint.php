@@ -1,321 +1,483 @@
 <?php
 
-namespace WP\FastAPI;
+/**
+ * Holds logic for registering custom REST endpoints
+ *
+ * @since 0.9.0
+ *
+ * @package wp-fastendpoints
+ * @license MIT
+ */
+
+declare(strict_types=1);
+
+namespace WP\FastEndpoints;
 
 use Illuminate\Support\{
-    Arr,
-    Str,
+	\Arr,
+	\Str,
 };
-use WP\FastAPI\Schemas\{
-    Schema,
-    Resource,
+use WP\FastEndpoints\Schemas\{
+	\Schema,
+	\Resource,
 };
+use WP_REST_Request;
+use WP_Error;
+use WP_Http;
 
-class Endpoint {
+/**
+ * REST Endpoint that registers custom WordPress REST endpoint using register_rest_route
+ *
+ * @since 0.9.0
+ *
+ * @author André Gil <andre_gil22@hotmail.com>
+ */
+class Endpoint
+{
+	/**
+	 * HTTP endpoint method - also supports values from WP_REST_Server (e.g. WP_REST_Server::READABLE)
+	 *
+	 * @since 0.9.0
+	 *
+	 * @var string
+	 */
+	private string $method;
 
-    /**
-     * HTTP endpoint method - supports the same as WP
-     * @since 0.9.0
-     */
-    private string $method;
+	/**
+	 * HTTP route
+	 *
+	 * @since 0.9.0
+	 *
+	 * @var string
+	 */
+	private string $route;
 
-    /**
-     * HTTP route
-     * @since 0.9.0
-     */
-    private string $route;
+	/**
+	 * Same as the register_rest_route $args parameter
+	 *
+	 * @since 0.9.0
+	 *
+	 * @var array
+	 */
+	private array $args = [];
 
-    /**
-     * WP endpoint $args argument
-     * @since 0.9.0
-     */
-    private array $args = [];
+	/**
+	 * Main endpoint handler
+	 *
+	 * @since 0.9.0
+	 *
+	 * @var callable
+	 */
+	private $handler;
 
-    /**
-     * Main endpoint handler
-     * @since 0.9.0
-     */
-    private $handler;
+	/**
+	 * Same as the register_rest_route $override parameter
+	 *
+	 * @since 0.9.0
+	 *
+	 * @var bool
+	 */
+	private bool $override;
 
-    /**
-     * register_rest_route $override argument
-     * @since 0.9.0
-     */
-    private bool $override;
+	/**
+	 * JSON Schema used to validate request params
+	 *
+	 * @since 0.9.0
+	 *
+	 * @var ?Schema
+	 */
+	public ?Schema $schema = null;
 
-    /**
-     * JSON Schema used to validate request params
-     * @since 0.9.0
-     */
-    public ?Schema $schema = null;
+	/**
+	 * JSON Schema used to retrieve data to client - ignores additional properties
+	 *
+	 * @since 0.9.0
+	 *
+	 * @var ?Resource
+	 */
+	public ?Resource $resource = null;
 
-    /**
-     * JSON Schema used to retrieve data to client - ignores additional properties
-     * @since 0.9.0
-     */
-    public ?Resource $resource = null;
+	/**
+	 * Set of functions used inside the permissionCallback endpoint
+	 *
+	 * @since 0.9.0
+	 *
+	 * @var array
+	 */
+	private array $permissionHandlers = [];
 
-    /**
-     * Set of functions used inside the permission_callback endpoint
-     * @since 0.9.0
-     */    
-    private array $permission_handlers = [];
+	/**
+	 * Set of functions used to validate request before being handled
+	 *
+	 * @since 0.9.0
+	 *
+	 * @var array
+	 */
+	private array $validationHandlers = [];
 
-    /**
-     * Set of functions used to validate request before being handled
-     * @since 0.9.0
-     */
-    private array $validation_handlers = [];
+	/**
+	 * Set of middlewares to run before the main handler
+	 *
+	 * @since 0.9.0
+	 *
+	 * @var array
+	 */
+	private array $middlewareHandlers = [];
 
-    /**
-     * Set of middlewares to run before the main handler
-     * @since 0.9.0
-     */
-    private array $middleware_handlers = [];
+	/**
+	 * Set of functions to be run after processing the request - usually to handle response
+	 *
+	 * @since 0.9.0
+	 *
+	 * @var array
+	 */
+	private array $postHandlers = [];
 
-    /**
-     * Set of functions to be run after processing the request - usually to handle response
-     * @since 0.9.0
-     */
-    private array $post_handlers = [];
+	/**
+	 * Creates a new instance of Endpoint
+	 *
+	 * @since 0.9.0
+	 *
+	 * @param string $method - POST, GET, PUT or DELETE or a value from WP_REST_Server (e.g. WP_REST_Server::EDITABLE).
+	 * @param string $route - Endpoint route.
+	 * @param callable $handler - User specified handler for the endpoint.
+	 * @param array $args - Same as the WordPress register_rest_route $args parameter. If set it can override the default
+	 * WP FastEndpoints arguments.
+	 * @param bool $override - Same as the WordPress register_rest_route $override parameter.
+	 */
+	public function __construct(string $method, string $route, callable $handler, array $args = [], bool $override = false)
+	{
+		$this->method = $method;
+		$this->route = $route;
+		$this->handler = $handler;
+		$this->args = $args;
+		$this->override = $override;
+	}
 
-    public function __construct(string $method, string $route, callable $handler, array $args = [], $override = false) {
-        $this->method = $method;
-        $this->route = $route;
-        $this->handler = $handler;
-        $this->args = $args;
-        $this->override = $override;
-    }
+	/**
+	 * Registers the current endpoint using register_rest_route function.
+	 *
+	 * NOTE: Expects to be called inside the 'rest_api_init' WordPress action
+	 *
+	 * @since 0.9.0
+	 *
+	 * @param string $namespace - WordPress REST namespace.
+	 * @param string $restBase - Endpoint REST base.
+	 * @param array $schemaDirs - Array of directories to look for JSON schemas.
+	 * @return true|false - true if successfully registered a REST route or false otherwise.
+	 */
+	public function register(string $namespace, string $restBase, array $schemaDirs = []): bool
+	{
+		$args = [
+			'methods'               => $this->method,
+			'callback'              => [$this, 'callback'],
+			'permissionCallback'   => $this->permissionHandlers ? [$this, 'permissionCallback'] : '__return_true',
+		];
+		if ($this->schema) {
+			$this->schema->append_schema_dir($schemaDirs);
+			$args['schema'] = [$this->schema, 'get_contents'];
+		}
+		if ($this->resource) {
+			$this->resource->append_schema_dir($schemaDirs);
+		}
+		// Override default arguments.
+		$args = \array_merge($args, $this->args);
+		$args = \apply_filters('wp_fastendpoints_endpoint_args', $args, $this, $namespace, $restBase);
 
-    /**
-     * Registers the current endpoint to using register_rest_route function.
-     * Expects to be called inside the 'rest_api_init' WP action
-     * @since 0.9.0
-     */
-    public function register(string $namespace, string $rest_base, array $schema_dirs = []): bool {
-        $args = [
-            'methods'               => $this->method,
-            'callback'              => [$this, 'callback'],
-            'permission_callback'   => $this->permission_handlers ? [$this, 'permission_callback'] : '__return_true',
-        ];
-        if ($this->schema) {
-            $this->schema->append_schema_dir($schema_dirs);
-            $args['schema'] = [$this->schema, 'get_contents'];
-        }
-        if ($this->resource) {
-            $this->resource->append_schema_dir($schema_dirs);
-        }
-        // Override default arguments
-        $args = array_merge($args, $this->args);
-        $args = apply_filters('wp_fastapi_endpoint_args', $args, $this, $namespace, $rest_base);
+		// Skip registration if no args specified.
+		if (!$args) {
+			return false;
+		}
+		$route = $this->getRoute($restBase);
+		\register_rest_route($namespace, $route, $args, $this->override);
+		return true;
+	}
 
-        // Skip registration if no args specified
-        if (!$args) {
-            return false;
-        }
-        $route = $this->get_route($rest_base);
-        register_rest_route($namespace, $route, $args, $this->override);
-        return true;
-    }
+	/**
+	 * Checks if the current user has the given WP capabilities
+	 *
+	 * @since 0.9.0
+	 *
+	 * @param string|array $capabilities - WordPress user capabilities.
+	 * @param int $priority - Specifies the order in which the function is executed.
+	 * Lower numbers correspond with earlier execution, and functions with the same priority
+	 * are executed in the order in which they were added. Default value: 10.
+	 * @return Endpoint
+	 */
+	public function hasCap($capabilities, int $priority = 10): Endpoint
+	{
+		$capabilities = Arr::wrap($capabilities);
+		$this->permission(function (WP_REST_Request $req) use ($capabilities) {
+			foreach ($capabilities as $cap) {
+				if (\is_string($cap)) {
+					if (!\current_user_can($cap)) {
+						return new WP_Error(
+							'rest_forbidden',
+							'Not enough permissions',
+							['status' => WP_Http::FORBIDDEN],
+						);
+					}
+				} elseif (\is_array($cap)) {
+					if (\count($cap) > 1) {
+						$cap[1] = $this->replaceSpecialValue($req, $cap[1]);
+					}
+					if (!\current_user_can(...$cap)) {
+						return new WP_Error(
+							'rest_forbidden',
+							'Not enough permissions',
+							['status' => WP_Http::FORBIDDEN],
+						);
+					}
+				} else {
+					\wp_die(\esc_html('Invalid capability. Expected string or array but ' . $cap . ' given'));
+				}
+			}
 
-    /**
-     * Checks if the current user has the given WP capabilities
-     *
-     * @param string|array $capabilities - WP user capabilities
-     * @param int $priority - permissions callback priority
-     * @since 0.9.0
-     */
-    public function has_cap($capabilities, int $priority = 10): Endpoint {
-        $capabilities = Arr::wrap($capabilities);
-        $this->permission(function (\WP_REST_Request $req) use ($capabilities) {
-            foreach ($capabilities as $cap) {
-                if (is_string($cap)) {
-                    if (!current_user_can($cap)) {
-                        return new \WP_Error(
-                            'rest_forbidden',
-                            'Not enough permissions',
-                            ['status' => \WP_Http::FORBIDDEN],
-                        );
-                    }
-                } elseif (is_array($cap)) {
-                    if (count($cap) > 1) {
-                        $cap[1] = $this->replace_special_value($req, $cap[1]);
-                    }
-                    if (!current_user_can(...$cap)) {
-                        return new \WP_Error(
-                            'rest_forbidden',
-                            'Not enough permissions',
-                            ['status' => \WP_Http::FORBIDDEN],
-                        );   
-                    }
-                } else {
-                    wp_die('Invalid capability. Expected string or array but ' . $cap . ' given');
-                }
-            }
+			return true;
+		}, $priority);
+		return $this;
+	}
 
-            return true;
-        }, $priority);
-        return $this;
-    }
+	/**
+	 * Adds a schema validation to the validationHandlers, which will be later called in advance to
+	 * validate a REST request according to the given JSON schema.
+	 *
+	 * @since 0.9.0
+	 *
+	 * @param string|array $schema - Filepath to the JSON schema or a JSON schema as an array.
+	 * @param ?bool $additionalProperties - JSON Schema option that specified if the given
+	 * schema should accept properties not defined in it. If a boolean is set it overrides the
+	 * additionalProperties value of the schema. If a null is used it will use the value specified
+	 * in the schema.
+	 * @param int $priority - Specifies the order in which the function is executed.
+	 * Lower numbers correspond with earlier execution, and functions with the same priority
+	 * are executed in the order in which they were added. Default value: 10.
+	 * @return Endpoint
+	 */
+	public function schema($schema, ?bool $additionalProperties = false, int $priority = 10): Endpoint
+	{
+		$this->schema = new Schema($schema, $additionalProperties);
+		$this->append($this->validationHandlers, [$this->schema, 'validate'], $priority);
+		return $this;
+	}
 
-    /**
-     * Validates request parameters according to this schema
-     * @since 0.9.0
-     */
-    public function schema($schema, $additionalProperties = false, int $priority = 10): Endpoint {
-        $this->schema = new Schema($schema, $additionalProperties);
-        $this->append($this->validation_handlers, [$this->schema, 'validate'], $priority);
-        return $this;
-    }
+	/**
+	 * Adds a resource function to the postHandlers, which will be later called to filter the REST response
+	 * according to the JSON schema specified. In other words, it will:
+	 * 1) Ignore additional properties in WP_REST_Response, avoiding the leakage of unnecessary data and
+	 * 2) Making sure that the required data is retrieved.
+	 *
+	 * @since 0.9.0
+	 *
+	 * @param string|array $schema - Filepath to the JSON schema or a JSON schema as an array.
+	 * @param int $priority - Specifies the order in which the function is executed.
+	 * Lower numbers correspond with earlier execution, and functions with the same priority
+	 * are executed in the order in which they were added. Default value: 10.
+	 * @throws TypeError - If $schema is neither a string|array.
+	 * @return Endpoint
+	 */
+	public function returns($schema, int $priority = 10): Endpoint
+	{
+		$this->resource = new Resource($schema);
+		$this->append($this->postHandlers, [$this->resource, 'returns'], $priority);
+		return $this;
+	}
 
-    /**
-     * Sets the JSON schema to be used as a resource - data retrieved in endpoint.
-     * Resources have two main benefits:
-     * 1) ignore additional properties in WP_REST_Response, avoiding the leakage of unnecessary data and
-     * 2) making sure that the required data is retrieved
-     * @since 0.9.0
-     */
-    public function returns($schema, int $priority = 10): Endpoint {
-        $this->resource = new Resource($schema);
-        $this->append($this->post_handlers, [$this->resource, 'returns'], $priority);
-        return $this;
-    }
+	/**
+	 * Registers a middleware with a given priority
+	 *
+	 * @since 0.9.0
+	 *
+	 * @param callable $middleware - Function to be used as a middleware.
+	 * @param int $priority - Specifies the order in which the function is executed.
+	 * Lower numbers correspond with earlier execution, and functions with the same priority
+	 * are executed in the order in which they were added. Default value: 10.
+	 * @return Endpoint
+	 */
+	public function middleware(callable $middleware, int $priority = 10): Endpoint
+	{
+		$this->append($this->middlewareHandlers, $middleware, $priority);
+		return $this;
+	}
 
-    /**
-     * Registers a middleware with a given priority
-     * @since 0.9.0
-     */
-    public function middleware(callable $middleware, int $priority = 10): Endpoint {
-        $this->append($this->middleware_handlers, $middleware, $priority);
-        return $this;
-    }
+	/**
+	 * Registers an argument
+	 *
+	 * @since 0.9.0
+	 *
+	 * @param string $name - Name of the argument.
+	 * @param array|callable $validate - Either an array that WordPress uses (e.g. ['required'=>true, 'default'=>null])
+	 * or a validation callback.
+	 * @throws TypeError - if $validate is neither an array or callable.
+	 * @return Endpoint
+	 */
+	public function arg(string $name, $validate): Endpoint
+	{
+		if (!isset($this->args['args'])) {
+			$this->args['args'] = [];
+		}
+		$args = [];
+		if (\is_array($validate)) {
+			$args = $validate;
+		} elseif (\is_callable($validate)) {
+			$args['validate_callback'] = $validate;
+		} else {
+			throw new TypeError(
+				'Expected an array or a callable as the second argument of validateArg but ' . \gettype($validate) . ' given'
+			);
+		}
 
-    /**
-     * Registers an argument
-     *
-     * @param string $name - Name of the parameter
-     * @param array|callable $validate - array to be used in WP (e.g. ['required'=>true, 'default'=>null])
-     *                                   or validation callback to be used
-     * @since 0.9.0
-     */
-    public function arg(string $name, $validate): Endpoint {
-        if (!isset($this->args['args'])) {
-            $this->args['args'] = [];
-        }
-        $args = [];
-        if (is_array($validate)) {
-            $args = $validate;
-        } elseif (is_callable($validate)) {
-            $args['validate_callback'] = $validate;
-        } else {
-            throw new TypeError('Expected an array or a callable as the second argument of validateArg but ' . gettype($validate) . ' given');
-        }
+		$this->args['args'][$name] = $args;
+		return $this;
+	}
 
-        $this->args['args'][$name] = $args;
-        return $this;
-    }
+	/**
+	 * Registers a permission callback
+	 *
+	 * @since 0.9.0
+	 *
+	 * @param callable $permissionCb - Method to be called to check current user permissions.
+	 * @param int $priority - Specifies the order in which the function is executed.
+	 * Lower numbers correspond with earlier execution, and functions with the same priority
+	 * are executed in the order in which they were added. Default value: 10.
+	 * @return Endpoint
+	 */
+	public function permission(callable $permissionCb, int $priority = 10): Endpoint
+	{
+		$this->append($this->permissionHandlers, $permissionCb, $priority);
+		return $this;
+	}
 
-    /**
-     * Registers a permission callback
-     * @since 0.9.0
-     */
-    public function permission(callable $permissionCb, int $priority = 10): Endpoint {
-        $this->append($this->permission_handlers, $permissionCb, $priority);
-        return $this;
-    }
+	/**
+	 * WordPress function callback to handle this endpoint
+	 *
+	 * NOTE: For internal use only!
+	 *
+	 * @since 0.9.0
+	 *
+	 * @param WP_REST_Request $req - Current REST Request.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public function callback(WP_REST_Request $req)
+	{
+		// Run pre validation methods.
+		$result = $this->runHandlers($this->validationHandlers, $req);
+		if (\is_wp_error($result)) {
+			return \rest_ensure_response($result);
+		}
 
-    /**
-     * WP function callback to handle this endpoint
-     *
-     * NOTE: For internal use only!
-     * @since 0.9.0
-     */
-    public function callback(\WP_REST_Request $req) {
-        // Run pre validation methods
-        $result = $this->run_handlers($this->validation_handlers, $req);
-        if (is_wp_error($result)) {
-            return rest_ensure_response($result);
-        }
+		// Middleware methods.
+		$result = $this->runHandlers($this->middlewareHandlers, $req);
+		if (\is_wp_error($result)) {
+			return \rest_ensure_response($result);
+		}
 
-        // Middleware methods
-        $result = $this->run_handlers($this->middleware_handlers, $req);
-        if (is_wp_error($result)) {
-            return rest_ensure_response($result);
-        }
+		// Main handler.
+		$result = $this->handler->call($this, $req);
+		if (\is_wp_error($result)) {
+			return \rest_ensure_response($result);
+		}
 
-        // Main handler
-        $result = $this->handler->call($this, $req);
-        if (is_wp_error($result)) {
-            return rest_ensure_response($result);
-        }
+		// Post handlers.
+		$result = $this->runHandlers($this->postHandlers, $req, $result);
+		return \rest_ensure_response($result);
+	}
 
-        // Post handlers
-        $result = $this->run_handlers($this->post_handlers, $req, $result);
-        return rest_ensure_response($result);
-    }
+	/**
+	 * WordPress function callback to check permissions for this endpoint
+	 *
+	 * NOTE: For internal use only!
+	 *
+	 * @since 0.9.0
+	 *
+	 * @param WP_REST_Request $req - Current REST request.
+	 * @return mixed
+	 */
+	public function permissionCallback(WP_REST_Request $req)
+	{
+		return $this->runHandlers($this->permissionHandlers, $req);
+	}
 
-    /**
-     * WP function callback to check permissions for this endpoint
-     *
-     * NOTE: For internal use only!
-     * @since 0.9.0
-     */
-    public function permission_callback(\WP_REST_Request $req) {
-        return $this->run_handlers($this->permission_handlers, $req);
-    }
+	/**
+	 * Retrieves the current endpoint route
+	 *
+	 * @since 0.9.0
+	 *
+	 * @param string $restBase - REST base route.
+	 * @return string
+	 */
+	protected function getRoute(string $restBase): string
+	{
+		$route = Str::finish($restBase, '/');
+		$route .= $this->route;
+		return \apply_filters('wp_fastendpoints_endpoint_route', $route, $this);
+	}
 
-    /**
-     * Retrieves the current endpoint route
-     * @since 0.9.0
-     */
-    protected function get_route(string $rest_base): string {
-        $route = Str::finish($rest_base, '/');
-        $route .= $this->route;
-        return apply_filters('wp_fastapi_endpoint_route', $route, $this);
-    }
+	/**
+	 * Replaces specials values, like: {jobId} by $req->get_param('jobId')
+	 *
+	 * @since 0.9.0
+	 *
+	 * @param WP_REST_Request $req - Current REST request.
+	 * @param mixed $value - Value to be checked.
+	 * @return mixed - The second parameter to be used in \current_user_can.
+	 */
+	protected function replaceSpecialValue(WP_REST_Request $req, $value)
+	{
+		if (!\is_string($value)) {
+			return $value;
+		}
 
-    /**
-     * Replaces specials values, like: {jobId} by $req->get_param('jobId')
-     * @since 0.9.0
-     */
-    protected function replace_special_value(\WP_REST_Request $req, $value) {
-        if (!is_string($value)) {
-            return $value;
-        }
+		// Checks if value matches a special value.
+		// If so, replaces with request variable.
+		return $value;
+	}
 
-        // Checks if value matches a special value
-        // If so, replaces with request variable
-        return $value;
-    }
+	/**
+	 * Calls each handler
+	 *
+	 * @since 0.9.0
+	 *
+	 * @param array $allHandlers - Associative array of callables indexed by priority.
+	 * @param mixed $args - Callable arguments to be passed.
+	 * @return mixed - Returns the result of the last callable or if no handlers are set the
+	 * last result passed as argument if any.
+	 */
+	protected function runHandlers(array &$allHandlers, ...$args)
+	{
+		// If no handlers are set we have to make sure to return the previous result if set.
+		$result = (\count($args) >= 2) ? $args[1] : null;
+		// Sort dictionary by keys.
+		\ksort($allHandlers);
+		foreach ($allHandlers as $priority => $handlers) {
+			foreach ($handlers as $h) {
+				$result = \call_user_func_array($h, $args);
+				if (\is_wp_error($result)) {
+					return $result;
+				}
+			}
+		}
+		return $result;
+	}
 
-    /**
-     * Calls each handler
-     * @since 0.9.0
-     */
-    protected function run_handlers(array &$allHandlers, ...$args) {
-        // If no handlers are set we have to make sure to return the previous result if set
-        $result = (count($args) >= 2) ? $args[1] : null;
-        // Sort dictionary by keys
-        ksort($allHandlers);
-        foreach ($allHandlers as $priority => $handlers) {
-            foreach ($handlers as $h) {
-                $result = call_user_func_array($h, $args);
-                if (is_wp_error($result)) {
-                    return $result;
-                }
-            }
-        }
-        return $result;
-    }
-
-    /**
-     * Appends a callable to a given array, regarding it's priority
-     * @since 0.9.0
-     */
-    protected function append(array &$arrVar, callable $cb, int $priority): void {
-        if (!isset($arrVar[$priority])) {
-            $arrVar[$priority] = [];
-        }
-        $arrVar[$priority][] = $cb;
-    }
+	/**
+	 * Saves a callable into an array, which can later on be called in order of priority
+	 * (works the same as the WordPress actions/filters priority argument)
+	 *
+	 * @since 0.9.0
+	 *
+	 * @param array $arrVar - Variable used to store the priority of the function.
+	 * @param callable $cb - Function to be called.
+	 * @param int $priority - Specifies the order in which the function is executed.
+	 * Lower numbers correspond with earlier execution, and functions with the same priority
+	 * are executed in the order in which they were added.
+	 * @return void
+	 */
+	protected function append(array &$arrVar, callable $cb, int $priority): void
+	{
+		if (!isset($arrVar[$priority])) {
+			$arrVar[$priority] = [];
+		}
+		$arrVar[$priority][] = $cb;
+	}
 }
