@@ -13,17 +13,12 @@ declare(strict_types=1);
 
 namespace WP\FastEndpoints;
 
-use Illuminate\Support\{
-	\Arr,
-	\Str,
-};
-use WP\FastEndpoints\Schemas\{
-	\Schema,
-	\Resource,
-};
+use WP\FastEndpoints\Schemas\Schema;
+use WP\FastEndpoints\Schemas\Response;
 use WP_REST_Request;
 use WP_Error;
 use WP_Http;
+use TypeError;
 
 /**
  * REST Endpoint that registers custom WordPress REST endpoint using register_rest_route
@@ -57,7 +52,7 @@ class Endpoint
 	 *
 	 * @since 0.9.0
 	 *
-	 * @var array
+	 * @var array<mixed>
 	 */
 	private array $args = [];
 
@@ -93,16 +88,16 @@ class Endpoint
 	 *
 	 * @since 0.9.0
 	 *
-	 * @var ?Resource
+	 * @var ?Response
 	 */
-	public ?Resource $resource = null;
+	public ?Response $responseSchema = null;
 
 	/**
 	 * Set of functions used inside the permissionCallback endpoint
 	 *
 	 * @since 0.9.0
 	 *
-	 * @var array
+	 * @var array<int,array<callable>>
 	 */
 	private array $permissionHandlers = [];
 
@@ -111,7 +106,7 @@ class Endpoint
 	 *
 	 * @since 0.9.0
 	 *
-	 * @var array
+	 * @var array<int,array<callable>>
 	 */
 	private array $validationHandlers = [];
 
@@ -120,7 +115,7 @@ class Endpoint
 	 *
 	 * @since 0.9.0
 	 *
-	 * @var array
+	 * @var array<int,array<callable>>
 	 */
 	private array $middlewareHandlers = [];
 
@@ -129,7 +124,7 @@ class Endpoint
 	 *
 	 * @since 0.9.0
 	 *
-	 * @var array
+	 * @var array<int,array<callable>>
 	 */
 	private array $postHandlers = [];
 
@@ -141,9 +136,9 @@ class Endpoint
 	 * @param string $method - POST, GET, PUT or DELETE or a value from WP_REST_Server (e.g. WP_REST_Server::EDITABLE).
 	 * @param string $route - Endpoint route.
 	 * @param callable $handler - User specified handler for the endpoint.
-	 * @param array $args - Same as the WordPress register_rest_route $args parameter. If set it can override the default
+	 * @param array<mixed> $args - Same as the WordPress register_rest_route $args parameter. If set it can override the default
 	 * WP FastEndpoints arguments.
-	 * @param bool $override - Same as the WordPress register_rest_route $override parameter.
+	 * @param bool $override - Same as the WordPress register_rest_route $override parameter. Default value: false.
 	 */
 	public function __construct(string $method, string $route, callable $handler, array $args = [], bool $override = false)
 	{
@@ -163,7 +158,7 @@ class Endpoint
 	 *
 	 * @param string $namespace - WordPress REST namespace.
 	 * @param string $restBase - Endpoint REST base.
-	 * @param array $schemaDirs - Array of directories to look for JSON schemas.
+	 * @param array<string> $schemaDirs - Array of directories to look for JSON schemas. Default value: [].
 	 * @return true|false - true if successfully registered a REST route or false otherwise.
 	 */
 	public function register(string $namespace, string $restBase, array $schemaDirs = []): bool
@@ -174,11 +169,11 @@ class Endpoint
 			'permissionCallback'   => $this->permissionHandlers ? [$this, 'permissionCallback'] : '__return_true',
 		];
 		if ($this->schema) {
-			$this->schema->append_schema_dir($schemaDirs);
-			$args['schema'] = [$this->schema, 'get_contents'];
+			$this->schema->appendSchemaDir($schemaDirs);
+			$args['schema'] = [$this->schema, 'getContents'];
 		}
-		if ($this->resource) {
-			$this->resource->append_schema_dir($schemaDirs);
+		if ($this->responseSchema) {
+			$this->responseSchema->appendSchemaDir($schemaDirs);
 		}
 		// Override default arguments.
 		$args = \array_merge($args, $this->args);
@@ -198,7 +193,7 @@ class Endpoint
 	 *
 	 * @since 0.9.0
 	 *
-	 * @param string|array $capabilities - WordPress user capabilities.
+	 * @param string|array<mixed> $capabilities - WordPress user capabilities.
 	 * @param int $priority - Specifies the order in which the function is executed.
 	 * Lower numbers correspond with earlier execution, and functions with the same priority
 	 * are executed in the order in which they were added. Default value: 10.
@@ -206,7 +201,9 @@ class Endpoint
 	 */
 	public function hasCap($capabilities, int $priority = 10): Endpoint
 	{
-		$capabilities = Arr::wrap($capabilities);
+		if (!\is_array($capabilities)) {
+			$capabilities = [$capabilities];
+		}
 		$this->permission(function (WP_REST_Request $req) use ($capabilities) {
 			foreach ($capabilities as $cap) {
 				if (\is_string($cap)) {
@@ -244,11 +241,11 @@ class Endpoint
 	 *
 	 * @since 0.9.0
 	 *
-	 * @param string|array $schema - Filepath to the JSON schema or a JSON schema as an array.
-	 * @param ?bool $additionalProperties - JSON Schema option that specified if the given
+	 * @param string|array<mixed> $schema - Filepath to the JSON schema or a JSON schema as an array.
+	 * @param ?bool $additionalProperties - JSON Schema option that specifies if the given
 	 * schema should accept properties not defined in it. If a boolean is set it overrides the
 	 * additionalProperties value of the schema. If a null is used it will use the value specified
-	 * in the schema.
+	 * in the schema. Default value: false.
 	 * @param int $priority - Specifies the order in which the function is executed.
 	 * Lower numbers correspond with earlier execution, and functions with the same priority
 	 * are executed in the order in which they were added. Default value: 10.
@@ -269,7 +266,7 @@ class Endpoint
 	 *
 	 * @since 0.9.0
 	 *
-	 * @param string|array $schema - Filepath to the JSON schema or a JSON schema as an array.
+	 * @param string|array<mixed> $schema - Filepath to the JSON schema or a JSON schema as an array.
 	 * @param int $priority - Specifies the order in which the function is executed.
 	 * Lower numbers correspond with earlier execution, and functions with the same priority
 	 * are executed in the order in which they were added. Default value: 10.
@@ -278,8 +275,8 @@ class Endpoint
 	 */
 	public function returns($schema, int $priority = 10): Endpoint
 	{
-		$this->resource = new Resource($schema);
-		$this->append($this->postHandlers, [$this->resource, 'returns'], $priority);
+		$this->responseSchema = new Response($schema);
+		$this->append($this->postHandlers, [$this->responseSchema, 'returns'], $priority);
 		return $this;
 	}
 
@@ -306,7 +303,7 @@ class Endpoint
 	 * @since 0.9.0
 	 *
 	 * @param string $name - Name of the argument.
-	 * @param array|callable $validate - Either an array that WordPress uses (e.g. ['required'=>true, 'default'=>null])
+	 * @param array<mixed>|callable $validate - Either an array that WordPress uses (e.g. ['required'=>true, 'default'=>null])
 	 * or a validation callback.
 	 * @throws TypeError - if $validate is neither an array or callable.
 	 * @return Endpoint
@@ -356,7 +353,7 @@ class Endpoint
 	 * @since 0.9.0
 	 *
 	 * @param WP_REST_Request $req - Current REST Request.
-	 * @return WP_REST_Response|WP_Error
+	 * @return \WP_REST_Response|WP_Error
 	 */
 	public function callback(WP_REST_Request $req)
 	{
@@ -408,7 +405,10 @@ class Endpoint
 	 */
 	protected function getRoute(string $restBase): string
 	{
-		$route = Str::finish($restBase, '/');
+		$route = $restBase;
+		if (!\str_ends_with($restBase, '/')) {
+			$route .= '/';
+		}
 		$route .= $this->route;
 		return \apply_filters('wp_fastendpoints_endpoint_route', $route, $this);
 	}
@@ -438,7 +438,7 @@ class Endpoint
 	 *
 	 * @since 0.9.0
 	 *
-	 * @param array $allHandlers - Associative array of callables indexed by priority.
+	 * @param array<int,array<callable>> $allHandlers - Associative array of callables indexed by priority.
 	 * @param mixed $args - Callable arguments to be passed.
 	 * @return mixed - Returns the result of the last callable or if no handlers are set the
 	 * last result passed as argument if any.
@@ -466,7 +466,7 @@ class Endpoint
 	 *
 	 * @since 0.9.0
 	 *
-	 * @param array $arrVar - Variable used to store the priority of the function.
+	 * @param array<int,array<callable>> $arrVar - Variable used to store the priority of the function.
 	 * @param callable $cb - Function to be called.
 	 * @param int $priority - Specifies the order in which the function is executed.
 	 * Lower numbers correspond with earlier execution, and functions with the same priority

@@ -1,165 +1,248 @@
 <?php
 
-namespace WP\FastAPI\Schemas;
+/**
+ * Holds logic to search and retrieve the contents of a JSON schema.
+ *
+ * @since 0.9.0
+ *
+ * @package wp-fastendpoints
+ * @license MIT
+ */
 
-use Illuminate\Support\{
-    Str,
-    Arr,
-};
-use Opis\JsonSchema\{
-    ValidationResult,
-    Errors\ErrorFormatter,
-};
+declare(strict_types=1);
 
-abstract class Base {
+namespace WP\FastEndpoints\Schemas;
 
-    /**
-     * Filter suffix used in this class
-     * @since 0.9.0
-     */ 
-    protected string $suffix;
+use Opis\JsonSchema\ValidationResult;
+use Opis\JsonSchema\Errors\ErrorFormatter;
+use WP_REST_Request;
+use TypeError;
 
-    /**
-     * The filepath of the JSON Schema: absolute path or relative*
-     * @since 0.9.0
-     */
-    protected string $filepath;
+/**
+ * Abstract class that holds logic to search and retrieve the contents of a
+ * JSON schema.
+ *
+ * @since 0.9.0
+ *
+ * @author André Gil <andre_gil22@hotmail.com>
+ */
+abstract class Base
+{
+	/**
+	 * Filter suffix used in this class
+	 *
+	 * @since 0.9.0
+	 *
+	 * @var string
+	 */
+	protected string $suffix;
 
-    /**
-     * The JSON Schema
-     * @since 0.9.0
-     */
-    protected $contents;
+	/**
+	 * The filepath of the JSON Schema: absolute or relative path
+	 *
+	 * @since 0.9.0
+	 *
+	 * @var string
+	 */
+	protected string $filepath;
 
-    /**
-     * Directories where to look for a schema
-     * @since 0.9.0
-     */
-    protected array $schema_dirs = [];
+	/**
+	 * The JSON Schema
+	 *
+	 * @since 0.9.0
+	 *
+	 * @var mixed
+	 */
+	protected $contents;
 
-    /**
-     * Should the schema allow additional properties?
-     * If set to null it will use the value set in the schema
-     */
-    protected ?bool $additional_properties;
+	/**
+	 * Directories where to look for a schema
+	 *
+	 * @since 0.9.0
+	 *
+	 * @var array<string>
+	 */
+	protected array $schemaDirs = [];
 
-    public function __construct($filepath, ?bool $additional_properties = null) {
-        $this->suffix = $this->get_suffix();
-        $this->additional_properties = $additional_properties;
-        if (is_string($filepath)) {
-            $this->filepath = Str::finish($filepath, '.json');
-        } else if (is_array($filepath)) {
-            $this->contents = $filepath;
-            if ($this->additional_properties !== null) {
-                $this->contents['additionalProperties'] = $this->additional_properties;
-            }
-        } else {
-            $type = gettype($filepath);
-            wp_die("Schema expected an array or the filepath but {$type} given");
-        }
-    }
+	/**
+	 * Should the schema allow additional properties? If set to null it
+	 * will use the value set in the schema.
+	 *
+	 * @since 0.9.0
+	 *
+	 * @var ?bool
+	 */
+	protected ?bool $additionalProperties;
 
-    /**
-     * Retrieves the child class name in snake case
-     * @since 0.9.0
-     */
-    protected function get_suffix() {
-        return Str::snake(basename(Str::replace('\\', '/', get_class($this))));
-    }
+	/**
+	 * Creates a new instance of Base
+	 *
+	 * @since 0.9.0
+	 *
+	 * @param string|array<mixed> $schema - File name or path to the JSON schema or a JSON schema as an array.
+	 * @param ?bool $additionalProperties - JSON Schema option that specifies if the given
+	 * schema should accept properties not defined in it. If a boolean is set it overrides the
+	 * additionalProperties value of the schema. If a null is used it will use the value specified
+	 * in the schema. Default value: null.
+	 * @throws TypeError - if $schema is neither a string or an array.
+	 */
+	public function __construct($schema, ?bool $additionalProperties = null)
+	{
+		$this->suffix = $this->getSuffix();
+		$this->additionalProperties = $additionalProperties;
+		if (\is_string($schema)) {
+			$this->filepath = $schema;
+			if (!\str_ends_with($schema, '.json')) {
+				$this->filepath .= '.json';
+			}
+		} elseif (\is_array($schema)) {
+			$this->contents = $schema;
+			if ($this->additionalProperties !== null) {
+				$this->contents['additionalProperties'] = $this->additionalProperties;
+			}
+		} else {
+			$type = \gettype($schema);
+			throw new TypeError("Schema expected an array or a string with the filepath but {$type} given");
+		}
+	}
 
-    /**
-     * Appends an additional directory where to look for the schema
-     * @since 0.9.0
-     */
-    public function append_schema_dir($schema_dir) {
-        if (!$schema_dir) {
-            wp_die('Invalid schema directory');
-        }
+	/**
+	 * Retrieves the child class name in snake case
+	 *
+	 * @since 0.9.0
+	 *
+	 * @return string
+	 */
+	protected function getSuffix(): string
+	{
+		$suffix = \basename(\str_replace('\\', '/', \get_class($this)));
+		return \ltrim(\strtolower(\preg_replace('/[A-Z]([A-Z](?![a-z]))*/', '_$0', $suffix)), '_');
+	}
 
-        $schema_dir = Arr::wrap($schema_dir);
-        foreach ($schema_dir as $dir) {
-            if (is_file($dir)) {
-                wp_die("Expected a directory with schemas but got a file: {$dir}");
-            }
+	/**
+	 * Appends an additional directory where to look for the schema
+	 *
+	 * @since 0.9.0
+	 *
+	 * @param string|array<string> $schemaDir - Directory path or an array of directories where to
+	 * look for JSON schemas.
+	 */
+	public function appendSchemaDir($schemaDir): void
+	{
+		if (!$schemaDir) {
+			\wp_die('Invalid schema directory');
+		}
 
-            if (!is_dir($dir)) {
-                wp_die("Schema directory not found: {$dir}");
-            }
-        }
+		if (!\is_array($schemaDir)) {
+			$schemaDir = [$schemaDir];
+		}
 
-        $this->schema_dirs = $this->schema_dirs + $schema_dir;
-    }
+		foreach ($schemaDir as $dir) {
+			if (\is_file($dir)) {
+				\wp_die(\esc_html("Expected a directory with schemas but got a file: {$dir}"));
+			}
 
-    /**
-     * Validates if the given JSON schema filepath is an absolute path or if it exists
-     * in the given schema directory
-     * @since 0.9.0
-     */
-    protected function get_valid_schema_filepath() {
-        if (is_file($this->filepath)) {
-            return $this->filepath;
-        }
+			if (!\is_dir($dir)) {
+				\wp_die(\esc_html("Schema directory not found: {$dir}"));
+			}
+		}
 
-        foreach ($this->schema_dirs as $dir) {
-            $filepath = path_join($dir, $this->filepath);
-            if (is_file($filepath)) {
-                return $filepath;
-            }
-        }
+		$this->schemaDirs = $this->schemaDirs + $schemaDir;
+	}
 
-        wp_die("Unable to find schema file: {$this->filepath}");
-    }
+	/**
+	 * Validates if the given JSON schema filepath is an absolute path or if it exists
+	 * in the given schema directory
+	 *
+	 * @since 0.9.0
+	 *
+	 * @return string
+	 */
+	protected function getValidSchemaFilepath(): string
+	{
+		if (\is_file($this->filepath)) {
+			return $this->filepath;
+		}
 
-    /**
-     * Retrieves the ID of the schema
-     * @since 0.9.0
-     */
-    protected function get_schema_id(\WP_REST_Request $req) {
-        $filename = basename($this->filepath);
-        $route = Str::start('/wp-json', $req->get_route());
-        $route = Str::finish($route, $filename);
-        $schema_id = get_site_url(null, $route);
-        return apply_filters($this->suffix . '_id', $schema_id, $this, $req);
-    }
+		foreach ($this->schemaDirs as $dir) {
+			$filepath = \path_join($dir, $this->filepath);
+			if (\is_file($filepath)) {
+				return $filepath;
+			}
+		}
 
-    /**
-     * Formats a Opis/json-schema error
-     * @since 0.9.0
-     */
-    protected function get_error(ValidationResult $result) {
-        $formatter = new ErrorFormatter();
-        return apply_filters($this->suffix . '_error', $formatter->formatKeyed($result->error()), $result, $this);
-    }
+		\wp_die(\esc_html("Unable to find schema file: {$this->filepath}"));
+	}
 
-    /**
-     * Retrieves the JSON contents of the schema
-     * @since 0.9.0
-     */
-    public function get_contents() {
-        if ($this->contents) {
-            $this->contents = apply_filters($this->suffix . '_contents', $this->contents, $this);
-            return $this->contents;
-        }
+	/**
+	 * Retrieves the ID of the schema
+	 *
+	 * @since 0.9.0
+	 *
+	 * @param WP_REST_Request $req - Current REST Request.
+	 * @return string - URL schema id.
+	 */
+	protected function getSchemaId(WP_REST_Request $req): string
+	{
+		$filename = \basename($this->filepath);
+		$route = $req->get_route();
+		if (!\str_starts_with($route, '/wp-json')) {
+			$route = "/wp-json{$route}";
+		}
+		if (!\str_ends_with($route, $filename)) {
+			$route = "{$route}{$filename}";
+		}
+		$schemaId = \get_site_url(null, $route);
+		return \apply_filters($this->suffix . '_id', $schemaId, $this, $req);
+	}
 
-        $filepath = $this->get_valid_schema_filepath();
+	/**
+	 * Retrieves a properly formatted error from Opis/json-schema
+	 *
+	 * @since 0.9.0
+	 *
+	 * @param ValidationResult $result - JSON Opis validation error result.
+	 * @return mixed
+	 */
+	protected function getError(ValidationResult $result)
+	{
+		$formatter = new ErrorFormatter();
+		return \apply_filters($this->suffix . '_error', $formatter->formatKeyed($result->error()), $result, $this);
+	}
 
-        // Read JSON file and retrieve it's content
-        $result = file_get_contents($filepath);
-        if ($result === false) {
-            return wp_die("Unable to read file: {$this->filepath}");
-        }
+	/**
+	 * Retrieves the JSON contents of the schema
+	 *
+	 * @since 0.9.0
+	 *
+	 * @return mixed
+	 */
+	public function getContents()
+	{
+		if ($this->contents) {
+			$this->contents = \apply_filters($this->suffix . '_contents', $this->contents, $this);
+			return $this->contents;
+		}
 
-        $this->contents = json_decode($result, true);
-        if ($this->contents === null && \JSON_ERROR_NONE !== json_last_error()) {
-            return wp_die("Invalid json file: {$this->filepath} " . json_last_error_msg());
-        }
+		$filepath = $this->getValidSchemaFilepath();
 
-        // Update additional_properties value if set
-        if (is_array($this->contents) && $this->additional_properties !== null) {
-            $this->contents['additionalProperties'] = $this->additional_properties;
-        }
+		// Read JSON file and retrieve it's content.
+		$result = \file_get_contents($filepath);
+		if ($result === false) {
+			return \wp_die(\esc_html("Unable to read file: {$this->filepath}"));
+		}
 
-        $this->contents = apply_filters($this->suffix . '_contents', $this->contents, $this);
-        return $this->contents;
-    }
+		$this->contents = \json_decode($result, true);
+		if ($this->contents === null && \JSON_ERROR_NONE !== \json_last_error()) {
+			return \wp_die(\esc_html("Invalid json file: {$this->filepath} " . \json_last_error_msg()));
+		}
+
+		// Update additional_properties value if set.
+		if (\is_array($this->contents) && $this->additionalProperties !== null) {
+			$this->contents['additionalProperties'] = $this->additionalProperties;
+		}
+
+		$this->contents = \apply_filters($this->suffix . '_contents', $this->contents, $this);
+		return $this->contents;
+	}
 }

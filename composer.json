@@ -1,15 +1,48 @@
 {
-    "name": "wp/fastapi",
-    "type": "library",
-    "description": "Wordpress REST endpoints made easy",
-    "keywords": ["Wordpress", "fastest", "REST", "API", "easy"],
-    "license": "MIT",
-    "require": {
-        "opis/json-schema": "^2.3"
-    },
-    "autoload": {
-        "psr-4": {
-            "WP\\FastAPI\\": "src/"
-        }
-    }
+	"name": "wp/fastendpoints",
+	"type": "library",
+	"description": "Wordpress REST endpoints made easy",
+	"keywords": ["Wordpress", "fastest", "REST", "API", "easy"],
+	"license": "MIT",
+	"require": {
+		"opis/json-schema": "^2.3"
+	},
+	"autoload": {
+		"psr-4": {
+			"WP\\FastEndpoints\\": "src/"
+		}
+	},
+	"autoload-dev": {
+		"psr-4": {
+			"WP\\FastEndpoints\\": "src/",
+			"Tests\\\\": "tests/"
+		}
+	},
+	"require-dev": {
+		"dingo-d/wp-pest-integration-test-setup": "^1.4",
+		"dealerdirect/phpcodesniffer-composer-installer": "^0.7",
+		"infinum/eightshift-coding-standards": "^1.6",
+		"php-stubs/wordpress-stubs": "^5.9",
+		"szepeviktor/phpstan-wordpress": "^1.0.3"
+	},
+	"scripts": {
+		"analyze": [
+			"./vendor/bin/phpstan analyze"
+		],
+		"lint": [
+			"phpcs"
+		],
+		"fix": [
+			"phpcbf"
+		]
+	},
+	"minimum-stability": "dev",
+	"prefer-stable": true,
+	"config": {
+		"allow-plugins": {
+			"composer/installers": true,
+			"pestphp/pest-plugin": true,
+			"dealerdirect/phpcodesniffer-composer-installer": true
+		}
+	}
 }
