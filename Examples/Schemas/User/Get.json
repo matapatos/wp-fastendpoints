@@ -1,0 +1,55 @@
+{
+	"$id": "https://app.voicedistillery.co.uk/schemas/User/Get.json",
+	"type": "object",
+	"properties": {
+		"data": {
+			"type": "object",
+			"properties": {
+				"ID": {
+					"type": "string"
+				},
+				"user_email": {
+					"type": "string",
+					"format": "email",
+					"maxLength": 50
+				},
+				"display_name": {
+					"type": "string",
+					"maxLength": 100
+				}
+			},
+			"required": [
+				"ID",
+				"user_email"
+			]
+		},
+		"is_admin": {
+			"type": "boolean",
+			"default": false
+		}
+	},
+	"allOf": [
+		{
+			"if": {
+				"properties": {
+					"roles": {
+						"items": {
+							"const": "administrator"
+						}
+					}
+				}
+			},
+			"then": {
+				"properties": {
+					"is_admin": {
+						"const": true
+					}
+				}
+			}
+		}
+	],
+	"required": [
+		"data",
+		"is_admin"
+	]
+}

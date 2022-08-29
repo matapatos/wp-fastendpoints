@@ -102,7 +102,7 @@ abstract class Base
 			}
 		} else {
 			$type = \gettype($schema);
-			throw new TypeError("Schema expected an array or a string with the filepath but {$type} given");
+			throw new TypeError("Schema expected an array or a string in \$schema but {$type} given");
 		}
 	}
 
