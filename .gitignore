@@ -1,3 +1,6 @@
+./Schemas/
+wp/
+wp-content/
 Example/
 routes.php
 *.cache
