@@ -13,6 +13,9 @@ declare(strict_types=1);
 
 namespace WP\FastEndpoints;
 
+use WP\FastEndpoints\Contracts\Router as RouterInterface;
+use WP\FastEndpoints\Contracts\Endpoint as EndpointInterface;
+
 /**
  * A Router can help developers in creating groups of endpoints. This way developers can aggregate
  * closely related endpoints in the same router. Example:
@@ -29,7 +32,7 @@ namespace WP\FastEndpoints;
  *
  * @author André Gil <andre_gil22@hotmail.com>
  */
-class Router
+class Router implements RouterInterface
 {
 	/**
 	 * Router rest base
@@ -119,9 +122,9 @@ class Router
 	 * @param array<mixed> $args - Same as the WordPress register_rest_route $args parameter. If set it can override the default
 	 * WP FastEndpoints arguments. Default value: [].
 	 * @param bool $override - Same as the WordPress register_rest_route $override parameter. Defaul value: false.
-	 * @return Endpoint
+	 * @return EndpointInterface
 	 */
-	public function get(string $route, callable $handler, array $args = [], bool $override = false): Endpoint
+	public function get(string $route, callable $handler, array $args = [], bool $override = false): EndpointInterface
 	{
 		return $this->endpoint('GET', $route, $handler, $args);
 	}
@@ -136,9 +139,9 @@ class Router
 	 * @param array<mixed> $args - Same as the WordPress register_rest_route $args parameter. If set it can override the default
 	 * WP FastEndpoints arguments. Default value: [].
 	 * @param bool $override - Same as the WordPress register_rest_route $override parameter. Defaul value: false.
-	 * @return Endpoint
+	 * @return EndpointInterface
 	 */
-	public function post(string $route, callable $handler, array $args = [], $override = false): Endpoint
+	public function post(string $route, callable $handler, array $args = [], $override = false): EndpointInterface
 	{
 		return $this->endpoint('POST', $route, $handler, $args);
 	}
@@ -153,9 +156,9 @@ class Router
 	 * @param array<mixed> $args - Same as the WordPress register_rest_route $args parameter. If set it can override the default
 	 * WP FastEndpoints arguments. Default value: [].
 	 * @param bool $override - Same as the WordPress register_rest_route $override parameter. Defaul value: false.
-	 * @return Endpoint
+	 * @return EndpointInterface
 	 */
-	public function put(string $route, callable $handler, array $args = [], bool $override = false): Endpoint
+	public function put(string $route, callable $handler, array $args = [], bool $override = false): EndpointInterface
 	{
 		return $this->endpoint('PUT', $route, $handler, $args);
 	}
@@ -170,9 +173,9 @@ class Router
 	 * @param array<mixed> $args - Same as the WordPress register_rest_route $args parameter. If set it can override the default
 	 * WP FastEndpoints arguments. Default value: [].
 	 * @param bool $override - Same as the WordPress register_rest_route $override parameter. Defaul value: false.
-	 * @return Endpoint
+	 * @return EndpointInterface
 	 */
-	public function delete(string $route, callable $handler, array $args = [], bool $override = false): Endpoint
+	public function delete(string $route, callable $handler, array $args = [], bool $override = false): EndpointInterface
 	{
 		return $this->endpoint('DELETE', $route, $handler, $args, $override);
 	}
@@ -184,7 +187,7 @@ class Router
 	 *
 	 * @param Router $router - REST sub router.
 	 */
-	public function includeRouter(Router &$router): void
+	public function includeRouter(RouterInterface &$router): void
 	{
 		$router->parent = $this;
 		$this->subRouters[] = $router;
@@ -342,7 +345,7 @@ class Router
 	 * @param array<mixed> $args - Same as the WordPress register_rest_route $args parameter. If set it can override the default
 	 * WP FastEndpoints arguments. Default value: [].
 	 * @param bool $override - Same as the WordPress register_rest_route $override parameter. Defaul value: false.
-	 * @return Endpoint
+	 * @return EndpointInterface
 	 */
 	public function endpoint(
 		string $method,
@@ -350,7 +353,7 @@ class Router
 		callable $handler,
 		array $args = [],
 		bool $override = false
-	): Endpoint {
+	): EndpointInterface {
 		$endpoint = new Endpoint($method, $route, $handler, $args, $override);
 		$this->endpoints[] = $endpoint;
 		return $endpoint;

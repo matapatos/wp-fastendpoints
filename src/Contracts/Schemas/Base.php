@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace WP\FastEndpoints\Schemas;
+namespace WP\FastEndpoints\Contracts\Schemas;
 
 use Opis\JsonSchema\ValidationResult;
 use Opis\JsonSchema\Errors\ErrorFormatter;
@@ -65,31 +65,16 @@ abstract class Base
 	protected array $schemaDirs = [];
 
 	/**
-	 * Should the schema allow additional properties? If set to null it
-	 * will use the value set in the schema.
-	 *
-	 * @since 0.9.0
-	 *
-	 * @var ?bool
-	 */
-	protected ?bool $additionalProperties;
-
-	/**
 	 * Creates a new instance of Base
 	 *
 	 * @since 0.9.0
 	 *
 	 * @param string|array<mixed> $schema - File name or path to the JSON schema or a JSON schema as an array.
-	 * @param ?bool $additionalProperties - JSON Schema option that specifies if the given
-	 * schema should accept properties not defined in it. If a boolean is set it overrides the
-	 * additionalProperties value of the schema. If a null is used it will use the value specified
-	 * in the schema. Default value: null.
 	 * @throws TypeError - if $schema is neither a string or an array.
 	 */
-	public function __construct($schema, ?bool $additionalProperties = null)
+	public function __construct($schema)
 	{
 		$this->suffix = $this->getSuffix();
-		$this->additionalProperties = $additionalProperties;
 		if (\is_string($schema)) {
 			$this->filepath = $schema;
 			if (!\str_ends_with($schema, '.json')) {
@@ -97,9 +82,6 @@ abstract class Base
 			}
 		} elseif (\is_array($schema)) {
 			$this->contents = $schema;
-			if ($this->additionalProperties !== null) {
-				$this->contents['additionalProperties'] = $this->additionalProperties;
-			}
 		} else {
 			$type = \gettype($schema);
 			throw new TypeError("Schema expected an array or a string in \$schema but {$type} given");
@@ -235,11 +217,6 @@ abstract class Base
 		$this->contents = \json_decode($result, true);
 		if ($this->contents === null && \JSON_ERROR_NONE !== \json_last_error()) {
 			return \wp_die(\esc_html("Invalid json file: {$this->filepath} " . \json_last_error_msg()));
-		}
-
-		// Update additional_properties value if set.
-		if (\is_array($this->contents) && $this->additionalProperties !== null) {
-			$this->contents['additionalProperties'] = $this->additionalProperties;
 		}
 
 		$this->contents = \apply_filters($this->suffix . '_contents', $this->contents, $this);

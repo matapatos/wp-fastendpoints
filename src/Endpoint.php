@@ -15,6 +15,9 @@ namespace WP\FastEndpoints;
 
 use WP\FastEndpoints\Schemas\Schema;
 use WP\FastEndpoints\Schemas\Response;
+use WP\FastEndpoints\Contracts\Schemas\Schema as SchemaInterface;
+use WP\FastEndpoints\Contracts\Schemas\Response as ResponseInterface;
+use WP\FastEndpoints\Contracts\Endpoint as EndpointInterface;
 use WP_REST_Request;
 use WP_Error;
 use WP_Http;
@@ -27,7 +30,7 @@ use TypeError;
  *
  * @author André Gil <andre_gil22@hotmail.com>
  */
-class Endpoint
+class Endpoint implements EndpointInterface
 {
 	/**
 	 * HTTP endpoint method - also supports values from WP_REST_Server (e.g. WP_REST_Server::READABLE)
@@ -79,18 +82,18 @@ class Endpoint
 	 *
 	 * @since 0.9.0
 	 *
-	 * @var ?Schema
+	 * @var ?SchemaInterface
 	 */
-	public ?Schema $schema = null;
+	public ?SchemaInterface $schema = null;
 
 	/**
 	 * JSON Schema used to retrieve data to client - ignores additional properties
 	 *
 	 * @since 0.9.0
 	 *
-	 * @var ?Response
+	 * @var ?ResponseInterface
 	 */
-	public ?Response $responseSchema = null;
+	public ?ResponseInterface $responseSchema = null;
 
 	/**
 	 * Set of functions used inside the permissionCallback endpoint
@@ -242,18 +245,14 @@ class Endpoint
 	 * @since 0.9.0
 	 *
 	 * @param string|array<mixed> $schema - Filepath to the JSON schema or a JSON schema as an array.
-	 * @param ?bool $additionalProperties - JSON Schema option that specifies if the given
-	 * schema should accept properties not defined in it. If a boolean is set it overrides the
-	 * additionalProperties value of the schema. If a null is used it will use the value specified
-	 * in the schema. Default value: false.
 	 * @param int $priority - Specifies the order in which the function is executed.
 	 * Lower numbers correspond with earlier execution, and functions with the same priority
 	 * are executed in the order in which they were added. Default value: 10.
 	 * @return Endpoint
 	 */
-	public function schema($schema, ?bool $additionalProperties = false, int $priority = 10): Endpoint
+	public function schema($schema, int $priority = 10): Endpoint
 	{
-		$this->schema = new Schema($schema, $additionalProperties);
+		$this->schema = new Schema($schema);
 		$this->append($this->validationHandlers, [$this->schema, 'validate'], $priority);
 		return $this;
 	}
@@ -348,11 +347,11 @@ class Endpoint
 	/**
 	 * WordPress function callback to handle this endpoint
 	 *
-	 * NOTE: For internal use only!
-	 *
 	 * @since 0.9.0
+	 * @internal
 	 *
 	 * @param WP_REST_Request $req - Current REST Request.
+	 * @see rest_ensure_response
 	 * @return \WP_REST_Response|WP_Error
 	 */
 	public function callback(WP_REST_Request $req)
@@ -383,9 +382,8 @@ class Endpoint
 	/**
 	 * WordPress function callback to check permissions for this endpoint
 	 *
-	 * NOTE: For internal use only!
-	 *
 	 * @since 0.9.0
+	 * @internal
 	 *
 	 * @param WP_REST_Request $req - Current REST request.
 	 * @return mixed

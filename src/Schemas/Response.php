@@ -14,7 +14,10 @@ declare(strict_types=1);
 
 namespace WP\FastEndpoints\Schemas;
 
+use WP\FastEndpoints\Contracts\Schemas\Base;
+use WP\FastEndpoints\Contracts\Schemas\Response as ResponseInterface;
 use Opis\JsonSchema\Validator;
+use Opis\JsonSchema\Errors\ValidationError;
 use Opis\JsonSchema\Helper;
 use Opis\JsonSchema\Exceptions\SchemaException;
 use WP_REST_Request;
@@ -28,11 +31,30 @@ use WP_Http;
  *
  * @author André Gil <andre_gil22@hotmail.com>
  */
-class Response extends Base
+class Response extends Base implements ResponseInterface
 {
 	/**
+	 * JSON Schema property used to remove additional properties from the schema
+	 *
+	 * @since 0.9.0
+	 *
+	 * @var string
+	 */
+	protected const ADDITIONAL_PROPERTIES = 'additionalProperties';
+
+	/**
+	 * JSON Schema property used to define the properties of an object - we use it
+	 * to check if the error in the properties is due to additionalProperties as well
+	 *
+	 * @since 0.9.0
+	 *
+	 * @var string
+	 */
+	protected const PROPERTIES = 'properties';
+
+	/**
 	 * Makes sure that the data to be sent back to the client corresponds to the given JSON schema.
-	 * It removes additional properties $this->additionalProperties is set to false.
+	 * It removes additional properties if the schema has 'additionalProperties' set to false (i.e. default value).
 	 *
 	 * @since 0.9.0
 	 *
@@ -69,7 +91,7 @@ class Response extends Base
 
 		if (!$result->isValid()) {
 			$error = $result->error();
-			if ($error->keyword() !== 'additionalProperties') {
+			if (!$this->removeAdditionalProperties($error, $res)) {
 				$error = $this->getError($result);
 				return new WP_Error(
 					'unprocessable_entity',
@@ -77,13 +99,50 @@ class Response extends Base
 					['status' => WP_Http::UNPROCESSABLE_ENTITY],
 				);
 			}
-
-			// Remove additional data.
-			foreach ($error->args()['properties'] as $index => $name) {
-				unset($res->{$name});
-			}
 		}
 
 		return $res;
+	}
+
+	/**
+	 * Removes additional properties from the data if the 'additionalProperties' field
+	 * in the JSON Schema is set to false.
+	 *
+	 * @since 0.9.0
+	 *
+	 * @param ValidationError $error - Opis/json-schema error.
+	 * @param mixed $data - The data to be retrieved to the client.
+	 * @return bool - true if it's an additionalProperties error or false otherwise.
+	 */
+	protected function removeAdditionalProperties(ValidationError $error, &$data): bool
+	{
+		$keyword = $error->keyword();
+		if ($keyword === self::ADDITIONAL_PROPERTIES) {
+			$fullpath = $error->data()->fullPath();
+			foreach ($error->args()['properties'] as $index => $name) {
+				$d = &$data;
+				foreach ($fullpath as $path) {
+					$d = &$d->{$path};
+				}
+
+				unset($d);
+			}
+			return true;
+		}
+
+		// Is the error not regarding the properties field? If so, we already know that it's not
+		// an 'additionalProperty' error.
+		if ($keyword !== self::PROPERTIES) {
+			return false;
+		}
+
+		// Check errors from the 'properties' field.
+		$isAdditionalProperties = false;
+		foreach ($error->subErrors() as $e) {
+			if (!$this->removeAdditionalProperties($e, $data)) {
+				return false;
+			}
+		}
+		return true;
 	}
 }

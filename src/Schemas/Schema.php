@@ -19,6 +19,8 @@ use Opis\JsonSchema\Exceptions\SchemaException;
 use WP_REST_Request;
 use WP_Error;
 use WP_Http;
+use WP\FastEndpoints\Contracts\Schemas\Base;
+use WP\FastEndpoints\Contracts\Schemas\Schema as SchemaInterface;
 
 /**
  * Schema class that validates a WP_REST_Request using Opis/json-schema
@@ -27,8 +29,23 @@ use WP_Http;
  *
  * @author André Gil <andre_gil22@hotmail.com>
  */
-class Schema extends Base
+class Schema extends Base implements SchemaInterface
 {
+	/**
+	 * Validates the JSON schema
+	 *
+	 * @since 0.9.0
+	 *
+	 * @see $this->parse()
+	 * @param WP_REST_Request $req - Current REST Request.
+	 * @return true|WP_Error - true on success and WP_Error on error.
+	 */
+	public function validate(WP_REST_Request $req)
+	{
+		$this->contents = $this->getContents();
+		return $this->parse($req);
+	}
+
 	/**
 	 * Parses the JSON schema contents using the Opis/json-schema library
 	 *
@@ -74,20 +91,5 @@ class Schema extends Base
 		}
 
 		return true;
-	}
-
-	/**
-	 * Validates the JSON schema
-	 *
-	 * @since 0.9.0
-	 *
-	 * @see $this->parse()
-	 * @param WP_REST_Request $req - Current REST Request.
-	 * @return true|WP_Error - true on success and WP_Error on error.
-	 */
-	public function validate(WP_REST_Request $req)
-	{
-		$this->contents = $this->getContents();
-		return $this->parse($req);
 	}
 }
