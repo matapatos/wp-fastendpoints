@@ -36,11 +36,11 @@ test('Creating Response instance with an invalid $schema type', function () {
 	expect(fn() => new Response(false))->toThrow(TypeError::class);
 });
 
-test('Validating valid JSON schema', function () {
+test('Validating if Response returns() ignores unnecessary properties', function () {
 	$response = new Response('User/Get');
 	$response->appendSchemaDir(\SCHEMAS_DIR);
 	// Similar fields as a WP_User
-	$user = (object) [
+	$user = [
 		"data" => [
 			"ID" => "1",
 			"user_login" => "fake_username",
@@ -53,17 +53,34 @@ test('Validating valid JSON schema', function () {
 			"user_status" => "0",
 			"display_name" => "André Gil",
 			"spam" => "0",
-			"deleted" => "0"
+			"deleted" => "0",
+			"first" => [
+				"second" => [
+					"third" => [
+						"forth" => true,
+					],
+				],
+			],
 		],
 		"ID" => 1,
 		"caps" => ["administrator" => true],
 		"cap_key" => "wp_capabilities",
 		"roles" => ["administrator"],
-		"filter" => null
+		"filter" => null,
 	];
 	// Create WP_REST_Request mock
 	$req = Mockery::mock('WP_REST_Request');
 	$req->shouldReceive('get_route')
 		->andReturn('user');
-	var_dump($response->returns($req, $user));
+	// Validate response
+	$data = (array) $response->returns($req, $user);
+	expect($data)->toMatchArray([
+		"data" => [
+			"ID" => "1",
+			"user_email" => "fake@wpfastendpoints.com",
+			"user_url" => "",
+			"display_name" => "André Gil",
+		],
+		"is_admin" => true,
+	]);
 });

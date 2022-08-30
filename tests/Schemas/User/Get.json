@@ -1,0 +1,107 @@
+{
+	"$id": "https://app.voicedistillery.co.uk/schemas/User/Get.json",
+	"type": "object",
+	"properties": {
+		"data": {
+			"type": "object",
+			"properties": {
+				"ID": {
+					"type": "string"
+				},
+				"user_email": {
+					"type": "string",
+					"format": "email",
+					"maxLength": 50
+				},
+				"display_name": {
+					"type": "string",
+					"maxLength": 100
+				},
+				"first": {
+					"type": "object",
+					"properties": {
+						"second": {
+							"type": "object",
+							"properties": {
+								"third": {
+									"type": "object",
+									"properties": {
+										"forth": {
+											"type": "boolean"
+										}
+									},
+									"additionalProperties": false,
+									"required": ["forth"]
+								}
+							},
+							"additionalProperties": false,
+							"required": ["third"]
+						}
+					},
+					"additionalProperties": false,
+					"required": ["second"]
+				},
+				"number 1": {
+					"type": "object",
+					"properties": {
+						"number 2": {
+							"type": "object",
+							"properties": {
+								"number 3": {
+									"type": "object",
+									"properties": {
+										"number 4": {
+											"type": "boolean"
+										}
+									},
+									"additionalProperties": false,
+									"required": ["number 4"]
+								}
+							},
+							"additionalProperties": false,
+							"required": ["number 3"]
+						}
+					},
+					"additionalProperties": false,
+					"required": ["number 2"]
+				}
+			},
+			"additionalProperties": false,
+			"required": [
+				"ID",
+				"user_email",
+				"first",
+				"number 1"
+			]
+		},
+		"is_admin": {
+			"type": "boolean",
+			"default": false
+		}
+	},
+	"allOf": [
+		{
+			"if": {
+				"properties": {
+					"roles": {
+						"items": {
+							"const": "administrator"
+						}
+					}
+				}
+			},
+			"then": {
+				"properties": {
+					"is_admin": {
+						"const": true
+					}
+				}
+			}
+		}
+	],
+	"additionalProperties": false,
+	"required": [
+		"data",
+		"is_admin"
+	]
+}
