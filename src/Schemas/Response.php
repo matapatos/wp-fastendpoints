@@ -23,6 +23,7 @@ use Opis\JsonSchema\Exceptions\SchemaException;
 use WP_REST_Request;
 use WP_Error;
 use WP_Http;
+use WP\FastEndpoints\Schemas\Opis\Parsers\ResponseSchemaParser;
 
 /**
  * Response class that checks/parses the REST response of an endpoint before sending it to the client.
@@ -43,14 +44,14 @@ class Response extends Base implements ResponseInterface
 	protected const ADDITIONAL_PROPERTIES = 'additionalProperties';
 
 	/**
-	 * JSON Schema property used to define the properties of an object - we use it
-	 * to check if the error in the properties is due to additionalProperties as well
+	 * JSON Schema error keywords commonly used to group sub errors containing
+	 * additionalProperties errors
 	 *
 	 * @since 0.9.0
 	 *
 	 * @var string
 	 */
-	protected const PROPERTIES = 'properties';
+	protected const POSSIBLE_SUB_ADDITIONAL_PROPERTIES = ['properties', 'schema'];
 
 	/**
 	 * Makes sure that the data to be sent back to the client corresponds to the given JSON schema.
