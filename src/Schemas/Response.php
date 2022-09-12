@@ -17,8 +17,9 @@ namespace WP\FastEndpoints\Schemas;
 use WP\FastEndpoints\Contracts\Schemas\Base;
 use WP\FastEndpoints\Contracts\Schemas\Response as ResponseInterface;
 use Opis\JsonSchema\Validator;
-use Opis\JsonSchema\Errors\ValidationError;
 use Opis\JsonSchema\Helper;
+use Opis\JsonSchema\SchemaLoader;
+use Opis\JsonSchema\Resolvers\SchemaResolver;
 use Opis\JsonSchema\Exceptions\SchemaException;
 use WP_REST_Request;
 use WP_Error;
@@ -54,6 +55,15 @@ class Response extends Base implements ResponseInterface
 	protected const POSSIBLE_SUB_ADDITIONAL_PROPERTIES = ['properties', 'schema'];
 
 	/**
+	 * Data to be sent in the response to the client
+	 *
+	 * @since 0.9.0
+	 *
+	 * @var mixed
+	 */ 
+	private static $data = null;
+
+	/**
 	 * Makes sure that the data to be sent back to the client corresponds to the given JSON schema.
 	 * It removes additional properties if the schema has 'additionalProperties' set to false (i.e. default value).
 	 *
@@ -74,15 +84,16 @@ class Response extends Base implements ResponseInterface
 			return $res;
 		}
 
-		$schemaId = $this->getSchemaId($req);
-		$validator = new Validator();
-		$resolver = $validator->resolver();
-		$res = \apply_filters($this->suffix . '_response', $res, $req, $this);
-		$res = Helper::toJSON($res);
+		// Create Validator and enable it to return all errors.
+		$loader = new SchemaLoader(new ResponseSchemaParser(), new SchemaResolver(), true);
+		$validator = new Validator($loader);
+		self::$data = \apply_filters($this->suffix . '_before_validating', $res, $req, $this);
+		self::$data = Helper::toJSON(self::$data);
 		$schema = Helper::toJSON($this->contents);
 		try {
-			$result = $validator->validate($res, $schema);
+			$result = $validator->validate(self::$data, $schema);
 		} catch (SchemaException $e) {
+			$schemaId = $this->getSchemaId($req);
 			return new WP_Error(
 				'unprocessable_entity',
 				"Unprocessable resource {$schemaId}",
@@ -90,60 +101,40 @@ class Response extends Base implements ResponseInterface
 			);
 		}
 
-		if (!$result->isValid()) {
-			$error = $result->error();
-			if (!$this->removeAdditionalProperties($error, $res)) {
-				$error = $this->getError($result);
-				return new WP_Error(
-					'unprocessable_entity',
-					$error,
-					['status' => WP_Http::UNPROCESSABLE_ENTITY],
-				);
-			}
+		$isValid = \apply_filters($this->suffix . '_is_valid', $result->isValid(), self::$data, $result, $req, $this);
+		if (!$isValid) {
+			$error = $this->getError($result);
+			return new WP_Error(
+				'unprocessable_entity',
+				$error,
+				['status' => WP_Http::UNPROCESSABLE_ENTITY],
+			);
 		}
 
-		return $res;
+		return \apply_filters($this->suffix . '_after_validating', self::$data, $req, $this);
 	}
 
 	/**
-	 * Removes additional properties from the data if the 'additionalProperties' field
-	 * in the JSON Schema is set to false.
+	 * Updates the data to be sent in the response
 	 *
 	 * @since 0.9.0
 	 *
-	 * @param ValidationError $error - Opis/json-schema error.
-	 * @param mixed $data - The data to be retrieved to the client.
-	 * @return bool - true if it's an additionalProperties error or false otherwise.
+	 * @param mixed $data - The data to be sent in the response.
 	 */
-	protected function removeAdditionalProperties(ValidationError $error, &$data): bool
+	public function setData($data): void
 	{
-		$keyword = $error->keyword();
-		if ($keyword === self::ADDITIONAL_PROPERTIES) {
-			$fullpath = $error->data()->fullPath();
-			foreach ($error->args()['properties'] as $index => $name) {
-				$d = &$data;
-				foreach ($fullpath as $path) {
-					$d = &$d->{$path};
-				}
+		self::$data = $data;
+	}
 
-				unset($d);
-			}
-			return true;
-		}
-
-		// Is the error not regarding the properties field? If so, we already know that it's not
-		// an 'additionalProperty' error.
-		if ($keyword !== self::PROPERTIES) {
-			return false;
-		}
-
-		// Check errors from the 'properties' field.
-		$isAdditionalProperties = false;
-		foreach ($error->subErrors() as $e) {
-			if (!$this->removeAdditionalProperties($e, $data)) {
-				return false;
-			}
-		}
-		return true;
+	/**
+	 * Retrieves the data to be sent in the response
+	 *
+	 * @since 0.9.0
+	 *
+	 * @return mixed $data - The data to be sent in the response.
+	 */
+	public function getData()
+	{
+		return self::$data;
 	}
 }
