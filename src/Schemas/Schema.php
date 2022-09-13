@@ -16,6 +16,8 @@ namespace WP\FastEndpoints\Schemas;
 use Opis\JsonSchema\Validator;
 use Opis\JsonSchema\Helper;
 use Opis\JsonSchema\Exceptions\SchemaException;
+use Opis\JsonSchema\SchemaLoader;
+use Opis\JsonSchema\Resolvers\SchemaResolver;
 use WP_REST_Request;
 use WP_Error;
 use WP_Http;
@@ -66,11 +68,10 @@ class Schema extends Base implements SchemaInterface
 		}
 
 		$schemaId = $this->getSchemaId($req);
-		$validator = new Validator();
-		$resolver = $validator->resolver();
 		$params = \apply_filters($this->suffix . '_params', $req->get_params(), $req, $this);
 		$json = Helper::toJSON($params);
 		$schema = Helper::toJSON($this->contents);
+		$validator = \apply_filters($this->suffix . '_validator', new Validator(), $req, $this);
 		try {
 			$result = $validator->validate($json, $schema);
 		} catch (SchemaException $e) {
@@ -81,7 +82,8 @@ class Schema extends Base implements SchemaInterface
 			);
 		}
 
-		if (!$result->isValid()) {
+		$isValid = \apply_filters($this->suffix . '_is_valid', $result->isValid(), $result, $req, $this);
+		if (!$isValid) {
 			$error = $this->getError($result);
 			return new WP_Error(
 				'unprocessable_entity',

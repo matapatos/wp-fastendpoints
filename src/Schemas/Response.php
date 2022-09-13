@@ -86,10 +86,10 @@ class Response extends Base implements ResponseInterface
 
 		// Create Validator and enable it to return all errors.
 		$loader = new SchemaLoader(new ResponseSchemaParser(), new SchemaResolver(), true);
-		$validator = new Validator($loader);
 		self::$data = \apply_filters($this->suffix . '_before_validating', $res, $req, $this);
 		self::$data = Helper::toJSON(self::$data);
 		$schema = Helper::toJSON($this->contents);
+		$validator = \apply_filters($this->suffix . '_validator', new Validator($loader), self::$data, $req, $this);
 		try {
 			$result = $validator->validate(self::$data, $schema);
 		} catch (SchemaException $e) {
