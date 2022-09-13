@@ -121,7 +121,7 @@ class Response extends Base implements ResponseInterface
 	 *
 	 * @param mixed $data - The data to be sent in the response.
 	 */
-	public function setData($data): void
+	public static function setData($data): void
 	{
 		self::$data = $data;
 	}
@@ -133,7 +133,7 @@ class Response extends Base implements ResponseInterface
 	 *
 	 * @return mixed $data - The data to be sent in the response.
 	 */
-	public function getData()
+	public static function getData()
 	{
 		return self::$data;
 	}
