@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace WP\FastEndpoints;
 
-use WP\FastEndpoints\Contracts\Router as RouterInterface;
-use WP\FastEndpoints\Contracts\Endpoint as EndpointInterface;
+use WP\FastEndpoints\Contracts\Router as RouterContract;
+use WP\FastEndpoints\Contracts\Endpoint as EndpointContract;
 
 /**
  * A Router can help developers in creating groups of endpoints. This way developers can aggregate
@@ -32,7 +32,7 @@ use WP\FastEndpoints\Contracts\Endpoint as EndpointInterface;
  *
  * @author André Gil <andre_gil22@hotmail.com>
  */
-class Router implements RouterInterface
+class Router implements RouterContract
 {
 	/**
 	 * Router rest base
@@ -122,9 +122,9 @@ class Router implements RouterInterface
 	 * @param array<mixed> $args - Same as the WordPress register_rest_route $args parameter. If set it can override the default
 	 * WP FastEndpoints arguments. Default value: [].
 	 * @param bool $override - Same as the WordPress register_rest_route $override parameter. Defaul value: false.
-	 * @return EndpointInterface
+	 * @return EndpointContract
 	 */
-	public function get(string $route, callable $handler, array $args = [], bool $override = false): EndpointInterface
+	public function get(string $route, callable $handler, array $args = [], bool $override = false): EndpointContract
 	{
 		return $this->endpoint('GET', $route, $handler, $args);
 	}
@@ -139,9 +139,9 @@ class Router implements RouterInterface
 	 * @param array<mixed> $args - Same as the WordPress register_rest_route $args parameter. If set it can override the default
 	 * WP FastEndpoints arguments. Default value: [].
 	 * @param bool $override - Same as the WordPress register_rest_route $override parameter. Defaul value: false.
-	 * @return EndpointInterface
+	 * @return EndpointContract
 	 */
-	public function post(string $route, callable $handler, array $args = [], $override = false): EndpointInterface
+	public function post(string $route, callable $handler, array $args = [], $override = false): EndpointContract
 	{
 		return $this->endpoint('POST', $route, $handler, $args);
 	}
@@ -156,9 +156,9 @@ class Router implements RouterInterface
 	 * @param array<mixed> $args - Same as the WordPress register_rest_route $args parameter. If set it can override the default
 	 * WP FastEndpoints arguments. Default value: [].
 	 * @param bool $override - Same as the WordPress register_rest_route $override parameter. Defaul value: false.
-	 * @return EndpointInterface
+	 * @return EndpointContract
 	 */
-	public function put(string $route, callable $handler, array $args = [], bool $override = false): EndpointInterface
+	public function put(string $route, callable $handler, array $args = [], bool $override = false): EndpointContract
 	{
 		return $this->endpoint('PUT', $route, $handler, $args);
 	}
@@ -173,9 +173,9 @@ class Router implements RouterInterface
 	 * @param array<mixed> $args - Same as the WordPress register_rest_route $args parameter. If set it can override the default
 	 * WP FastEndpoints arguments. Default value: [].
 	 * @param bool $override - Same as the WordPress register_rest_route $override parameter. Defaul value: false.
-	 * @return EndpointInterface
+	 * @return EndpointContract
 	 */
-	public function delete(string $route, callable $handler, array $args = [], bool $override = false): EndpointInterface
+	public function delete(string $route, callable $handler, array $args = [], bool $override = false): EndpointContract
 	{
 		return $this->endpoint('DELETE', $route, $handler, $args, $override);
 	}
@@ -187,7 +187,7 @@ class Router implements RouterInterface
 	 *
 	 * @param Router $router - REST sub router.
 	 */
-	public function includeRouter(RouterInterface &$router): void
+	public function includeRouter(RouterContract &$router): void
 	{
 		$router->parent = $this;
 		$this->subRouters[] = $router;
@@ -225,19 +225,19 @@ class Router implements RouterInterface
 		}
 
 		if ($this->parent) {
-			if (!$this->parent->registered) {
+			if (!has_action('rest_api_init', [$this->parent, 'registerEndpoints'])) {
 				\wp_die('You are trying to build a sub-router before building the parent router. ' .
 				'Call the build() function on the parent router only!');
 			}
-
-			if ($this->base) {
+		} else {
+			if (!$this->base) {
 				\wp_die('No api namespace specified in the parent router');
 			}
 
-			if ($this->version) {
+			if (!$this->version) {
 				\wp_die('No api version specified in the parent router');
 			}
-		} else {
+
 			\do_action('wp_fastendpoints_before_register', $this);
 		}
 
@@ -345,7 +345,7 @@ class Router implements RouterInterface
 	 * @param array<mixed> $args - Same as the WordPress register_rest_route $args parameter. If set it can override the default
 	 * WP FastEndpoints arguments. Default value: [].
 	 * @param bool $override - Same as the WordPress register_rest_route $override parameter. Defaul value: false.
-	 * @return EndpointInterface
+	 * @return EndpointContract
 	 */
 	public function endpoint(
 		string $method,
@@ -353,7 +353,7 @@ class Router implements RouterInterface
 		callable $handler,
 		array $args = [],
 		bool $override = false
-	): EndpointInterface {
+	): EndpointContract {
 		$endpoint = new Endpoint($method, $route, $handler, $args, $override);
 		$this->endpoints[] = $endpoint;
 		return $endpoint;
