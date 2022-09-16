@@ -15,7 +15,7 @@ declare(strict_types=1);
 namespace WP\FastEndpoints\Schemas;
 
 use WP\FastEndpoints\Contracts\Schemas\Base;
-use WP\FastEndpoints\Contracts\Schemas\Response as ResponseInterface;
+use WP\FastEndpoints\Contracts\Schemas\Response as ResponseContract;
 use Opis\JsonSchema\Validator;
 use Opis\JsonSchema\Helper;
 use Opis\JsonSchema\SchemaLoader;
@@ -33,7 +33,7 @@ use WP\FastEndpoints\Schemas\Opis\Parsers\ResponseSchemaParser;
  *
  * @author André Gil <andre_gil22@hotmail.com>
  */
-class Response extends Base implements ResponseInterface
+class Response extends Base implements ResponseContract
 {
 	/**
 	 * JSON Schema property used to remove additional properties from the schema
