@@ -194,23 +194,34 @@ class Router implements RouterContract
 	}
 
 	/**
-	 * Includes a router as a sub router
+	 * Appends an additional directory where to look for the schema
 	 *
 	 * @since 0.9.0
 	 *
-	 * @param string $path - Directory path where to look for JSON schemas.
+	 * @param string|array<string> $schemaDir - Directory path or an array of directories where to
+	 * look for JSON schemas.
 	 */
-	public function appendSchemaDir(string $path): void
+	public function appendSchemaDir($dir): void
 	{
-		if (!\file_exists($path)) {
-			\wp_die(\esc_html("Schema directory doesn't exists: {$path}"));
+		if (!$dir) {
+			\wp_die('Invalid schema directory');
 		}
 
-		if (!\is_dir($path)) {
-			\wp_die(\esc_html("Expected a directory but a file given: {$path}"));
+		if (!\is_array($dir)) {
+			$dir = [$dir];
 		}
 
-		$this->schemaDirs[] = $path;
+		foreach ($dir as $d) {
+			if (\is_file($d)) {
+				\wp_die(\esc_html("Expected a directory with schemas but got a file: {$d}"));
+			}
+
+			if (!\is_dir($d)) {
+				\wp_die(\esc_html("Schema directory not found: {$d}"));
+			}
+		}
+
+		$this->schemaDirs = $this->schemaDirs + $dir;
 	}
 
 	/**
