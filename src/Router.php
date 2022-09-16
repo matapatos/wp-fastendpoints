@@ -257,6 +257,7 @@ class Router implements RouterContract
 
 		// Register each sub router, if any.
 		foreach ($this->subRouters as $router) {
+			$router->appendSchemaDir($this->schemaDirs);
 			$router->register();
 		}
 
