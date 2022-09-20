@@ -404,7 +404,7 @@ class Endpoint implements EndpointInterface
 	protected function getRoute(string $restBase): string
 	{
 		$route = $restBase;
-		if (!\str_ends_with($restBase, '/')) {
+		if (!\str_ends_with($restBase, '/') && !\str_starts_with($this->route, '/')) {
 			$route .= '/';
 		}
 		$route .= $this->route;
