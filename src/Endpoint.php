@@ -169,7 +169,7 @@ class Endpoint implements EndpointInterface
 		$args = [
 			'methods'               => $this->method,
 			'callback'              => [$this, 'callback'],
-			'permissionCallback'   => $this->permissionHandlers ? [$this, 'permissionCallback'] : '__return_true',
+			'permission_callback'   => $this->permissionHandlers ? [$this, 'permissionCallback'] : '__return_true',
 		];
 		if ($this->schema) {
 			$this->schema->appendSchemaDir($schemaDirs);
@@ -432,7 +432,7 @@ class Endpoint implements EndpointInterface
 	}
 
 	/**
-	 * Calls each handler
+	 * Calls each handler ordered by priority.
 	 *
 	 * @since 0.9.0
 	 *
