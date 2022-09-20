@@ -213,7 +213,7 @@ class Endpoint implements EndpointInterface
 					if (!\current_user_can($cap)) {
 						return new WP_Error(
 							'rest_forbidden',
-							'Not enough permissions',
+							__('Not enough permissions'),
 							['status' => WP_Http::FORBIDDEN],
 						);
 					}
@@ -224,12 +224,12 @@ class Endpoint implements EndpointInterface
 					if (!\current_user_can(...$cap)) {
 						return new WP_Error(
 							'rest_forbidden',
-							'Not enough permissions',
+							__('Not enough permissions'),
 							['status' => WP_Http::FORBIDDEN],
 						);
 					}
 				} else {
-					\wp_die(\esc_html('Invalid capability. Expected string or array but ' . $cap . ' given'));
+					\wp_die(\esc_html__('Invalid capability. Expected string or array but ' . $cap . ' given'));
 				}
 			}
 
