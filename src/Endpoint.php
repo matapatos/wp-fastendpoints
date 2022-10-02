@@ -18,9 +18,8 @@ use WP\FastEndpoints\Contracts\Schemas\Schema as SchemaInterface;
 use WP\FastEndpoints\Contracts\Schemas\Response as ResponseInterface;
 use WP\FastEndpoints\Contracts\Endpoint as EndpointInterface;
 use WP\FastEndpoints\Helpers\Arr;
+use WP\FastEndpoints\Errors\NotEnoughPermissionsError;
 use WP_REST_Request;
-use WP_Error;
-use WP_Http;
 use TypeError;
 
 
@@ -197,25 +196,28 @@ class Endpoint implements EndpointInterface
 			foreach ($capabilities as $cap) {
 				if (\is_string($cap)) {
 					if (!\current_user_can($cap)) {
-						return new WP_Error(
-							'rest_forbidden',
-							__('Not enough permissions'),
-							['status' => WP_Http::FORBIDDEN],
-						);
+						return new NotEnoughPermissionsError($cap);
 					}
 				} elseif (\is_array($cap)) {
-					if (\count($cap) > 1) {
-						$cap[1] = $this->replaceSpecialValue($req, $cap[1]);
+					if (!$cap) {
+						\wp_die(\__('Invalid capability. Empty array given'));
 					}
+
+					if (Arr::isAssoc($cap)) {
+						if (count($cap) !== 1) {
+							\wp_die(\esc_html__('Invalid capability. Expected one dictionary key but ') . esc_html(count($cap)) . __(' given'));
+						}
+						$keys = array_keys($cap);
+						// Flatten array.
+						$value = Arr::wrap($this->replaceSpecialValue($req, $cap[$keys[0]]));
+						$cap = array_merge($keys, $value);
+					}
+
 					if (!\current_user_can(...$cap)) {
-						return new WP_Error(
-							'rest_forbidden',
-							__('Not enough permissions'),
-							['status' => WP_Http::FORBIDDEN],
-						);
+						return new NotEnoughPermissionsError($cap);
 					}
 				} else {
-					\wp_die(\esc_html__('Invalid capability. Expected string or array but ' . $cap . ' given'));
+					\wp_die(\__('Invalid capability. Expected string or array but ') . esc_html($cap) . __(' given'));
 				}
 			}
 
@@ -371,7 +373,11 @@ class Endpoint implements EndpointInterface
 	 */
 	public function permissionCallback(WP_REST_Request $req)
 	{
-		return $this->runHandlers($this->permissionHandlers, $req);
+		$result = $this->runHandlers($this->permissionHandlers, $req);
+		if (is_wp_error($result)) {
+			return $result;
+		}
+		return true;
 	}
 
 	/**
@@ -397,17 +403,37 @@ class Endpoint implements EndpointInterface
 	 * @since 0.9.0
 	 * @param WP_REST_Request $req - Current REST request.
 	 * @param mixed $value - Value to be checked.
-	 * @return mixed - The second parameter to be used in \current_user_can.
+	 * @return mixed - The $value variable with all special parameters replaced.
 	 */
 	protected function replaceSpecialValue(WP_REST_Request $req, $value)
 	{
+		// Recursively search and replace all special value.
+		if (\is_array($value)) {
+			foreach ($value as &$v) {
+				$v = $this->replaceSpecialValue($req, $v);
+			}
+			return $value;
+		}
+
 		if (!\is_string($value)) {
 			return $value;
 		}
 
 		// Checks if value matches a special value.
 		// If so, replaces with request variable.
-		return $value;
+		$newValue = trim($value);
+		if (!str_starts_with($newValue, '{') && !str_ends_with($newValue, '}')) {
+			return $value;
+		}
+
+		$newValue = ltrim($newValue, '{');
+		$newValue = rtrim($newValue, '}');
+		if (!$req->has_param($newValue)) {
+			return $value;
+		}
+
+		$newValue = $req->get_param($newValue);
+		return is_numeric($newValue) ? $newValue + 0 : $newValue;
 	}
 
 	/**
