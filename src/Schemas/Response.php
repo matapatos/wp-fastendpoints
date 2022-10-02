@@ -5,7 +5,6 @@
  * back and that no unnecessary fields are retrieved.
  *
  * @since 0.9.0
- *
  * @package wp-fastendpoints
  * @license MIT
  */
@@ -30,7 +29,6 @@ use WP\FastEndpoints\Schemas\Opis\Parsers\ResponseSchemaParser;
  * Response class that checks/parses the REST response of an endpoint before sending it to the client.
  *
  * @since 0.9.0
- *
  * @author André Gil <andre_gil22@hotmail.com>
  */
 class Response extends Base implements ResponseContract
@@ -39,7 +37,6 @@ class Response extends Base implements ResponseContract
 	 * JSON Schema property used to remove additional properties from the schema
 	 *
 	 * @since 0.9.0
-	 *
 	 * @var string
 	 */
 	protected const ADDITIONAL_PROPERTIES = 'additionalProperties';
@@ -49,7 +46,6 @@ class Response extends Base implements ResponseContract
 	 * additionalProperties errors
 	 *
 	 * @since 0.9.0
-	 *
 	 * @var string
 	 */
 	protected const POSSIBLE_SUB_ADDITIONAL_PROPERTIES = ['properties', 'schema'];
@@ -58,7 +54,6 @@ class Response extends Base implements ResponseContract
 	 * Data to be sent in the response to the client
 	 *
 	 * @since 0.9.0
-	 *
 	 * @var mixed
 	 */ 
 	private static $data = null;
@@ -68,7 +63,6 @@ class Response extends Base implements ResponseContract
 	 * It removes additional properties if the schema has 'additionalProperties' set to false (i.e. default value).
 	 *
 	 * @since 0.9.0
-	 *
 	 * @param WP_REST_Request $req - Current REST Request.
 	 * @param mixed $res - Current REST response.
 	 * @return mixed|WP_Error - Mixed on parsed response or WP_Error on error.
@@ -118,7 +112,6 @@ class Response extends Base implements ResponseContract
 	 * Updates the data to be sent in the response
 	 *
 	 * @since 0.9.0
-	 *
 	 * @param mixed $data - The data to be sent in the response.
 	 */
 	public static function setData($data): void
@@ -130,7 +123,6 @@ class Response extends Base implements ResponseContract
 	 * Retrieves the data to be sent in the response
 	 *
 	 * @since 0.9.0
-	 *
 	 * @return mixed $data - The data to be sent in the response.
 	 */
 	public static function getData()

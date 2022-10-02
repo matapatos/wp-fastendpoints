@@ -4,7 +4,6 @@
  * Holds logic to search and retrieve the contents of a JSON schema.
  *
  * @since 0.9.0
- *
  * @package wp-fastendpoints
  * @license MIT
  */
@@ -23,7 +22,6 @@ use TypeError;
  * JSON schema.
  *
  * @since 0.9.0
- *
  * @author André Gil <andre_gil22@hotmail.com>
  */
 abstract class Base
@@ -32,7 +30,6 @@ abstract class Base
 	 * Filter suffix used in this class
 	 *
 	 * @since 0.9.0
-	 *
 	 * @var string
 	 */
 	protected string $suffix;
@@ -41,7 +38,6 @@ abstract class Base
 	 * The filepath of the JSON Schema: absolute or relative path
 	 *
 	 * @since 0.9.0
-	 *
 	 * @var string
 	 */
 	protected string $filepath;
@@ -50,7 +46,6 @@ abstract class Base
 	 * The JSON Schema
 	 *
 	 * @since 0.9.0
-	 *
 	 * @var mixed
 	 */
 	protected $contents;
@@ -59,7 +54,6 @@ abstract class Base
 	 * Directories where to look for a schema
 	 *
 	 * @since 0.9.0
-	 *
 	 * @var array<string>
 	 */
 	protected array $schemaDirs = [];
@@ -68,7 +62,6 @@ abstract class Base
 	 * Creates a new instance of Base
 	 *
 	 * @since 0.9.0
-	 *
 	 * @param string|array<mixed> $schema - File name or path to the JSON schema or a JSON schema as an array.
 	 * @throws TypeError - if $schema is neither a string or an array.
 	 */
@@ -92,7 +85,6 @@ abstract class Base
 	 * Retrieves the child class name in snake case
 	 *
 	 * @since 0.9.0
-	 *
 	 * @return string
 	 */
 	protected function getSuffix(): string
@@ -105,7 +97,6 @@ abstract class Base
 	 * Appends an additional directory where to look for the schema
 	 *
 	 * @since 0.9.0
-	 *
 	 * @param string|array<string> $schemaDir - Directory path or an array of directories where to
 	 * look for JSON schemas.
 	 */
@@ -137,7 +128,6 @@ abstract class Base
 	 * in the given schema directory
 	 *
 	 * @since 0.9.0
-	 *
 	 * @return string
 	 */
 	protected function getValidSchemaFilepath(): string
@@ -160,7 +150,6 @@ abstract class Base
 	 * Retrieves the ID of the schema
 	 *
 	 * @since 0.9.0
-	 *
 	 * @param WP_REST_Request $req - Current REST Request.
 	 * @return string - URL schema id.
 	 */
@@ -182,7 +171,6 @@ abstract class Base
 	 * Retrieves a properly formatted error from Opis/json-schema
 	 *
 	 * @since 0.9.0
-	 *
 	 * @param ValidationResult $result - JSON Opis validation error result.
 	 * @return mixed
 	 */
@@ -196,7 +184,6 @@ abstract class Base
 	 * Retrieves the JSON contents of the schema
 	 *
 	 * @since 0.9.0
-	 *
 	 * @return mixed
 	 */
 	public function getContents()

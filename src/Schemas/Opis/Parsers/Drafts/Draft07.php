@@ -4,7 +4,6 @@
  * Replaces original opis/json-schema AdditionalPropertiesKeywordParser with custom one
  *
  * @since 0.9.0
- *
  * @package wp-fastendpoints
  * @license MIT
  */
@@ -19,7 +18,6 @@ use WP\FastEndpoints\Schemas\Opis\Parsers\Keywords\RemoveAdditionalPropertiesKey
  * Draft07 JSON schema that replaces the additionalProperties keyword with custom one - used in Schemas/Response
  *
  * @since 0.9.0
- *
  * @author André Gil <andre_gil22@hotmail.com>
  */
 class Draft07 extends OpisDraft07

@@ -4,7 +4,6 @@
  * Parser that adds the custom RemoveAdditionalPropertiesKeyword.
  *
  * @since 0.9.0
- *
  * @package wp-fastendpoints
  * @license MIT
  */
@@ -21,7 +20,6 @@ use WP\FastEndpoints\Schemas\Opis\Keywords\RemoveAdditionalPropertiesKeyword;
  * Keyword parser that adds the custom RemoveAdditionalPropertiesKeyword
  *
  * @since 0.9.0
- *
  * @author André Gil <andre_gil22@hotmail.com>
  */
 class RemoveAdditionalPropertiesKeywordParser extends AdditionalPropertiesKeywordParser

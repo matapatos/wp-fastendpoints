@@ -4,7 +4,6 @@
  * Holds interface for validating a WP_REST_Request before running the enpoint handler.
  *
  * @since 0.9.0
- *
  * @package wp-fastendpoints
  * @license MIT
  */
@@ -19,7 +18,6 @@ use WP_REST_Request;
  * Schema interface for validating a WP_REST_Request
  *
  * @since 0.9.0
- *
  * @author André Gil <andre_gil22@hotmail.com>
  */
 interface Schema
@@ -28,7 +26,6 @@ interface Schema
 	 * Validates the JSON schema
 	 *
 	 * @since 0.9.0
-	 *
 	 * @param WP_REST_Request $req - Current REST Request.
 	 * @return true|\WP_Error - true on success and WP_Error on error.
 	 */
@@ -38,7 +35,6 @@ interface Schema
 	 * Appends an additional directory where to look for the schema
 	 *
 	 * @since 0.9.0
-	 *
 	 * @param string|array<string> $schemaDir - Directory path or an array of directories where to
 	 * look for JSON schemas.
 	 */

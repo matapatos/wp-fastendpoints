@@ -4,7 +4,6 @@
  * Holds logic to easily register WordPress endpoints that have the same base URL.
  *
  * @since 0.9.0
- *
  * @package wp-fastendpoints
  * @license MIT
  */
@@ -29,7 +28,6 @@ use WP\FastEndpoints\Contracts\Endpoint as EndpointContract;
  * $postsRouter->put(...); // Update a post
  *
  * @since 0.9.0
- *
  * @author André Gil <andre_gil22@hotmail.com>
  */
 class Router implements RouterContract
@@ -38,7 +36,6 @@ class Router implements RouterContract
 	 * Router rest base
 	 *
 	 * @since 0.9.0
-	 *
 	 * @var string
 	 */
 	protected string $base;
@@ -49,7 +46,6 @@ class Router implements RouterContract
 	 * finishes the building process
 	 *
 	 * @since 0.9.0
-	 *
 	 * @var bool
 	 */
 	protected bool $registered = false;
@@ -58,7 +54,6 @@ class Router implements RouterContract
 	 * Parent router
 	 *
 	 * @since 0.9.0
-	 *
 	 * @var ?Router
 	 */
 	protected ?Router $parent = null;
@@ -67,7 +62,6 @@ class Router implements RouterContract
 	 * Sub routers
 	 *
 	 * @since 0.9.0
-	 *
 	 * @var array<Router>
 	 */
 	protected array $subRouters = [];
@@ -76,7 +70,6 @@ class Router implements RouterContract
 	 * REST Router endpoints
 	 *
 	 * @since 0.9.0
-	 *
 	 * @var array<Endpoint>
 	 */
 	protected array $endpoints = [];
@@ -85,7 +78,6 @@ class Router implements RouterContract
 	 * Schema directory path
 	 *
 	 * @since 0.9.0
-	 *
 	 * @var array<string>
 	 */
 	protected array $schemaDirs = [];
@@ -94,7 +86,6 @@ class Router implements RouterContract
 	 * Router version - used only if it's a parent router
 	 *
 	 * @since 0.9.0
-	 *
 	 * @var string
 	 */
 	protected string $version;
@@ -116,7 +107,6 @@ class Router implements RouterContract
 	 * Adds a new GET endpoint
 	 *
 	 * @since 0.9.0
-	 *
 	 * @param string $route - Endpoint route.
 	 * @param callable $handler - User specified handler for the endpoint.
 	 * @param array<mixed> $args - Same as the WordPress register_rest_route $args parameter. If set it can override the default
@@ -133,7 +123,6 @@ class Router implements RouterContract
 	 * Adds a new POST endpoint
 	 *
 	 * @since 0.9.0
-	 *
 	 * @param string $route - Endpoint route.
 	 * @param callable $handler - User specified handler for the endpoint.
 	 * @param array<mixed> $args - Same as the WordPress register_rest_route $args parameter. If set it can override the default
@@ -150,7 +139,6 @@ class Router implements RouterContract
 	 * Adds a new PUT endpoint
 	 *
 	 * @since 0.9.0
-	 *
 	 * @param string $route - Endpoint route.
 	 * @param callable $handler - User specified handler for the endpoint.
 	 * @param array<mixed> $args - Same as the WordPress register_rest_route $args parameter. If set it can override the default
@@ -167,7 +155,6 @@ class Router implements RouterContract
 	 * Adds a new DELETE endpoint
 	 *
 	 * @since 0.9.0
-	 *
 	 * @param string $route - Endpoint route.
 	 * @param callable $handler - User specified handler for the endpoint.
 	 * @param array<mixed> $args - Same as the WordPress register_rest_route $args parameter. If set it can override the default
@@ -184,7 +171,6 @@ class Router implements RouterContract
 	 * Includes a router as a sub router
 	 *
 	 * @since 0.9.0
-	 *
 	 * @param Router $router - REST sub router.
 	 */
 	public function includeRouter(RouterContract &$router): void
@@ -197,7 +183,6 @@ class Router implements RouterContract
 	 * Appends an additional directory where to look for the schema
 	 *
 	 * @since 0.9.0
-	 *
 	 * @param string|array<string> $schemaDir - Directory path or an array of directories where to
 	 * look for JSON schemas.
 	 */
@@ -286,7 +271,6 @@ class Router implements RouterContract
 	 * Retrieves the base router namespace for each endpoint
 	 *
 	 * @since 0.9.0
-	 *
 	 * @param bool $isToApplyFilters - Flag used to ignore wp_fastendpoints filters
 	 * (i.e. this is needed to disable multiple calls to the filter given that it's a
 	 * recursive function). Default value: true.
@@ -316,7 +300,6 @@ class Router implements RouterContract
 	 * the namespace and is before the endpoint route.
 	 *
 	 * @since 0.9.0
-	 *
 	 * @param bool $isToApplyFilters - Flag used to ignore wp_fastendpoints filters
 	 * (i.e. this is needed to disable multiple calls to the filter given that it's a
 	 * recursive function). Default value: true.
@@ -350,7 +333,6 @@ class Router implements RouterContract
 	 * Creates and retrieves a new endpoint instance
 	 *
 	 * @since 0.9.0
-	 *
 	 * @param string $method - POST, GET, PUT or DELETE or a value from WP_REST_Server (e.g. WP_REST_Server::EDITABLE).
 	 * @param string $route - Endpoint route.
 	 * @param callable $handler - User specified handler for the endpoint.

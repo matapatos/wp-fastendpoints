@@ -4,7 +4,6 @@
  * Holds the interface to easily register WordPress endpoints that have the same base URL.
  *
  * @since 0.9.0
- *
  * @package wp-fastendpoints
  * @license MIT
  */
@@ -26,7 +25,6 @@ namespace WP\FastEndpoints\Contracts;
  * $postsRouter->put(...); // Update a post
  *
  * @since 0.9.0
- *
  * @author André Gil <andre_gil22@hotmail.com>
  */
 interface Router
@@ -35,7 +33,6 @@ interface Router
 	 * Adds a new GET endpoint
 	 *
 	 * @since 0.9.0
-	 *
 	 * @param string $route - Endpoint route.
 	 * @param callable $handler - User specified handler for the endpoint.
 	 * @param array<mixed> $args - Same as the WordPress register_rest_route $args parameter. If set it can override the default
@@ -49,7 +46,6 @@ interface Router
 	 * Adds a new POST endpoint
 	 *
 	 * @since 0.9.0
-	 *
 	 * @param string $route - Endpoint route.
 	 * @param callable $handler - User specified handler for the endpoint.
 	 * @param array<mixed> $args - Same as the WordPress register_rest_route $args parameter. If set it can override the default
@@ -63,7 +59,6 @@ interface Router
 	 * Adds a new PUT endpoint
 	 *
 	 * @since 0.9.0
-	 *
 	 * @param string $route - Endpoint route.
 	 * @param callable $handler - User specified handler for the endpoint.
 	 * @param array<mixed> $args - Same as the WordPress register_rest_route $args parameter. If set it can override the default
@@ -77,7 +72,6 @@ interface Router
 	 * Adds a new DELETE endpoint
 	 *
 	 * @since 0.9.0
-	 *
 	 * @param string $route - Endpoint route.
 	 * @param callable $handler - User specified handler for the endpoint.
 	 * @param array<mixed> $args - Same as the WordPress register_rest_route $args parameter. If set it can override the default
@@ -91,7 +85,6 @@ interface Router
 	 * Includes a router as a sub router
 	 *
 	 * @since 0.9.0
-	 *
 	 * @param Router $router - REST sub router.
 	 */
 	public function includeRouter(Router &$router): void;
@@ -100,7 +93,6 @@ interface Router
 	 * Includes a router as a sub router
 	 *
 	 * @since 0.9.0
-	 *
 	 * @param string $path - Directory path where to look for JSON schemas.
 	 */
 	public function appendSchemaDir(string $path): void;
@@ -116,7 +108,6 @@ interface Router
 	 * Creates and retrieves a new endpoint instance
 	 *
 	 * @since 0.9.0
-	 *
 	 * @param string $method - POST, GET, PUT or DELETE or a value from WP_REST_Server (e.g. WP_REST_Server::EDITABLE).
 	 * @param string $route - Endpoint route.
 	 * @param callable $handler - User specified handler for the endpoint.

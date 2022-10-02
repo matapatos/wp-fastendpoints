@@ -4,7 +4,6 @@
  * Holds logic to validate a WP_REST_Request before running the enpoint handler.
  *
  * @since 0.9.0
- *
  * @package wp-fastendpoints
  * @license MIT
  */
@@ -28,7 +27,6 @@ use WP\FastEndpoints\Contracts\Schemas\Schema as SchemaInterface;
  * Schema class that validates a WP_REST_Request using Opis/json-schema
  *
  * @since 0.9.0
- *
  * @author André Gil <andre_gil22@hotmail.com>
  */
 class Schema extends Base implements SchemaInterface
@@ -37,7 +35,6 @@ class Schema extends Base implements SchemaInterface
 	 * Validates the JSON schema
 	 *
 	 * @since 0.9.0
-	 *
 	 * @see $this->parse()
 	 * @param WP_REST_Request $req - Current REST Request.
 	 * @return true|WP_Error - true on success and WP_Error on error.
@@ -52,7 +49,6 @@ class Schema extends Base implements SchemaInterface
 	 * Parses the JSON schema contents using the Opis/json-schema library
 	 *
 	 * @since 0.9.0
-	 *
 	 * @see https://opis.io/json-schema
 	 * @param WP_REST_Request $req - Current REST Request.
 	 * @return true|WP_Error - true on success and WP_Error on error.

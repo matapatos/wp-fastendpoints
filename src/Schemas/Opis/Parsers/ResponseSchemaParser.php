@@ -4,7 +4,6 @@
  * Overrides drafts of with ones that removes additionalProperties from the data instead of throwing errors.
  *
  * @since 0.9.0
- *
  * @package wp-fastendpoints
  * @license MIT
  */
@@ -26,7 +25,6 @@ use WP\FastEndpoints\Schemas\Opis\Parsers\Drafts\{
  * Parser with JSON schema drafts that removes "additionalProperties" from the data instead of throwing errors.
  *
  * @since 0.9.0
- *
  * @author André Gil <andre_gil22@hotmail.com>
  */
 class ResponseSchemaParser extends SchemaParser

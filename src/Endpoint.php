@@ -4,7 +4,6 @@
  * Holds logic for registering custom REST endpoints
  *
  * @since 0.9.0
- *
  * @package wp-fastendpoints
  * @license MIT
  */
@@ -23,11 +22,11 @@ use WP_Error;
 use WP_Http;
 use TypeError;
 
+
 /**
  * REST Endpoint that registers custom WordPress REST endpoint using register_rest_route
  *
  * @since 0.9.0
- *
  * @author André Gil <andre_gil22@hotmail.com>
  */
 class Endpoint implements EndpointInterface
@@ -36,7 +35,6 @@ class Endpoint implements EndpointInterface
 	 * HTTP endpoint method - also supports values from WP_REST_Server (e.g. WP_REST_Server::READABLE)
 	 *
 	 * @since 0.9.0
-	 *
 	 * @var string
 	 */
 	private string $method;
@@ -45,7 +43,6 @@ class Endpoint implements EndpointInterface
 	 * HTTP route
 	 *
 	 * @since 0.9.0
-	 *
 	 * @var string
 	 */
 	private string $route;
@@ -54,7 +51,6 @@ class Endpoint implements EndpointInterface
 	 * Same as the register_rest_route $args parameter
 	 *
 	 * @since 0.9.0
-	 *
 	 * @var array<mixed>
 	 */
 	private array $args = [];
@@ -63,7 +59,6 @@ class Endpoint implements EndpointInterface
 	 * Main endpoint handler
 	 *
 	 * @since 0.9.0
-	 *
 	 * @var callable
 	 */
 	private $handler;
@@ -72,7 +67,6 @@ class Endpoint implements EndpointInterface
 	 * Same as the register_rest_route $override parameter
 	 *
 	 * @since 0.9.0
-	 *
 	 * @var bool
 	 */
 	private bool $override;
@@ -81,7 +75,6 @@ class Endpoint implements EndpointInterface
 	 * JSON Schema used to validate request params
 	 *
 	 * @since 0.9.0
-	 *
 	 * @var ?SchemaInterface
 	 */
 	public ?SchemaInterface $schema = null;
@@ -90,7 +83,6 @@ class Endpoint implements EndpointInterface
 	 * JSON Schema used to retrieve data to client - ignores additional properties
 	 *
 	 * @since 0.9.0
-	 *
 	 * @var ?ResponseInterface
 	 */
 	public ?ResponseInterface $responseSchema = null;
@@ -99,7 +91,6 @@ class Endpoint implements EndpointInterface
 	 * Set of functions used inside the permissionCallback endpoint
 	 *
 	 * @since 0.9.0
-	 *
 	 * @var array<int,array<callable>>
 	 */
 	private array $permissionHandlers = [];
@@ -108,7 +99,6 @@ class Endpoint implements EndpointInterface
 	 * Set of functions used to validate request before being handled
 	 *
 	 * @since 0.9.0
-	 *
 	 * @var array<int,array<callable>>
 	 */
 	private array $validationHandlers = [];
@@ -117,7 +107,6 @@ class Endpoint implements EndpointInterface
 	 * Set of middlewares to run before the main handler
 	 *
 	 * @since 0.9.0
-	 *
 	 * @var array<int,array<callable>>
 	 */
 	private array $middlewareHandlers = [];
@@ -126,7 +115,6 @@ class Endpoint implements EndpointInterface
 	 * Set of functions to be run after processing the request - usually to handle response
 	 *
 	 * @since 0.9.0
-	 *
 	 * @var array<int,array<callable>>
 	 */
 	private array $postHandlers = [];
@@ -135,7 +123,6 @@ class Endpoint implements EndpointInterface
 	 * Creates a new instance of Endpoint
 	 *
 	 * @since 0.9.0
-	 *
 	 * @param string $method - POST, GET, PUT or DELETE or a value from WP_REST_Server (e.g. WP_REST_Server::EDITABLE).
 	 * @param string $route - Endpoint route.
 	 * @param callable $handler - User specified handler for the endpoint.
@@ -158,7 +145,6 @@ class Endpoint implements EndpointInterface
 	 * NOTE: Expects to be called inside the 'rest_api_init' WordPress action
 	 *
 	 * @since 0.9.0
-	 *
 	 * @param string $namespace - WordPress REST namespace.
 	 * @param string $restBase - Endpoint REST base.
 	 * @param array<string> $schemaDirs - Array of directories to look for JSON schemas. Default value: [].
@@ -195,7 +181,6 @@ class Endpoint implements EndpointInterface
 	 * Checks if the current user has the given WP capabilities
 	 *
 	 * @since 0.9.0
-	 *
 	 * @param string|array<mixed> $capabilities - WordPress user capabilities.
 	 * @param int $priority - Specifies the order in which the function is executed.
 	 * Lower numbers correspond with earlier execution, and functions with the same priority
@@ -243,7 +228,6 @@ class Endpoint implements EndpointInterface
 	 * validate a REST request according to the given JSON schema.
 	 *
 	 * @since 0.9.0
-	 *
 	 * @param string|array<mixed> $schema - Filepath to the JSON schema or a JSON schema as an array.
 	 * @param int $priority - Specifies the order in which the function is executed.
 	 * Lower numbers correspond with earlier execution, and functions with the same priority
@@ -264,7 +248,6 @@ class Endpoint implements EndpointInterface
 	 * 2) Making sure that the required data is retrieved.
 	 *
 	 * @since 0.9.0
-	 *
 	 * @param string|array<mixed> $schema - Filepath to the JSON schema or a JSON schema as an array.
 	 * @param int $priority - Specifies the order in which the function is executed.
 	 * Lower numbers correspond with earlier execution, and functions with the same priority
@@ -283,7 +266,6 @@ class Endpoint implements EndpointInterface
 	 * Registers a middleware with a given priority
 	 *
 	 * @since 0.9.0
-	 *
 	 * @param callable $middleware - Function to be used as a middleware.
 	 * @param int $priority - Specifies the order in which the function is executed.
 	 * Lower numbers correspond with earlier execution, and functions with the same priority
@@ -300,7 +282,6 @@ class Endpoint implements EndpointInterface
 	 * Registers an argument
 	 *
 	 * @since 0.9.0
-	 *
 	 * @param string $name - Name of the argument.
 	 * @param array<mixed>|callable $validate - Either an array that WordPress uses (e.g. ['required'=>true, 'default'=>null])
 	 * or a validation callback.
@@ -331,7 +312,6 @@ class Endpoint implements EndpointInterface
 	 * Registers a permission callback
 	 *
 	 * @since 0.9.0
-	 *
 	 * @param callable $permissionCb - Method to be called to check current user permissions.
 	 * @param int $priority - Specifies the order in which the function is executed.
 	 * Lower numbers correspond with earlier execution, and functions with the same priority
@@ -397,7 +377,6 @@ class Endpoint implements EndpointInterface
 	 * Retrieves the current endpoint route
 	 *
 	 * @since 0.9.0
-	 *
 	 * @param string $restBase - REST base route.
 	 * @return string
 	 */
@@ -415,7 +394,6 @@ class Endpoint implements EndpointInterface
 	 * Replaces specials values, like: {jobId} by $req->get_param('jobId')
 	 *
 	 * @since 0.9.0
-	 *
 	 * @param WP_REST_Request $req - Current REST request.
 	 * @param mixed $value - Value to be checked.
 	 * @return mixed - The second parameter to be used in \current_user_can.
@@ -435,7 +413,6 @@ class Endpoint implements EndpointInterface
 	 * Calls each handler ordered by priority.
 	 *
 	 * @since 0.9.0
-	 *
 	 * @param array<int,array<callable>> $allHandlers - Associative array of callables indexed by priority.
 	 * @param mixed $args - Callable arguments to be passed.
 	 * @return mixed - Returns the result of the last callable or if no handlers are set the
@@ -463,7 +440,6 @@ class Endpoint implements EndpointInterface
 	 * (works the same as the WordPress actions/filters priority argument)
 	 *
 	 * @since 0.9.0
-	 *
 	 * @param array<int,array<callable>> $arrVar - Variable used to store the priority of the function.
 	 * @param callable $cb - Function to be called.
 	 * @param int $priority - Specifies the order in which the function is executed.
