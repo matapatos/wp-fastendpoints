@@ -17,6 +17,7 @@ use WP\FastEndpoints\Schemas\Response;
 use WP\FastEndpoints\Contracts\Schemas\Schema as SchemaInterface;
 use WP\FastEndpoints\Contracts\Schemas\Response as ResponseInterface;
 use WP\FastEndpoints\Contracts\Endpoint as EndpointInterface;
+use WP\FastEndpoints\Helpers\Arr;
 use WP_REST_Request;
 use WP_Error;
 use WP_Http;
@@ -189,7 +190,7 @@ class Endpoint implements EndpointInterface
 	 */
 	public function hasCap($capabilities, int $priority = 10): Endpoint
 	{
-		if (!\is_array($capabilities)) {
+		if (!\is_array($capabilities) || Arr::isAssoc($capabilities)) {
 			$capabilities = [$capabilities];
 		}
 		$this->permission(function (WP_REST_Request $req) use ($capabilities) {

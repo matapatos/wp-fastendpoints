@@ -16,6 +16,7 @@ use Opis\JsonSchema\ValidationResult;
 use Opis\JsonSchema\Errors\ErrorFormatter;
 use WP_REST_Request;
 use TypeError;
+use WP\FastEndpoints\Helpers\Arr;
 
 /**
  * Abstract class that holds logic to search and retrieve the contents of a
@@ -106,10 +107,7 @@ abstract class Base
 			\wp_die('Invalid schema directory');
 		}
 
-		if (!\is_array($schemaDir)) {
-			$schemaDir = [$schemaDir];
-		}
-
+		$schemaDir = Arr::wrap($schemaDir);
 		foreach ($schemaDir as $dir) {
 			if (\is_file($dir)) {
 				\wp_die(\esc_html("Expected a directory with schemas but got a file: {$dir}"));

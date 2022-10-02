@@ -14,6 +14,7 @@ namespace WP\FastEndpoints;
 
 use WP\FastEndpoints\Contracts\Router as RouterContract;
 use WP\FastEndpoints\Contracts\Endpoint as EndpointContract;
+use WP\FastEndpoints\Helpers\Arr;
 
 /**
  * A Router can help developers in creating groups of endpoints. This way developers can aggregate
@@ -192,10 +193,7 @@ class Router implements RouterContract
 			\wp_die('Invalid schema directory');
 		}
 
-		if (!\is_array($dir)) {
-			$dir = [$dir];
-		}
-
+		$dir = Arr::wrap($dir);
 		foreach ($dir as $d) {
 			if (\is_file($d)) {
 				\wp_die(\esc_html("Expected a directory with schemas but got a file: {$d}"));
