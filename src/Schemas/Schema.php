@@ -15,8 +15,6 @@ namespace WP\FastEndpoints\Schemas;
 use Opis\JsonSchema\Validator;
 use Opis\JsonSchema\Helper;
 use Opis\JsonSchema\Exceptions\SchemaException;
-use Opis\JsonSchema\SchemaLoader;
-use Opis\JsonSchema\Resolvers\SchemaResolver;
 use WP_REST_Request;
 use WP_Error;
 use WP_Http;

@@ -55,7 +55,7 @@ class Response extends Base implements ResponseContract
 	 *
 	 * @since 0.9.0
 	 * @var mixed
-	 */ 
+	 */
 	private static $data = null;
 
 	/**

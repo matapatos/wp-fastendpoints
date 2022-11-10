@@ -24,30 +24,30 @@ use WP\FastEndpoints\Schemas\Opis\Keywords\RemoveAdditionalPropertiesKeyword;
  */
 class RemoveAdditionalPropertiesKeywordParser extends AdditionalPropertiesKeywordParser
 {
-    /**
-     * Replaces the original AdditionalPropertiesKeyword with a custom one that 
-     *
-     * @see AdditionalPropertiesKeywordParser->parse()
-     * @param SchemaInfo $info - Schema information.
-     * @param SchemaParser $parser - Parser to be used.
-     * @param object $shared - Data shared accross.
-     * @throws Opis\JsonSchema\Exceptions\InvalidKeywordException - if the keyword value is not in a proper format.
-     * @return ?Keyword - null if nothing to be parsed or RemoveAdditionalPropertiesKeyword otherwise.
-     */
-    public function parse(SchemaInfo $info, SchemaParser $parser, object $shared): ?Keyword
-    {
-        $schema = $info->data();
+	/**
+	 * Replaces the original AdditionalPropertiesKeyword with a custom one that
+	 *
+	 * @see AdditionalPropertiesKeywordParser->parse()
+	 * @param SchemaInfo $info - Schema information.
+	 * @param SchemaParser $parser - Parser to be used.
+	 * @param object $shared - Data shared accross.
+	 * @throws Opis\JsonSchema\Exceptions\InvalidKeywordException - if the keyword value is not in a proper format.
+	 * @return ?Keyword - null if nothing to be parsed or RemoveAdditionalPropertiesKeyword otherwise.
+	 */
+	public function parse(SchemaInfo $info, SchemaParser $parser, object $shared): ?Keyword
+	{
+		$schema = $info->data();
 
-        if (!$this->keywordExists($schema)) {
-            return null;
-        }
+		if (!$this->keywordExists($schema)) {
+			return null;
+		}
 
-        $value = $this->keywordValue($schema);
+		$value = $this->keywordValue($schema);
 
-        if (!is_bool($value) && !is_object($value)) {
-            throw $this->keywordException("{keyword} must be a json schema (object or boolean)", $info);
-        }
+		if (!\is_bool($value) && !\is_object($value)) {
+			throw $this->keywordException(\esc_html__("{keyword} must be a json schema (object or boolean)"), $info);
+		}
 
-        return new RemoveAdditionalPropertiesKeyword($value);
-    }
+		return new RemoveAdditionalPropertiesKeyword($value);
+	}
 }

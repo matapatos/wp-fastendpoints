@@ -78,7 +78,7 @@ abstract class Base
 			$this->contents = $schema;
 		} else {
 			$type = \gettype($schema);
-			throw new TypeError("Schema expected an array or a string in \$schema but {$type} given");
+			throw new TypeError(\sprintf(\esc_html__('Schema expected an array or a string in %1$s but %2$s given'), $schema, $type));
 		}
 	}
 
@@ -104,17 +104,17 @@ abstract class Base
 	public function appendSchemaDir($schemaDir): void
 	{
 		if (!$schemaDir) {
-			\wp_die('Invalid schema directory');
+			\wp_die(\esc_html__('Invalid schema directory'));
 		}
 
 		$schemaDir = Arr::wrap($schemaDir);
 		foreach ($schemaDir as $dir) {
 			if (\is_file($dir)) {
-				\wp_die(\esc_html("Expected a directory with schemas but got a file: {$dir}"));
+				\wp_die(\sprintf(\esc_html__("Expected a directory with schemas but got a file: %s"), $dir));
 			}
 
 			if (!\is_dir($dir)) {
-				\wp_die(\esc_html("Schema directory not found: {$dir}"));
+				\wp_die(\sprintf(\esc_html__("Schema directory not found: %s"), $dir));
 			}
 		}
 
@@ -141,7 +141,7 @@ abstract class Base
 			}
 		}
 
-		\wp_die(\esc_html("Unable to find schema file: {$this->filepath}"));
+		\wp_die(\sprintf(\esc_html__("Unable to find schema file: %s"), $this->filepath);
 	}
 
 	/**
@@ -196,12 +196,12 @@ abstract class Base
 		// Read JSON file and retrieve it's content.
 		$result = \file_get_contents($filepath);
 		if ($result === false) {
-			return \wp_die(\esc_html("Unable to read file: {$this->filepath}"));
+			return \wp_die(\sprintf(\esc_html__("Unable to read file: %s"), $this->filepath));
 		}
 
 		$this->contents = \json_decode($result, true);
 		if ($this->contents === null && \JSON_ERROR_NONE !== \json_last_error()) {
-			return \wp_die(\esc_html("Invalid json file: {$this->filepath} " . \json_last_error_msg()));
+			return \wp_die(\sprintf(\esc_html__("Invalid json file: %1\$s %2\$s"), $this->filepath, \json_last_error_msg()));
 		}
 
 		$this->contents = \apply_filters($this->suffix . '_contents', $this->contents, $this);

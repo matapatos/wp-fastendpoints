@@ -31,7 +31,7 @@ class Draft06 extends OpisDraft06
 	protected function getKeywordParsers(): array
 	{
 		$parsers = parent::getKeywordParsers();
-		for ($i = 0; $i < count($parsers); $i += 1) {
+		for ($i = 0; $i < \count($parsers); $i += 1) {
 			if (!($parsers[$i] instanceof AdditionalPropertiesKeywordParser)) {
 				continue;
 			}
@@ -42,5 +42,4 @@ class Draft06 extends OpisDraft06
 
 		return $parsers;
 	}
-
 }

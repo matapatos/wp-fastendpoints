@@ -30,18 +30,18 @@ use WP\FastEndpoints\Schemas\Opis\Parsers\Drafts\{
 class ResponseSchemaParser extends SchemaParser
 {
 	/**
-     * Retrieves a dictionary with the supported JSON schema drafts.
-     *
-     * @param Vocabulary|null $extraVocabulary - To add additional vocabulary to the drafts.
-     * @return array - Supported JSON schema drafts.
-     */
-    protected function getDrafts(?Vocabulary $extraVocabulary): array
-    {
-        return [
-            '06' => new Draft06($extraVocabulary),
-            '07' => new Draft07($extraVocabulary),
-            '2019-09' => new Draft201909($extraVocabulary),
-            '2020-12' => new Draft202012($extraVocabulary),
-        ];
-    }
+	 * Retrieves a dictionary with the supported JSON schema drafts.
+	 *
+	 * @param Vocabulary|null $extraVocabulary - To add additional vocabulary to the drafts.
+	 * @return array - Supported JSON schema drafts.
+	 */
+	protected function getDrafts(?Vocabulary $extraVocabulary): array
+	{
+		return [
+			'06' => new Draft06($extraVocabulary),
+			'07' => new Draft07($extraVocabulary),
+			'2019-09' => new Draft201909($extraVocabulary),
+			'2020-12' => new Draft202012($extraVocabulary),
+		];
+	}
 }

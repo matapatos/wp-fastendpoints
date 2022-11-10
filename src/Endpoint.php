@@ -200,12 +200,12 @@ class Endpoint implements EndpointInterface
 					}
 				} elseif (\is_array($cap)) {
 					if (!$cap) {
-						\wp_die(\__('Invalid capability. Empty array given'));
+						\wp_die(\esc_html__('Invalid capability. Empty array given'));
 					}
 
 					if (Arr::isAssoc($cap)) {
 						if (count($cap) !== 1) {
-							\wp_die(\esc_html__('Invalid capability. Expected one dictionary key but ') . esc_html(count($cap)) . __(' given'));
+							\wp_die(sprintf(esc_html__('Invalid capability. Expected one dictionary key but %d given'), count($cap));
 						}
 						$keys = array_keys($cap);
 						// Flatten array.
@@ -217,7 +217,7 @@ class Endpoint implements EndpointInterface
 						return new NotEnoughPermissionsError($cap);
 					}
 				} else {
-					\wp_die(\__('Invalid capability. Expected string or array but ') . esc_html($cap) . __(' given'));
+					\wp_die(sprintf(esc_html__('Invalid capability. Expected string or array but %s given'), $cap));
 				}
 			}
 
@@ -303,7 +303,7 @@ class Endpoint implements EndpointInterface
 			$args['validate_callback'] = $validate;
 		} else {
 			throw new TypeError(
-				'Expected an array or a callable as the second argument of validateArg but ' . \gettype($validate) . ' given'
+				sprintf(esc_html__('Expected an array or a callable as the second argument of validateArg but %s given'), gettype($validate))
 			);
 		}
 

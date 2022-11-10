@@ -22,26 +22,25 @@ use WP\FastEndpoints\Schemas\Opis\Parsers\Keywords\RemoveAdditionalPropertiesKey
  */
 class Draft07 extends OpisDraft07
 {
-    /**
-     * Replaces original AdditionalPropertiesKeywordParser with custom one
-     *
-     * @since 0.9.0
-     *
-     * @return array
-     */
-    protected function getKeywordParsers(): array
-    {
-        $parsers = parent::getKeywordParsers();
-        for ($i = 0; $i < count($parsers); $i += 1) {
-            if (!($parsers[$i] instanceof AdditionalPropertiesKeywordParser)) {
-                continue;
-            }
+	/**
+	 * Replaces original AdditionalPropertiesKeywordParser with custom one
+	 *
+	 * @since 0.9.0
+	 *
+	 * @return array
+	 */
+	protected function getKeywordParsers(): array
+	{
+		$parsers = parent::getKeywordParsers();
+		for ($i = 0; $i < \count($parsers); $i += 1) {
+			if (!($parsers[$i] instanceof AdditionalPropertiesKeywordParser)) {
+				continue;
+			}
 
-            $parsers[$i] = new RemoveAdditionalPropertiesKeywordParser("additionalProperties");
-            break;
-        }
+			$parsers[$i] = new RemoveAdditionalPropertiesKeywordParser("additionalProperties");
+			break;
+		}
 
-        return $parsers;
-    }
-
+		return $parsers;
+	}
 }

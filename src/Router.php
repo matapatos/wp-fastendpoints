@@ -190,17 +190,17 @@ class Router implements RouterContract
 	public function appendSchemaDir($dir): void
 	{
 		if (!$dir) {
-			\wp_die('Invalid schema directory');
+			\wp_die(\esc_html__('Invalid schema directory'));
 		}
 
 		$dir = Arr::wrap($dir);
 		foreach ($dir as $d) {
 			if (\is_file($d)) {
-				\wp_die(\esc_html("Expected a directory with schemas but got a file: {$d}"));
+				\wp_die(\sprintf(\esc_html__('Expected a directory with schemas but got a file: %s'), $d));
 			}
 
 			if (!\is_dir($d)) {
-				\wp_die(\esc_html("Schema directory not found: {$d}"));
+				\wp_die(\sprintf(\esc_html__("Schema directory not found: %s"), $d));
 			}
 		}
 
@@ -219,17 +219,17 @@ class Router implements RouterContract
 		}
 
 		if ($this->parent) {
-			if (!has_action('rest_api_init', [$this->parent, 'registerEndpoints'])) {
-				\wp_die('You are trying to build a sub-router before building the parent router. ' .
-				'Call the build() function on the parent router only!');
+			if (!\has_action('rest_api_init', [$this->parent, 'registerEndpoints'])) {
+				\wp_die(\esc_html__('You are trying to build a sub-router before building the parent router. ' .
+				'Call the build() function on the parent router only!'));
 			}
 		} else {
 			if (!$this->base) {
-				\wp_die('No api namespace specified in the parent router');
+				\wp_die(\esc_html__('No api namespace specified in the parent router'));
 			}
 
 			if (!$this->version) {
-				\wp_die('No api version specified in the parent router');
+				\wp_die(\esc_html__('No api version specified in the parent router'));
 			}
 
 			\do_action('wp_fastendpoints_before_register', $this);
