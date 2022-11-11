@@ -78,7 +78,12 @@ abstract class Base
 			$this->contents = $schema;
 		} else {
 			$type = \gettype($schema);
-			throw new TypeError(\sprintf(\esc_html__('Schema expected an array or a string in %1$s but %2$s given'), $schema, $type));
+			throw new TypeError(\sprintf(
+				/* translators: 1: JSON Schema, 2: JSON Schema type */
+				\esc_html__('Schema expected an array or a string in %1$s but %2$s given'),
+				\esc_html($schema),
+				\esc_html($type),
+			));
 		}
 	}
 
@@ -110,11 +115,13 @@ abstract class Base
 		$schemaDir = Arr::wrap($schemaDir);
 		foreach ($schemaDir as $dir) {
 			if (\is_file($dir)) {
-				\wp_die(\sprintf(\esc_html__("Expected a directory with schemas but got a file: %s"), $dir));
+				/* translators: 1: Directory */
+				\wp_die(\sprintf(\esc_html__("Expected a directory with schemas but got a file: %s"), \esc_html($dir)));
 			}
 
 			if (!\is_dir($dir)) {
-				\wp_die(\sprintf(\esc_html__("Schema directory not found: %s"), $dir));
+				/* translators: 1: Directory */
+				\wp_die(\sprintf(\esc_html__("Schema directory not found: %s"), \esc_html($dir)));
 			}
 		}
 
@@ -141,7 +148,8 @@ abstract class Base
 			}
 		}
 
-		\wp_die(\sprintf(\esc_html__("Unable to find schema file: %s"), $this->filepath);
+		/* translators: 1: Schema filepath */
+		\wp_die(\sprintf(\esc_html__("Unable to find schema file: %s"), \esc_html($this->filepath)));
 	}
 
 	/**
@@ -196,12 +204,18 @@ abstract class Base
 		// Read JSON file and retrieve it's content.
 		$result = \file_get_contents($filepath);
 		if ($result === false) {
-			return \wp_die(\sprintf(\esc_html__("Unable to read file: %s"), $this->filepath));
+			/* translators: 1: Schema filepath */
+			return \wp_die(\sprintf(\esc_html__("Unable to read file: %s"), \esc_html($this->filepath)));
 		}
 
 		$this->contents = \json_decode($result, true);
 		if ($this->contents === null && \JSON_ERROR_NONE !== \json_last_error()) {
-			return \wp_die(\sprintf(\esc_html__("Invalid json file: %1\$s %2\$s"), $this->filepath, \json_last_error_msg()));
+			/* translators: 1: Schema filepath, 2: JSON error message */
+			return \wp_die(\sprintf(
+				\esc_html__("Invalid json file: %1\$s %2\$s"),
+				\esc_html($this->filepath),
+				\esc_html(\json_last_error_msg()),
+			));
 		}
 
 		$this->contents = \apply_filters($this->suffix . '_contents', $this->contents, $this);

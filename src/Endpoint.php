@@ -204,8 +204,12 @@ class Endpoint implements EndpointInterface
 					}
 
 					if (Arr::isAssoc($cap)) {
-						if (count($cap) !== 1) {
-							\wp_die(sprintf(esc_html__('Invalid capability. Expected one dictionary key but %d given'), count($cap));
+						if (\count($cap) !== 1) {
+							\wp_die(\sprintf(
+								/* translators: 1: User capability */
+								\esc_html__('Invalid capability. Expected one dictionary key but %d given'),
+								\esc_html(\count($cap)),
+							));
 						}
 						$keys = array_keys($cap);
 						// Flatten array.
@@ -217,7 +221,11 @@ class Endpoint implements EndpointInterface
 						return new NotEnoughPermissionsError($cap);
 					}
 				} else {
-					\wp_die(sprintf(esc_html__('Invalid capability. Expected string or array but %s given'), $cap));
+					\wp_die(\sprintf(
+						/* translators: 1: User capability */
+						\esc_html__('Invalid capability. Expected string or array but %s given'),
+						\esc_html($cap),
+					));
 				}
 			}
 
@@ -302,9 +310,11 @@ class Endpoint implements EndpointInterface
 		} elseif (\is_callable($validate)) {
 			$args['validate_callback'] = $validate;
 		} else {
-			throw new TypeError(
-				sprintf(esc_html__('Expected an array or a callable as the second argument of validateArg but %s given'), gettype($validate))
-			);
+			throw new TypeError(\sprintf(
+				/* translators: 1: PHP Type of $validate argument */
+				\esc_html__('Expected an array or a callable as the second argument of validateArg but %s given'),
+				\esc_html(\gettype($validate)),
+			));
 		}
 
 		$this->args['args'][$name] = $args;

@@ -196,11 +196,13 @@ class Router implements RouterContract
 		$dir = Arr::wrap($dir);
 		foreach ($dir as $d) {
 			if (\is_file($d)) {
-				\wp_die(\sprintf(\esc_html__('Expected a directory with schemas but got a file: %s'), $d));
+				/* translators: 1: Schema directory */
+				\wp_die(\sprintf(\esc_html__('Expected a directory with schemas but got a file: %s'), \esc_html($d)));
 			}
 
 			if (!\is_dir($d)) {
-				\wp_die(\sprintf(\esc_html__("Schema directory not found: %s"), $d));
+				/* translators: 1: Schema directory */
+				\wp_die(\sprintf(\esc_html__("Schema directory not found: %s"), \esc_html($d)));
 			}
 		}
 
@@ -220,8 +222,8 @@ class Router implements RouterContract
 
 		if ($this->parent) {
 			if (!\has_action('rest_api_init', [$this->parent, 'registerEndpoints'])) {
-				\wp_die(\esc_html__('You are trying to build a sub-router before building the parent router. ' .
-				'Call the build() function on the parent router only!'));
+				\wp_die(\esc_html__('You are trying to build a sub-router before building the parent router. \
+					Call the build() function on the parent router only!'));
 			}
 		} else {
 			if (!$this->base) {
