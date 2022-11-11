@@ -69,7 +69,7 @@ interface Endpoint
 	 * @param int $priority - Specifies the order in which the function is executed.
 	 * Lower numbers correspond with earlier execution, and functions with the same priority
 	 * are executed in the order in which they were added. Default value: 10.
-	 * @throws \TypeError - If $schema is neither a string|array.
+	 * @throws TypeError - If $schema is neither a string|array.
 	 * @return Endpoint
 	 */
 	public function returns($schema, int $priority = 10): Endpoint;
@@ -93,7 +93,7 @@ interface Endpoint
 	 * @param string $name - Name of the argument.
 	 * @param array<mixed>|callable $validate - Either an array that WordPress uses (e.g. ['required'=>true, 'default'=>null])
 	 * or a validation callback.
-	 * @throws \TypeError - if $validate is neither an array or callable.
+	 * @throws TypeError - if $validate is neither an array or callable.
 	 * @return Endpoint
 	 */
 	public function arg(string $name, $validate): Endpoint;

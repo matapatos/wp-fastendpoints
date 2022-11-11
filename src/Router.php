@@ -55,15 +55,15 @@ class Router implements RouterContract
 	 * Parent router
 	 *
 	 * @since 0.9.0
-	 * @var ?Router
+	 * @var ?RouterContract
 	 */
-	protected ?Router $parent = null;
+	protected ?RouterContract $parent = null;
 
 	/**
 	 * Sub routers
 	 *
 	 * @since 0.9.0
-	 * @var array<Router>
+	 * @var array<RouterContract>
 	 */
 	protected array $subRouters = [];
 
@@ -172,7 +172,7 @@ class Router implements RouterContract
 	 * Includes a router as a sub router
 	 *
 	 * @since 0.9.0
-	 * @param Router $router - REST sub router.
+	 * @param RouterContract $router - REST sub router.
 	 */
 	public function includeRouter(RouterContract &$router): void
 	{
@@ -184,7 +184,7 @@ class Router implements RouterContract
 	 * Appends an additional directory where to look for the schema
 	 *
 	 * @since 0.9.0
-	 * @param string|array<string> $schemaDir - Directory path or an array of directories where to
+	 * @param string|array<string> $dir - Directory path or an array of directories where to
 	 * look for JSON schemas.
 	 */
 	public function appendSchemaDir($dir): void

@@ -22,7 +22,6 @@ use WP\FastEndpoints\Errors\NotEnoughPermissionsError;
 use WP_REST_Request;
 use TypeError;
 
-
 /**
  * REST Endpoint that registers custom WordPress REST endpoint using register_rest_route
  *
@@ -211,10 +210,10 @@ class Endpoint implements EndpointInterface
 								\esc_html(\count($cap)),
 							));
 						}
-						$keys = array_keys($cap);
+						$keys = \array_keys($cap);
 						// Flatten array.
 						$value = Arr::wrap($this->replaceSpecialValue($req, $cap[$keys[0]]));
-						$cap = array_merge($keys, $value);
+						$cap = \array_merge($keys, $value);
 					}
 
 					if (!\current_user_can(...$cap)) {
@@ -345,7 +344,7 @@ class Endpoint implements EndpointInterface
 	 *
 	 * @param WP_REST_Request $req - Current REST Request.
 	 * @see rest_ensure_response
-	 * @return \WP_REST_Response|WP_Error
+	 * @return WP_REST_Response|WP_Error
 	 */
 	public function callback(WP_REST_Request $req)
 	{
@@ -384,7 +383,7 @@ class Endpoint implements EndpointInterface
 	public function permissionCallback(WP_REST_Request $req)
 	{
 		$result = $this->runHandlers($this->permissionHandlers, $req);
-		if (is_wp_error($result)) {
+		if (\is_wp_error($result)) {
 			return $result;
 		}
 		return true;
@@ -431,19 +430,19 @@ class Endpoint implements EndpointInterface
 
 		// Checks if value matches a special value.
 		// If so, replaces with request variable.
-		$newValue = trim($value);
-		if (!str_starts_with($newValue, '{') && !str_ends_with($newValue, '}')) {
+		$newValue = \trim($value);
+		if (!\str_starts_with($newValue, '{') && !\str_ends_with($newValue, '}')) {
 			return $value;
 		}
 
-		$newValue = ltrim($newValue, '{');
-		$newValue = rtrim($newValue, '}');
+		$newValue = \ltrim($newValue, '{');
+		$newValue = \rtrim($newValue, '}');
 		if (!$req->has_param($newValue)) {
 			return $value;
 		}
 
 		$newValue = $req->get_param($newValue);
-		return is_numeric($newValue) ? $newValue + 0 : $newValue;
+		return \is_numeric($newValue) ? $newValue + 0 : $newValue;
 	}
 
 	/**
@@ -451,9 +450,9 @@ class Endpoint implements EndpointInterface
 	 *
 	 * @since 0.9.0
 	 * @param array<int,array<callable>> $allHandlers - Associative array of callables indexed by priority.
-	 * @param mixed $args - Callable arguments to be passed.
-	 * @return mixed - Returns the result of the last callable or if no handlers are set the
-	 * last result passed as argument if any.
+	 * @param mixed ...$args - Arguments to be passed in handlers.
+	 * @return mixed|WP_Error - Returns the result of the last callable or if no handlers are set the
+	 * last result passed as argument if any. If an error occurs a WP_Error instance is returned.
 	 */
 	protected function runHandlers(array &$allHandlers, ...$args)
 	{

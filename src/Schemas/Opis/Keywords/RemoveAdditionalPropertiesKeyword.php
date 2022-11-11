@@ -12,8 +12,8 @@ namespace WP\FastEndpoints\Schemas\Opis\Keywords;
 
 use Opis\JsonSchema\Keywords\AdditionalPropertiesKeyword;
 use Opis\JsonSchema\{
-    ValidationContext,
-    Schema
+	\ValidationContext,
+	\Schema
 };
 use Opis\JsonSchema\Errors\ValidationError;
 use WP\FastEndpoints\Schemas\Response;
@@ -92,13 +92,13 @@ class RemoveAdditionalPropertiesKeyword extends AdditionalPropertiesKeyword
 	protected function removeAdditionalProperties(ValidationContext $context, array $properties)
 	{
 		$data = Response::getData();
-		// Get full path object
+		// Get full path object.
 		$path = &$data;
 		foreach ($context->fullDataPath() as $dataPath) {
 			$path = &$path->{$dataPath};
 		}
 
-		// Remove additional properties
+		// Remove additional properties.
 		foreach ($properties as $prop) {
 			unset($path->{$prop});
 		}

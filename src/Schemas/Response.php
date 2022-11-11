@@ -46,7 +46,7 @@ class Response extends Base implements ResponseContract
 	 * additionalProperties errors
 	 *
 	 * @since 0.9.0
-	 * @var string
+	 * @var array<string>
 	 */
 	protected const POSSIBLE_SUB_ADDITIONAL_PROPERTIES = ['properties', 'schema'];
 

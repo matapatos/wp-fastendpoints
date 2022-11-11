@@ -15,10 +15,10 @@ namespace WP\FastEndpoints\Schemas\Opis\Parsers;
 use Opis\JsonSchema\Parsers\SchemaParser;
 use Opis\JsonSchema\Parsers\Vocabulary;
 use WP\FastEndpoints\Schemas\Opis\Parsers\Drafts\{
-    Draft06,
-    Draft07,
-    Draft201909,
-    Draft202012,
+	\Draft06,
+	\Draft07,
+	\Draft201909,
+	\Draft202012,
 };
 
 /**

@@ -27,7 +27,7 @@ interface Schema
 	 *
 	 * @since 0.9.0
 	 * @param WP_REST_Request $req - Current REST Request.
-	 * @return true|\WP_Error - true on success and WP_Error on error.
+	 * @return true|WP_Error - true on success and WP_Error on error.
 	 */
 	public function validate(WP_REST_Request $req);
 
