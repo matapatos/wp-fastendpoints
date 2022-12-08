@@ -21,6 +21,8 @@ use WP\FastEndpoints\Helpers\Arr;
 use WP\FastEndpoints\Errors\NotEnoughPermissionsError;
 use WP_REST_Request;
 use TypeError;
+use WP_Error;
+use WP_Http;
 
 /**
  * REST Endpoint that registers custom WordPress REST endpoint using register_rest_route
@@ -285,6 +287,40 @@ class Endpoint implements EndpointInterface
 	public function middleware(callable $middleware, int $priority = 10): Endpoint
 	{
 		$this->append($this->middlewareHandlers, $middleware, $priority);
+		return $this;
+	}
+
+	/**
+	 * Registers a middleware to set the current endpoint post. Used in get_post(...) function.
+	 *
+	 * @since 0.9.0
+	 * @param string|int $id - The post id or a string with a replaceable REST param.
+	 * @param int $priority - Specifies the order in which the function is executed.
+	 * Lower numbers correspond with earlier execution, and functions with the same priority
+	 * are executed in the order in which they were added. Default value: 10.
+	 * @param bool $override - Flag that determines if a post is already set if it should override it or not. Default: false.
+	 * @return Endpoint
+	 */
+	public function post($id, int $priority = 30, bool $override = false): Endpoint
+	{
+		$this->append($this->middlewareHandlers, function (WP_REST_Request $req) use ($id, $override) {
+			if (isset($GLOBALS['post']) && $override === false) {
+				return;
+			}
+
+			if (\is_string($id)) {
+				$id = $this->replaceSpecialValue($req, $id);
+			}
+			if (!\is_int($id)) {
+				return new WP_Error(
+					WP_Http::UNPROCESSABLE_ENTITY,
+					sprintf(esc_html__('Expected post id to be an int. Given %s with type %s'), $id, gettype($id)),
+					['status' => WP_Http::UNPROCESSABLE_ENTITY]
+				);
+			}
+
+			$GLOBALS['post'] = $id;
+		}, $priority);
 		return $this;
 	}
 
