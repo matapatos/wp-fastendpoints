@@ -64,7 +64,7 @@ class RemoveAdditionalPropertiesKeyword extends AdditionalPropertiesKeyword
 			$context,
 			$props,
 			'additionalProperties',
-			'All additional object properties must match schema: {properties}',
+			esc_html__('All additional object properties must match schema: {properties}'),
 			['properties' => $props],
 			$object,
 		);
