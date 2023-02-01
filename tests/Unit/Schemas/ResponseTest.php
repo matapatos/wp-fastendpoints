@@ -11,14 +11,16 @@
 
 declare(strict_types=1);
 
-namespace Tests\Unit\Schemas;
+namespace Tests\WP\FastEndpoints\Unit\Schemas;
 
 use WP\FastEndpoints\Schemas\Response;
 use TypeError;
 use Mockery;
+use org\bovigo\vfs\vfsStream;
 
 afterEach(function () {
 	Mockery::close();
+	vfsStream::setup();
 });
 
 test('Creating Response instance with $schema as a string', function () {
