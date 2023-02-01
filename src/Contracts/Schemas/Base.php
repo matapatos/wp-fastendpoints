@@ -109,19 +109,19 @@ abstract class Base
 	public function appendSchemaDir($schemaDir): void
 	{
 		if (!$schemaDir) {
-			\wp_die(\esc_html__('Invalid schema directory'));
+			throw new TypeError(\esc_html__('Invalid schema directory'));
 		}
 
 		$schemaDir = Arr::wrap($schemaDir);
 		foreach ($schemaDir as $dir) {
 			if (\is_file($dir)) {
 				/* translators: 1: Directory */
-				\wp_die(\sprintf(\esc_html__("Expected a directory with schemas but got a file: %s"), \esc_html($dir)));
+				throw new TypeError(\sprintf(\esc_html__("Expected a directory with schemas but got a file: %s"), \esc_html($dir)));
 			}
 
 			if (!\is_dir($dir)) {
 				/* translators: 1: Directory */
-				\wp_die(\sprintf(\esc_html__("Schema directory not found: %s"), \esc_html($dir)));
+				throw new TypeError(\sprintf(\esc_html__("Schema directory not found: %s"), \esc_html($dir)));
 			}
 		}
 
