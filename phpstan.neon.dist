@@ -8,8 +8,4 @@ parameters:
 		- src/
 	ignoreErrors:
 		# Block templates
-		- '#^Variable \$attributes might not be defined\.#'
-		- '#^Variable \$innerBlockContent might not be defined\.#'
-		- '#^Variable \$this might not be defined\.#'
-		- '#^Variable \$templatePath might not be defined\.#'
 		- '#^Function apply_filters invoked with [a-zA-Z0-9\\_] parameters, 2 required\.#'
