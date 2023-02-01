@@ -6,7 +6,6 @@ use Yoast\WPTestUtils\WPIntegration;
 $ds = DIRECTORY_SEPARATOR;
 require_once dirname(__FILE__, 2) . $ds . 'vendor' . $ds . 'autoload.php';
 require_once "constants.php";
-require_once "helpers.php";
 require_once "wp-overrides.php";
 
 /**
