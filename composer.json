@@ -19,12 +19,12 @@
 		}
 	},
 	"require-dev": {
-		"dingo-d/wp-pest-integration-test-setup": "^1.4",
 		"dealerdirect/phpcodesniffer-composer-installer": "^0.7",
 		"infinum/eightshift-coding-standards": "^1.6",
 		"php-stubs/wordpress-stubs": "^5.9",
-		"szepeviktor/phpstan-wordpress": "^1.0.3",
-		"mockery/mockery": "^1.5"
+		"szepeviktor/phpstan-wordpress": "^1.1",
+		"mockery/mockery": "^1.5",
+		"dingo-d/wp-pest": "^1.6"
 	},
 	"scripts": {
 		"analyze": [
