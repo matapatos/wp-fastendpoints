@@ -18,12 +18,10 @@
 $composer = __DIR__ . '/vendor/autoload.php';
 if (! file_exists($composer)) {
 	wp_die(
-		esc_html(
-			__(
-				'Error locating autoloader in plugins/wp-fastendpoints. Please run <code>composer install</code>.',
-				'fastendpoints',
-			)
-		)
+		esc_html__(
+			'Error locating autoloader in plugins/wp-fastendpoints. Please run <code>composer install</code>.',
+			'fastendpoints',
+		),
 	);
 }
 

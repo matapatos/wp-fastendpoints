@@ -26,8 +26,7 @@ class Draft202012 extends OpisDraft202012
 	 * Replaces original AdditionalPropertiesKeywordParser with custom one
 	 *
 	 * @since 0.9.0
-	 *
-	 * @return array
+	 * @return array<int,mixed>
 	 */
 	protected function getKeywordParsers(): array
 	{

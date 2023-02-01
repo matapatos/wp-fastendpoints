@@ -14,12 +14,10 @@ namespace WP\FastEndpoints\Schemas\Opis\Parsers;
 
 use Opis\JsonSchema\Parsers\SchemaParser;
 use Opis\JsonSchema\Parsers\Vocabulary;
-use WP\FastEndpoints\Schemas\Opis\Parsers\Drafts\{
-	\Draft06,
-	\Draft07,
-	\Draft201909,
-	\Draft202012,
-};
+use WP\FastEndpoints\Schemas\Opis\Parsers\Drafts\Draft06;
+use WP\FastEndpoints\Schemas\Opis\Parsers\Drafts\Draft07;
+use WP\FastEndpoints\Schemas\Opis\Parsers\Drafts\Draft201909;
+use WP\FastEndpoints\Schemas\Opis\Parsers\Drafts\Draft202012;
 
 /**
  * Parser with JSON schema drafts that removes "additionalProperties" from the data instead of throwing errors.
@@ -32,8 +30,9 @@ class ResponseSchemaParser extends SchemaParser
 	/**
 	 * Retrieves a dictionary with the supported JSON schema drafts.
 	 *
-	 * @param Vocabulary|null $extraVocabulary - To add additional vocabulary to the drafts.
-	 * @return array - Supported JSON schema drafts.
+	 * @since 0.9.0
+	 * @param ?Vocabulary $extraVocabulary - To add additional vocabulary to the drafts.
+	 * @return array<string, mixed> - Supported JSON schema drafts.
 	 */
 	protected function getDrafts(?Vocabulary $extraVocabulary): array
 	{

@@ -26,7 +26,7 @@ class Draft06 extends OpisDraft06
 	 * Replaces original AdditionalPropertiesKeywordParserParser with a custom one
 	 *
 	 * @since 0.9.0
-	 * @return array
+	 * @return array<int,mixed>
 	 */
 	protected function getKeywordParsers(): array
 	{
