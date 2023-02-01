@@ -15,7 +15,7 @@
 	"autoload-dev": {
 		"psr-4": {
 			"WP\\FastEndpoints\\": "src/",
-			"Tests\\\\": "tests/"
+			"Tests\\WP\\FastEndpoints\\": "tests/"
 		}
 	},
 	"require-dev": {
@@ -24,7 +24,8 @@
 		"php-stubs/wordpress-stubs": "^5.9",
 		"szepeviktor/phpstan-wordpress": "^1.1",
 		"mockery/mockery": "^1.5",
-		"dingo-d/wp-pest": "^1.6"
+		"dingo-d/wp-pest": "^1.6",
+		"mikey179/vfsstream": "^1.6"
 	},
 	"scripts": {
 		"analyze": [
