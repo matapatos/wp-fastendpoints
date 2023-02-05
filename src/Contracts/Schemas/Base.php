@@ -17,6 +17,7 @@ use Opis\JsonSchema\Errors\ErrorFormatter;
 use WP_REST_Request;
 use TypeError;
 use WP\FastEndpoints\Helpers\Arr;
+use WP\FastEndpoints\Errors\JsonSchemaNotFoundError;
 
 /**
  * Abstract class that holds logic to search and retrieve the contents of a
@@ -39,9 +40,8 @@ abstract class Base
 	 * The filepath of the JSON Schema: absolute or relative path
 	 *
 	 * @since 0.9.0
-	 * @var string
 	 */
-	protected string $filepath;
+	protected ?string $filepath = null;
 
 	/**
 	 * The JSON Schema
@@ -137,6 +137,10 @@ abstract class Base
 	 */
 	protected function getValidSchemaFilepath(): string
 	{
+		if (!$this->filepath) {
+			throw new JsonSchemaNotFoundError();
+		}
+
 		if (\is_file($this->filepath)) {
 			return $this->filepath;
 		}
@@ -148,8 +152,7 @@ abstract class Base
 			}
 		}
 
-		/* translators: 1: Schema filepath */
-		\wp_die(\sprintf(\esc_html__("Unable to find schema file: %s"), \esc_html($this->filepath)));
+		throw new JsonSchemaNotFoundError($this->filepath);
 	}
 
 	/**
