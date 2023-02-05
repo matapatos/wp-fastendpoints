@@ -25,7 +25,8 @@
 		"szepeviktor/phpstan-wordpress": "^1.1",
 		"mockery/mockery": "^1.5",
 		"dingo-d/wp-pest": "^1.6",
-		"mikey179/vfsstream": "^1.6"
+		"mikey179/vfsstream": "^1.6",
+		"roots/acorn": "^2.1"
 	},
 	"scripts": {
 		"analyze": [
