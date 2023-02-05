@@ -17,11 +17,13 @@ use TypeError;
 use Mockery;
 use org\bovigo\vfs\vfsStream;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 
 use Tests\WP\FastEndpoints\Helpers\Helpers;
 use Tests\WP\FastEndpoints\Helpers\FileSystemCache;
 
 use WP\FastEndpoints\Schemas\Response;
+use WP\FastEndpoints\Errors\JsonSchemaNotFoundError;
 
 afterEach(function () {
 	Mockery::close();
@@ -86,6 +88,36 @@ test('Passing a valid schema directories to appendSchemaDir()', function (...$va
 	'Schemas', 'Others/Schemas', 'Random/Another/Schemas',
 	['Hey', 'Dude'], ['Great/Man', 'Yes/ItWorks'],
 ]);
+
+test('Trying to retrieve a json schema filepath without providing a filename', function () {
+	$response = new Response([]);
+	expect(fn() => Helpers::invokeNonPublicClassMethod($response, 'getValidSchemaFilepath'))
+		->toThrow(JsonSchemaNotFoundError::class);
+});
+
+test('Trying to retrieve a json schema filepath of a file that doesn\'t exists', function () {
+	$response = new Response('random.json');
+	expect(fn() => Helpers::invokeNonPublicClassMethod($response, 'getValidSchemaFilepath'))
+		->toThrow(JsonSchemaNotFoundError::class);
+});
+
+test('Retrieving a json schema filepath when providing a full filepath', function () {
+	$cache = new FileSystemCache();
+	$schemaFullpath = $cache->store('schema.json', '{}');
+	$response = new Response($schemaFullpath);
+	expect(Helpers::invokeNonPublicClassMethod($response, 'getValidSchemaFilepath'))
+		->toBe($schemaFullpath);
+});
+
+test('Retrieving a json schema filepath when providing a relative filepath', function (string $schemaRelativePath) {
+	$cache = new FileSystemCache();
+	$schemaFullpath = $cache->store(Str::finish($schemaRelativePath, '.json'), '{}');
+	$response = new Response($schemaRelativePath);
+	Helpers::setNonPublicClassProperty($response, 'schemaDirs', [$cache->getRootDir()]);
+	expect(Helpers::invokeNonPublicClassMethod($response, 'getValidSchemaFilepath'))
+		->toBe($schemaFullpath);
+})->with(['schema', 'schema.json']);
+
 
 // test('Validating if Response returns() ignores unnecessary properties', function () {
 // 	$response = new Response('User/Get');

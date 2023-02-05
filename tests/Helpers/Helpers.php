@@ -39,9 +39,8 @@ class Helpers
      * Retrieves the value of a private/protected class property
      *
      * @since 0.9.0
-     * @param object $class - Class containing the private/protected method.
+     * @param object $class - Class containing the private/protected property.
      * @param string $propertyName - The name of the property to be retrieved.
-     * @param array $args - Arguments to be sent over method, if needed.
      * @return mixed
      */
     public static function getNonPublicClassProperty($class, string $propertyName)
@@ -51,5 +50,22 @@ class Helpers
         $property = $reflection->getProperty($propertyName);
         $property->setAccessible(true);
         return $property->getValue($class);
+    }
+
+    /**
+     * Retrieves the value of a private/protected class property
+     *
+     * @since 0.9.0
+     * @param object $class - Class containing the private/protected property.
+     * @param string $propertyName - The name of the property to be updated.
+     * @param mixed $propertyValue - The new value of the property.
+     */
+    public static function setNonPublicClassProperty($class, string $propertyName, $propertyValue): void
+    {
+        $className = get_class($class);
+        $reflection = new \ReflectionClass($className);
+        $property = $reflection->getProperty($propertyName);
+        $property->setAccessible(true);
+        $property->setValue($class, $propertyValue);
     }
 }

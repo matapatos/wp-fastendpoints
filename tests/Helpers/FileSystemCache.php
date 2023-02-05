@@ -107,4 +107,15 @@ class FileSystemCache
         file_put_contents($fullpath, serialize($data));
         return $fullpath;
     }
+
+    /**
+     * Retrieves the caching root directory
+     *
+     * @since 0.9.0
+     * @return string
+     */ 
+    public function getRootDir(): string
+    {
+        return $this->dir;
+    }
 }
