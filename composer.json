@@ -1,5 +1,5 @@
 {
-	"name": "wp/fastendpoints",
+	"name": "matapatos/wp-fastendpoints",
 	"type": "library",
 	"description": "Wordpress REST endpoints made easy",
 	"keywords": ["Wordpress", "fastest", "REST", "API", "easy"],
