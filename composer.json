@@ -5,39 +5,35 @@
 	"keywords": ["Wordpress", "fastest", "REST", "API", "easy"],
 	"license": "MIT",
 	"require": {
-		"opis/json-schema": "^2.3"
+    	"php": "^7.4|^8.0",
+		"opis/json-schema": "^2.3",
+    	"roots/acorn": "^2.1",
+    	"matapatos/wp-exceptions": "^1.0@beta"
 	},
 	"autoload": {
 		"psr-4": {
-			"WP\\FastEndpoints\\": "src/"
+			"Wp\\FastEndpoints\\": "src/"
 		}
 	},
 	"autoload-dev": {
 		"psr-4": {
-			"WP\\FastEndpoints\\": "src/",
-			"Tests\\WP\\FastEndpoints\\": "tests/"
+			"Wp\\FastEndpoints\\": "src/",
+			"Tests\\Wp\\FastEndpoints\\": "tests/"
 		}
 	},
 	"require-dev": {
-		"dealerdirect/phpcodesniffer-composer-installer": "^0.7",
-		"infinum/eightshift-coding-standards": "^1.6",
-		"php-stubs/wordpress-stubs": "^5.9",
-		"szepeviktor/phpstan-wordpress": "^1.1",
+	    "squizlabs/php_codesniffer": "^3.4",
 		"mockery/mockery": "^1.5",
 		"dingo-d/wp-pest": "^1.6",
-		"mikey179/vfsstream": "^1.6",
-		"roots/acorn": "^2.1"
+		"mikey179/vfsstream": "^1.6"
 	},
 	"scripts": {
-		"analyze": [
-			"./vendor/bin/phpstan analyze"
-		],
-		"lint": [
-			"phpcs"
-		],
-		"fix": [
-			"phpcbf"
-		]
+	    "lint": [
+	      "phpcs --ignore=vendor,examples --extensions=php --standard=PSR12 ."
+	    ],
+	    "fix": [
+	      "phpcbf --ignore=vendor,examples --extensions=php --standard=PSR12 ."
+	    ]
 	},
 	"minimum-stability": "dev",
 	"prefer-stable": true,
