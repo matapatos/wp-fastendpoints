@@ -4,13 +4,11 @@
  * Plugin Name: WordPress Fast Endpoints
  * Plugin URI:  ---
  * Description: Fast to type and fast to run WordPress REST endpoints
- * Version:     0.9.0
+ * Version:     1.0.0
  * Author:      André Gil
  * Author URI:
  *
  * @version 1.0.0
- * @version 0.9.0
- *
  * @package wp-fastendpoints
  * @license MIT
  */
