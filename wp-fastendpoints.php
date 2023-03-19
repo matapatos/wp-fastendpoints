@@ -15,12 +15,12 @@
 
 $composer = __DIR__ . '/vendor/autoload.php';
 if (! file_exists($composer)) {
-    wp_die(
-        esc_html__(
-            'Error locating autoloader in plugins/wp-fastendpoints. Please run <code>composer install</code>.',
-            'fastendpoints',
-        ),
-    );
+	wp_die(
+		esc_html__(
+			'Error locating autoloader in plugins/wp-fastendpoints. Please run <code>composer install</code>.',
+			'fastendpoints',
+		),
+	);
 }
 
 require_once $composer;
