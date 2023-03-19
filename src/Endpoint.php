@@ -10,15 +10,15 @@
 
 declare(strict_types=1);
 
-namespace WP\FastEndpoints;
+namespace Wp\FastEndpoints;
 
-use WP\FastEndpoints\Schemas\Schema;
-use WP\FastEndpoints\Schemas\Response;
-use WP\FastEndpoints\Contracts\Schemas\Schema as SchemaInterface;
-use WP\FastEndpoints\Contracts\Schemas\Response as ResponseInterface;
-use WP\FastEndpoints\Contracts\Endpoint as EndpointInterface;
-use WP\FastEndpoints\Helpers\Arr;
-use WP\FastEndpoints\Errors\NotEnoughPermissionsError;
+use Wp\FastEndpoints\Schemas\Schema;
+use Wp\FastEndpoints\Schemas\Response;
+use Wp\FastEndpoints\Contracts\Schemas\Schema as SchemaInterface;
+use Wp\FastEndpoints\Contracts\Schemas\Response as ResponseInterface;
+use Wp\FastEndpoints\Contracts\Endpoint as EndpointInterface;
+use Wp\FastEndpoints\Helpers\Arr;
+use Wp\FastEndpoints\Errors\NotEnoughPermissionsError;
 use WP_REST_Request;
 use TypeError;
 use WP_Error;

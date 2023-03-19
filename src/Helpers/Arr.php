@@ -10,7 +10,7 @@
 
 declare(strict_types=1);
 
-namespace WP\FastEndpoints\Helpers;
+namespace Wp\FastEndpoints\Helpers;
 
 /**
  * Class that holds array helper functions

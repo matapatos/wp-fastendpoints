@@ -8,13 +8,13 @@
  * @license MIT
  */
 
-namespace WP\FastEndpoints\Schemas\Opis\Parsers\Keywords;
+namespace Wp\FastEndpoints\Schemas\Opis\Parsers\Keywords;
 
 use Opis\JsonSchema\Keyword;
 use Opis\JsonSchema\Info\SchemaInfo;
 use Opis\JsonSchema\Parsers\SchemaParser;
 use Opis\JsonSchema\Parsers\Keywords\AdditionalPropertiesKeywordParser;
-use WP\FastEndpoints\Schemas\Opis\Keywords\RemoveAdditionalPropertiesKeyword;
+use Wp\FastEndpoints\Schemas\Opis\Keywords\RemoveAdditionalPropertiesKeyword;
 
 /**
  * Keyword parser that adds the custom RemoveAdditionalPropertiesKeyword

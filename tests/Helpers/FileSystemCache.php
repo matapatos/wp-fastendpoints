@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\WP\FastEndpoints\Helpers;
+namespace Tests\Wp\FastEndpoints\Helpers;
 
 /**
  * Class used to emulate a file system.

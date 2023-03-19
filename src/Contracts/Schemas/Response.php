@@ -10,7 +10,7 @@
 
 declare(strict_types=1);
 
-namespace WP\FastEndpoints\Contracts\Schemas;
+namespace Wp\FastEndpoints\Contracts\Schemas;
 
 use WP_REST_Request;
 

@@ -10,7 +10,7 @@
 
 declare(strict_types=1);
 
-namespace WP\FastEndpoints\Contracts;
+namespace Wp\FastEndpoints\Contracts;
 
 /**
  * An interface that helps developers in creating groups of endpoints. This way developers can aggregate

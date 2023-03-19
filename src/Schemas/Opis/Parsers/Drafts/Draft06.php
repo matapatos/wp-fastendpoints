@@ -8,11 +8,11 @@
  * @license MIT
  */
 
-namespace WP\FastEndpoints\Schemas\Opis\Parsers\Drafts;
+namespace Wp\FastEndpoints\Schemas\Opis\Parsers\Drafts;
 
 use Opis\JsonSchema\Parsers\Drafts\Draft06 as OpisDraft06;
 use Opis\JsonSchema\Parsers\Keywords\AdditionalPropertiesKeywordParser;
-use WP\FastEndpoints\Schemas\Opis\Parsers\Keywords\RemoveAdditionalPropertiesKeywordParser;
+use Wp\FastEndpoints\Schemas\Opis\Parsers\Keywords\RemoveAdditionalPropertiesKeywordParser;
 
 /**
  * Draft06 JSON schema that replaces the additionalProperties keyword with custom one - used in Schemas/Response

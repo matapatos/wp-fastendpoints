@@ -10,7 +10,7 @@
 
 declare(strict_types=1);
 
-namespace WP\FastEndpoints\Contracts;
+namespace Wp\FastEndpoints\Contracts;
 
 /**
  * REST Endpoint interface that registers custom WordPress REST endpoints

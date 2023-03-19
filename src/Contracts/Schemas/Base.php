@@ -10,14 +10,14 @@
 
 declare(strict_types=1);
 
-namespace WP\FastEndpoints\Contracts\Schemas;
+namespace Wp\FastEndpoints\Contracts\Schemas;
 
 use Opis\JsonSchema\ValidationResult;
 use Opis\JsonSchema\Errors\ErrorFormatter;
 use WP_REST_Request;
 use TypeError;
-use WP\FastEndpoints\Helpers\Arr;
-use WP\FastEndpoints\Errors\JsonSchemaNotFoundError;
+use Wp\FastEndpoints\Helpers\Arr;
+use Wp\FastEndpoints\Errors\JsonSchemaNotFoundError;
 
 /**
  * Abstract class that holds logic to search and retrieve the contents of a

@@ -10,11 +10,11 @@
 
 declare(strict_types=1);
 
-namespace WP\FastEndpoints;
+namespace Wp\FastEndpoints;
 
-use WP\FastEndpoints\Contracts\Router as RouterContract;
-use WP\FastEndpoints\Contracts\Endpoint as EndpointContract;
-use WP\FastEndpoints\Helpers\Arr;
+use Wp\FastEndpoints\Contracts\Router as RouterContract;
+use Wp\FastEndpoints\Contracts\Endpoint as EndpointContract;
+use Wp\FastEndpoints\Helpers\Arr;
 
 /**
  * A Router can help developers in creating groups of endpoints. This way developers can aggregate

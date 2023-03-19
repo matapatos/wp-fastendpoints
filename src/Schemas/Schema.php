@@ -10,7 +10,7 @@
 
 declare(strict_types=1);
 
-namespace WP\FastEndpoints\Schemas;
+namespace Wp\FastEndpoints\Schemas;
 
 use Opis\JsonSchema\Validator;
 use Opis\JsonSchema\Helper;
@@ -18,8 +18,8 @@ use Opis\JsonSchema\Exceptions\SchemaException;
 use WP_REST_Request;
 use WP_Error;
 use WP_Http;
-use WP\FastEndpoints\Contracts\Schemas\Base;
-use WP\FastEndpoints\Contracts\Schemas\Schema as SchemaInterface;
+use Wp\FastEndpoints\Contracts\Schemas\Base;
+use Wp\FastEndpoints\Contracts\Schemas\Schema as SchemaInterface;
 
 /**
  * Schema class that validates a WP_REST_Request using Opis/json-schema

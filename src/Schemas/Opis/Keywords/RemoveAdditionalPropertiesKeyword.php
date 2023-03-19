@@ -8,7 +8,7 @@
  * @license MIT
  */
 
-namespace WP\FastEndpoints\Schemas\Opis\Keywords;
+namespace Wp\FastEndpoints\Schemas\Opis\Keywords;
 
 use Opis\JsonSchema\Keywords\AdditionalPropertiesKeyword;
 use Opis\JsonSchema\{
@@ -16,7 +16,7 @@ use Opis\JsonSchema\{
 	\Schema
 };
 use Opis\JsonSchema\Errors\ValidationError;
-use WP\FastEndpoints\Schemas\Response;
+use Wp\FastEndpoints\Schemas\Response;
 
 /**
  * Keyword parser that adds the custom RemoveAdditionalPropertiesKeyword

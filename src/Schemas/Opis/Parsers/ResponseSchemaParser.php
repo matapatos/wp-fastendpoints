@@ -10,14 +10,14 @@
 
 declare(strict_types=1);
 
-namespace WP\FastEndpoints\Schemas\Opis\Parsers;
+namespace Wp\FastEndpoints\Schemas\Opis\Parsers;
 
 use Opis\JsonSchema\Parsers\SchemaParser;
 use Opis\JsonSchema\Parsers\Vocabulary;
-use WP\FastEndpoints\Schemas\Opis\Parsers\Drafts\Draft06;
-use WP\FastEndpoints\Schemas\Opis\Parsers\Drafts\Draft07;
-use WP\FastEndpoints\Schemas\Opis\Parsers\Drafts\Draft201909;
-use WP\FastEndpoints\Schemas\Opis\Parsers\Drafts\Draft202012;
+use Wp\FastEndpoints\Schemas\Opis\Parsers\Drafts\Draft06;
+use Wp\FastEndpoints\Schemas\Opis\Parsers\Drafts\Draft07;
+use Wp\FastEndpoints\Schemas\Opis\Parsers\Drafts\Draft201909;
+use Wp\FastEndpoints\Schemas\Opis\Parsers\Drafts\Draft202012;
 
 /**
  * Parser with JSON schema drafts that removes "additionalProperties" from the data instead of throwing errors.

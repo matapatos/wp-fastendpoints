@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\WP\FastEndpoints\Unit\Schemas;
+namespace Tests\Wp\FastEndpoints\Unit\Schemas;
 
 use TypeError;
 use Mockery;
@@ -19,11 +19,11 @@ use org\bovigo\vfs\vfsStream;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
-use Tests\WP\FastEndpoints\Helpers\Helpers;
-use Tests\WP\FastEndpoints\Helpers\FileSystemCache;
+use Tests\Wp\FastEndpoints\Helpers\Helpers;
+use Tests\Wp\FastEndpoints\Helpers\FileSystemCache;
 
-use WP\FastEndpoints\Schemas\Response;
-use WP\FastEndpoints\Errors\JsonSchemaNotFoundError;
+use Wp\FastEndpoints\Schemas\Response;
+use Wp\FastEndpoints\Errors\JsonSchemaNotFoundError;
 
 afterEach(function () {
 	Mockery::close();

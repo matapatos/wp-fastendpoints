@@ -10,10 +10,10 @@
 
 declare(strict_types=1);
 
-namespace WP\FastEndpoints\Errors;
+namespace Wp\FastEndpoints\Errors;
 
 use WP_Http;
-use WP\FastEndpoints\Contracts\WpException;
+use Wp\FastEndpoints\Contracts\WpException;
 
 /**
  * Raised when a json file schema is not found

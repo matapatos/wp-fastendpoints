@@ -10,7 +10,7 @@
 
 declare(strict_types=1);
 
-namespace WP\FastEndpoints\Errors;
+namespace Wp\FastEndpoints\Errors;
 
 use WP_Http;
 use WP_Error;

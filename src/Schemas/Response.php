@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace WP\FastEndpoints\Schemas;
+namespace Wp\FastEndpoints\Schemas;
 
-use WP\FastEndpoints\Contracts\Schemas\Base;
-use WP\FastEndpoints\Contracts\Schemas\Response as ResponseContract;
+use Wp\FastEndpoints\Contracts\Schemas\Base;
+use Wp\FastEndpoints\Contracts\Schemas\Response as ResponseContract;
 use Opis\JsonSchema\Validator;
 use Opis\JsonSchema\Helper;
 use Opis\JsonSchema\SchemaLoader;
@@ -23,7 +23,7 @@ use Opis\JsonSchema\Exceptions\SchemaException;
 use WP_REST_Request;
 use WP_Error;
 use WP_Http;
-use WP\FastEndpoints\Schemas\Opis\Parsers\ResponseSchemaParser;
+use Wp\FastEndpoints\Schemas\Opis\Parsers\ResponseSchemaParser;
 
 /**
  * Response class that checks/parses the REST response of an endpoint before sending it to the client.

@@ -10,7 +10,7 @@
 
 declare(strict_types=1);
 
-namespace WP\FastEndpoints\Contracts;
+namespace Wp\FastEndpoints\Contracts;
 
 use WP_Error;
 use Exception;

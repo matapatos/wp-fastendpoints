@@ -6,7 +6,7 @@
  * @since 0.9.0
  */ 
 
-use Tests\WP\FastEndpoints\Helpers\Helpers;
+use Tests\Wp\FastEndpoints\Helpers\Helpers;
 
 if (!Helpers::isUnitTest()) {
 	return;
