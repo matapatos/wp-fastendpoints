@@ -18,9 +18,9 @@ use Wp\FastEndpoints\Contracts\Schemas\Schema as SchemaInterface;
 use Wp\FastEndpoints\Contracts\Schemas\Response as ResponseInterface;
 use Wp\FastEndpoints\Contracts\Endpoint as EndpointInterface;
 use Wp\FastEndpoints\Helpers\Arr;
-use Wp\FastEndpoints\Errors\NotEnoughPermissionsError;
 use WP_REST_Request;
 use TypeError;
+use Wp\FastEndpoints\Contracts\WpError;
 use WP_Error;
 use WP_Http;
 
@@ -197,7 +197,8 @@ class Endpoint implements EndpointInterface
 			foreach ($capabilities as $cap) {
 				if (\is_string($cap)) {
 					if (!\current_user_can($cap)) {
-						return new NotEnoughPermissionsError($cap);
+						$data = isset('WP_DEBUG') && \WP_DEBUG ? ['missing_capabilities' => Arr::wrap($cap)] : [];
+						return new WpError(WP_Http::FORBIDDEN, 'Not enough permissions', $data);
 					}
 				} elseif (\is_array($cap)) {
 					if (!$cap) {
@@ -219,7 +220,8 @@ class Endpoint implements EndpointInterface
 					}
 
 					if (!\current_user_can(...$cap)) {
-						return new NotEnoughPermissionsError($cap);
+						$data = isset('WP_DEBUG') && \WP_DEBUG ? ['missing_capabilities' => $cap] : [];
+						return new WpError(WP_Http::FORBIDDEN, 'Not enough permissions', $data);
 					}
 				} else {
 					\wp_die(\sprintf(
@@ -312,10 +314,9 @@ class Endpoint implements EndpointInterface
 				$id = $this->replaceSpecialValue($req, $id);
 			}
 			if (!\is_int($id)) {
-				return new WP_Error(
+				return new WpError(
 					WP_Http::UNPROCESSABLE_ENTITY,
 					sprintf(esc_html__('Expected post id to be an int. Given %s with type %s'), $id, gettype($id)),
-					['status' => WP_Http::UNPROCESSABLE_ENTITY]
 				);
 			}
 

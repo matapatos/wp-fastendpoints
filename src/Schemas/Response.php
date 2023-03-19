@@ -20,6 +20,7 @@ use Opis\JsonSchema\Helper;
 use Opis\JsonSchema\SchemaLoader;
 use Opis\JsonSchema\Resolvers\SchemaResolver;
 use Opis\JsonSchema\Exceptions\SchemaException;
+use Wp\FastEndpoints\Contracts\WpError;
 use WP_REST_Request;
 use WP_Error;
 use WP_Http;
@@ -88,20 +89,18 @@ class Response extends Base implements ResponseContract
 			$result = $validator->validate(self::$data, $schema);
 		} catch (SchemaException $e) {
 			$schemaId = $this->getSchemaId($req);
-			return new WP_Error(
-				'unprocessable_entity',
-				"Unprocessable resource {$schemaId}",
-				['status' => WP_Http::UNPROCESSABLE_ENTITY],
+			return new WpError(
+				WP_Http::UNPROCESSABLE_ENTITY,
+				sprintf(esc_html__("Unprocessable resource %s"), $schemaId),
 			);
 		}
 
 		$isValid = \apply_filters($this->suffix . '_is_valid', $result->isValid(), self::$data, $result, $req, $this);
 		if (!$isValid) {
 			$error = $this->getError($result);
-			return new WP_Error(
-				'unprocessable_entity',
+			return new WpError(
+				WP_Http::UNPROCESSABLE_ENTITY,
 				$error,
-				['status' => WP_Http::UNPROCESSABLE_ENTITY],
 			);
 		}
 

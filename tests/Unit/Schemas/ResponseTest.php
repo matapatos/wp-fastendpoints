@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Tests\Wp\FastEndpoints\Unit\Schemas;
 
+use Exception;
 use TypeError;
 use Mockery;
 use org\bovigo\vfs\vfsStream;
@@ -23,7 +24,6 @@ use Tests\Wp\FastEndpoints\Helpers\Helpers;
 use Tests\Wp\FastEndpoints\Helpers\FileSystemCache;
 
 use Wp\FastEndpoints\Schemas\Response;
-use Wp\FastEndpoints\Errors\JsonSchemaNotFoundError;
 
 afterEach(function () {
 	Mockery::close();
@@ -92,13 +92,13 @@ test('Passing a valid schema directories to appendSchemaDir()', function (...$va
 test('Trying to retrieve a json schema filepath without providing a filename', function () {
 	$response = new Response([]);
 	expect(fn() => Helpers::invokeNonPublicClassMethod($response, 'getValidSchemaFilepath'))
-		->toThrow(JsonSchemaNotFoundError::class);
+		->toThrow(Exception::class);
 });
 
 test('Trying to retrieve a json schema filepath of a file that doesn\'t exists', function () {
 	$response = new Response('random.json');
 	expect(fn() => Helpers::invokeNonPublicClassMethod($response, 'getValidSchemaFilepath'))
-		->toThrow(JsonSchemaNotFoundError::class);
+		->toThrow(Exception::class);
 });
 
 test('Retrieving a json schema filepath when providing a full filepath', function () {

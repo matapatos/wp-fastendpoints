@@ -20,6 +20,7 @@ use WP_Error;
 use WP_Http;
 use Wp\FastEndpoints\Contracts\Schemas\Base;
 use Wp\FastEndpoints\Contracts\Schemas\Schema as SchemaInterface;
+use Wp\FastEndpoints\Contracts\WpError;
 
 /**
  * Schema class that validates a WP_REST_Request using Opis/json-schema
@@ -69,20 +70,18 @@ class Schema extends Base implements SchemaInterface
 		try {
 			$result = $validator->validate($json, $schema);
 		} catch (SchemaException $e) {
-			return new WP_Error(
-				'unprocessable_entity',
-				"Unprocessable schema {$schemaId}",
-				['status' => WP_Http::UNPROCESSABLE_ENTITY],
+			return new WpError(
+				WP_Http::UNPROCESSABLE_ENTITY,
+				sprintf(esc_html__("Unprocessable schema %s"), $schemaId),
 			);
 		}
 
 		$isValid = \apply_filters($this->suffix . '_is_valid', $result->isValid(), $result, $req, $this);
 		if (!$isValid) {
 			$error = $this->getError($result);
-			return new WP_Error(
-				'unprocessable_entity',
+			return new WpError(
+				WP_Http::UNPROCESSABLE_ENTITY,
 				$error,
-				['status' => WP_Http::UNPROCESSABLE_ENTITY],
 			);
 		}
 

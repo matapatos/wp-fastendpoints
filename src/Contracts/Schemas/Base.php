@@ -12,12 +12,12 @@ declare(strict_types=1);
 
 namespace Wp\FastEndpoints\Contracts\Schemas;
 
+use Exception;
 use Opis\JsonSchema\ValidationResult;
 use Opis\JsonSchema\Errors\ErrorFormatter;
 use WP_REST_Request;
 use TypeError;
 use Wp\FastEndpoints\Helpers\Arr;
-use Wp\FastEndpoints\Errors\JsonSchemaNotFoundError;
 
 /**
  * Abstract class that holds logic to search and retrieve the contents of a
@@ -134,11 +134,12 @@ abstract class Base
 	 *
 	 * @since 0.9.0
 	 * @return string
+	 * @throws Exception if no schema is specified or cannot be found.
 	 */
 	protected function getValidSchemaFilepath(): string
 	{
 		if (!$this->filepath) {
-			throw new JsonSchemaNotFoundError();
+			throw new Exception('No schema filepath specified');
 		}
 
 		if (\is_file($this->filepath)) {
@@ -152,7 +153,7 @@ abstract class Base
 			}
 		}
 
-		throw new JsonSchemaNotFoundError($this->filepath);
+		throw new Exception("Schema filepath not found {$this->filepath}");
 	}
 
 	/**
