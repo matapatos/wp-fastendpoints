@@ -197,7 +197,7 @@ class Endpoint implements EndpointInterface
 			foreach ($capabilities as $cap) {
 				if (\is_string($cap)) {
 					if (!\current_user_can($cap)) {
-						$data = isset('WP_DEBUG') && \WP_DEBUG ? ['missing_capabilities' => Arr::wrap($cap)] : [];
+						$data = defined('WP_DEBUG') && \WP_DEBUG ? ['missing_capabilities' => Arr::wrap($cap)] : [];
 						return new WpError(WP_Http::FORBIDDEN, 'Not enough permissions', $data);
 					}
 				} elseif (\is_array($cap)) {
@@ -220,7 +220,7 @@ class Endpoint implements EndpointInterface
 					}
 
 					if (!\current_user_can(...$cap)) {
-						$data = isset('WP_DEBUG') && \WP_DEBUG ? ['missing_capabilities' => $cap] : [];
+						$data = defined('WP_DEBUG') && \WP_DEBUG ? ['missing_capabilities' => $cap] : [];
 						return new WpError(WP_Http::FORBIDDEN, 'Not enough permissions', $data);
 					}
 				} else {
