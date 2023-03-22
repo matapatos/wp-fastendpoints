@@ -79,9 +79,12 @@ class Schema extends Base implements SchemaInterface
 		$isValid = \apply_filters($this->suffix . '_is_valid', $result->isValid(), $result, $req, $this);
 		if (!$isValid) {
 			$error = $this->getError($result);
+			$data = is_string($error) ? [] : $error;
+			$error = sprintf(esc_html__("Unprocessable schema %s"), $schemaId);
 			return new WpError(
 				WP_Http::UNPROCESSABLE_ENTITY,
 				$error,
+				$data,
 			);
 		}
 
