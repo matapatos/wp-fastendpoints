@@ -14,7 +14,7 @@ class Helpers
      */
     public static function isUnitTest(): bool
     {
-        return !empty($GLOBALS['argv']) && $GLOBALS['argv'][1] === '--group=unit';
+        return !empty($GLOBALS['argv']) && in_array('--group=unit', $GLOBALS['argv'], true);
     }
 
     /**

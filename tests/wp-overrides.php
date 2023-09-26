@@ -28,7 +28,7 @@ if (!function_exists('esc_html')) {
 
 if (!class_exists('WP_Http')) {
 	class WP_Http {
-		const NOT_FOUND                       = 404;
+		const NOT_FOUND = 404;
 	}
 }
 
