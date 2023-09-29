@@ -35,23 +35,6 @@ use Wp\FastEndpoints\Schemas\Opis\Parsers\ResponseSchemaParser;
 class Response extends Base implements ResponseContract
 {
 	/**
-	 * JSON Schema property used to remove additional properties from the schema
-	 *
-	 * @since 0.9.0
-	 * @var string
-	 */
-	protected const ADDITIONAL_PROPERTIES = 'additionalProperties';
-
-	/**
-	 * JSON Schema error keywords commonly used to group sub errors containing
-	 * additionalProperties errors
-	 *
-	 * @since 0.9.0
-	 * @var array<string>
-	 */
-	protected const POSSIBLE_SUB_ADDITIONAL_PROPERTIES = ['properties', 'schema'];
-
-	/**
 	 * Data to be sent in the response to the client
 	 *
 	 * @since 0.9.0

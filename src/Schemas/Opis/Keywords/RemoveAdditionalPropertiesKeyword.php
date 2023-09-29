@@ -11,11 +11,9 @@
 namespace Wp\FastEndpoints\Schemas\Opis\Keywords;
 
 use Opis\JsonSchema\Keywords\AdditionalPropertiesKeyword;
-use Opis\JsonSchema\{
-	\ValidationContext,
-	\Schema
-};
 use Opis\JsonSchema\Errors\ValidationError;
+use Opis\JsonSchema\Schema;
+use Opis\JsonSchema\ValidationContext;
 use Wp\FastEndpoints\Schemas\Response;
 
 /**
