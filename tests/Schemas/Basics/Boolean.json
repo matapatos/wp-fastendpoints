@@ -1,0 +1,4 @@
+{
+    "$id": "https://app.voicedistillery.co.uk/schemas/Basics/Boolean.json",
+    "type": "boolean"
+}

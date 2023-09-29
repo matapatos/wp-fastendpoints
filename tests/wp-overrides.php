@@ -8,6 +8,12 @@
 
 use Tests\Wp\FastEndpoints\Helpers\Helpers;
 
+if (!function_exists('get_site_url')) {
+	function get_site_url($blog_id = null, $path = '', $scheme = null) {
+		return 'http://testing.com' . $path;
+	}
+}
+
 if (!Helpers::isUnitTest()) {
 	return;
 }

@@ -1,0 +1,7 @@
+{
+	"$id": "https://app.voicedistillery.co.uk/schemas/Basics/Integer.json",
+	"type": "integer",
+	"multipleOf": 1,
+	"maximum": 256,
+  	"exclusiveMaximum": true
+}

@@ -38,12 +38,9 @@ test('Creating Response instance with $schema as an array', function () {
 	expect(new Response([]))->toBeInstanceOf(Response::class);
 });
 
-test('Creating Response instance with an invalid $schema type', function () {
-	expect(fn() => new Response(1))->toThrow(TypeError::class);
-	expect(fn() => new Response(1.67))->toThrow(TypeError::class);
-	expect(fn() => new Response(true))->toThrow(TypeError::class);
-	expect(fn() => new Response(false))->toThrow(TypeError::class);
-});
+test('Creating Response instance with an invalid $schema type', function ($value) {
+	expect(fn() => new Response($value))->toThrow(TypeError::class);
+})->with([1, 1.67, true, false]);
 
 test('Checking correct Response suffix', function () {
 	$response = new Response([]);
@@ -118,6 +115,32 @@ test('Retrieving a json schema filepath when providing a relative filepath', fun
 		->toBe($schemaFullpath);
 })->with(['schema', 'schema.json']);
 
+test('returns() matches expected return value - Basic', function ($value) {
+	$schemaName = Str::ucfirst(Str::lower(gettype($value)));
+	$response = new Response('Basics/' . $schemaName);
+	$response->appendSchemaDir(\SCHEMAS_DIR);
+	// Create WP_REST_Request mock
+	$req = Mockery::mock('WP_REST_Request');
+	$req->shouldReceive('get_route')
+		->andReturn('value');
+	// Validate response
+	$data = $response->returns($req, $value);
+	expect($data)->toEqual($value);
+})->with([
+	0.674,
+	255,
+	true,
+	null,
+	"this is a string",
+	[[1,2,3,4,5]],
+	[(object) [
+		"stringVal" => "hello",
+		"intVal" 	=> 1,
+		"arrayVal" 	=> [1,2,3],
+		"doubleVal" => 0.82,
+		"boolVal" 	=> false,
+	]],
+]);
 
 // test('Validating if Response returns() ignores unnecessary properties', function () {
 // 	$response = new Response('User/Get');
@@ -157,6 +180,7 @@ test('Retrieving a json schema filepath when providing a relative filepath', fun
 // 		->andReturn('user');
 // 	// Validate response
 // 	$data = (array) $response->returns($req, $user);
+// 	var_dump($data);
 // 	expect($data)->toMatchArray([
 // 		"data" => [
 // 			"ID" => "1",

@@ -1,0 +1,21 @@
+{
+	"$id": "https://app.voicedistillery.co.uk/schemas/Basics/Object.json",
+	"type": "object",
+	"properties": {
+		"stringVal": {
+			"type": "string"
+		},
+		"intVal": {
+			"type": "integer"
+		},
+		"arrayVal": {
+			"type": "array"
+		},
+		"doubleVal": {
+			"type": "number"
+		},
+		"boolVal": {
+			"type": "boolean"
+		}
+	}
+}
