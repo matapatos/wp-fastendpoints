@@ -24,6 +24,7 @@ use Wp\FastEndpoints\Contracts\WpError;
 use WP_REST_Request;
 use WP_Error;
 use WP_Http;
+use Wp\FastEndpoints\Helpers\Arr;
 use Wp\FastEndpoints\Schemas\Opis\Parsers\ResponseSchemaParser;
 
 /**
@@ -41,6 +42,75 @@ class Response extends Base implements ResponseContract
 	 * @var mixed
 	 */
 	private static $data = null;
+
+	/**
+	 * Do we want to remove additional properties from the response
+	 *
+	 * @since 0.9.0
+	 * @var bool
+	 */
+	private bool $removeAdditionalProperties;
+
+	/**
+	 * Determines if a schema has been updated regarding the additional properties
+	 *
+	 * @since 1.0.0
+	 * @var bool
+	 */ 
+	private bool $hasUpdatedSchema = false;
+
+	/**
+	 * Creates a new instance of Base
+	 *
+	 * @since 0.9.0
+	 * @param string|array<mixed> $schema - File name or path to the JSON schema or a JSON schema as an array.
+	 * @throws TypeError - if $schema is neither a string or an array.
+	 */
+	public function __construct($schema, ?bool $removeAdditionalProperties = true)
+	{
+		parent::__construct($schema);
+		$this->removeAdditionalProperties = $removeAdditionalProperties;
+	}
+
+	/**
+	 * Makes sure that the data to be sent back to the client corresponds to the given JSON schema.
+	 * It removes additional properties if the schema has 'additionalProperties' set to false (i.e. default value).
+	 *
+	 * @param bool? $removeAdditionalProperties - Determines if we want to keep additional properties.
+	 * If set to null assumes that the schema will take care of that.
+	 */
+	protected function updateSchemaToAcceptOrDiscardAdditionalProperties(): void 
+	{
+		if ($this->hasUpdatedSchema) {
+			return;
+		}
+
+		$this->hasUpdatedSchema = true;
+		$removeAdditionalProperties = \apply_filters($this->suffix . '_remove_additional_properties', $this->removeAdditionalProperties, $this);
+		// Do we want to let the schema decide if we want additionalProperties?
+		if (is_null($removeAdditionalProperties)) {
+			return;
+		}
+
+		if (!$this->contents || !is_array($this->contents)) {
+			return;
+		}
+
+		// Is there any type object properties in the schema?
+		$foundTypeObjectsIndexes = Arr::recursiveKeyValueSearch($this->contents, 'type', 'object');
+		if (!$foundTypeObjectsIndexes) {
+			return;
+		}
+
+		// Update additional_properties
+		foreach ($foundTypeObjectsIndexes as $schemaKeys) {
+		    $contents = &$this->contents;
+		    foreach ($schemaKeys as $key) {
+		        $contents = &$contents[$key];
+		    }
+		    $contents['additionalProperties'] = !$this->removeAdditionalProperties;
+		}
+	}
 
 	/**
 	 * Makes sure that the data to be sent back to the client corresponds to the given JSON schema.
@@ -88,6 +158,19 @@ class Response extends Base implements ResponseContract
 		}
 
 		return \apply_filters($this->suffix . '_after_validating', self::$data, $req, $this);
+	}
+
+	/**
+	 * Retrieves the JSON contents of the schema
+	 *
+	 * @since 0.9.0
+	 * @return mixed
+	 */
+	public function getContents()
+	{
+		$this->contents = parent::getContents();
+		$this->updateSchemaToAcceptOrDiscardAdditionalProperties();
+		return $this->contents;
 	}
 
 	/**

@@ -47,4 +47,32 @@ class Arr
 		}
 		return $value;
 	}
+
+	/**
+	 * Recursively search for a key and value in an array
+	 *
+	 * @param array $haystack - Array to be searched for.
+	 * @param string|int $searchKey - The key to search for.
+	 * @param mixed $searchValue - The value to search for.
+	 * @param mixed $path - The paths to each index found.
+	 * @param mixed $currentIndex - The current index.
+	 * @return array<array<string|int>> - An array of found indexes. 
+	 */
+	public static function recursiveKeyValueSearch(array $haystack, $searchKey, $searchValue, array $path = [], array $currentIndex = []): array
+	{
+	    foreach ($haystack as $key => $item) {
+	        if ($key == $searchKey && $item == $searchValue) {
+	            $path[] = $currentIndex;
+	        }
+
+	        if (!is_array($item)) {
+	            continue;
+	        }
+
+	        $currentIndex[] = $key;
+	        $path = self::recursiveKeyValueSearch($item, $searchKey, $searchValue, $path, $currentIndex);
+	    }
+
+	    return $path;
+	}
 }

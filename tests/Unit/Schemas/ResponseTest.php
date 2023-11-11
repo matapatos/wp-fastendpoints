@@ -19,6 +19,7 @@ use Mockery;
 use org\bovigo\vfs\vfsStream;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
+use Opis\JsonSchema\Helper;
 
 use Tests\Wp\FastEndpoints\Helpers\Helpers;
 use Tests\Wp\FastEndpoints\Helpers\FileSystemCache;
@@ -29,6 +30,8 @@ afterEach(function () {
 	Mockery::close();
 	vfsStream::setup();
 });
+
+// Constructor
 
 test('Creating Response instance with $schema as a string', function () {
 	expect(new Response('User/Get'))->toBeInstanceOf(Response::class);
@@ -42,11 +45,15 @@ test('Creating Response instance with an invalid $schema type', function ($value
 	expect(fn() => new Response($value))->toThrow(TypeError::class);
 })->with([1, 1.67, true, false]);
 
+// getSuffix()
+
 test('Checking correct Response suffix', function () {
 	$response = new Response([]);
 	$suffix = Helpers::invokeNonPublicClassMethod($response, 'getSuffix');
 	expect($suffix)->toBe('response');
 });
+
+// appendSchemaDir()
 
 test('Passing invalid schema directories to appendSchemaDir()', function (...$invalidDirectories) {
 	$response = new Response([]);
@@ -86,6 +93,8 @@ test('Passing a valid schema directories to appendSchemaDir()', function (...$va
 	['Hey', 'Dude'], ['Great/Man', 'Yes/ItWorks'],
 ]);
 
+// getValidSchemaFilepath()
+
 test('Trying to retrieve a json schema filepath without providing a filename', function () {
 	$response = new Response([]);
 	expect(fn() => Helpers::invokeNonPublicClassMethod($response, 'getValidSchemaFilepath'))
@@ -114,6 +123,8 @@ test('Retrieving a json schema filepath when providing a relative filepath', fun
 	expect(Helpers::invokeNonPublicClassMethod($response, 'getValidSchemaFilepath'))
 		->toBe($schemaFullpath);
 })->with(['schema', 'schema.json']);
+
+// returns()
 
 test('returns() matches expected return value - Basic', function ($value) {
 	$schemaName = Str::ucfirst(Str::lower(gettype($value)));
@@ -191,3 +202,35 @@ test('returns() matches expected return value - Basic', function ($value) {
 // 		"is_admin" => true,
 // 	]);
 // });
+
+
+test('Ignoring additional properties in returns()', function () {
+	$response = new Response('Users/Small');
+	$response->appendSchemaDir(\SCHEMAS_DIR);
+	// Similar fields as a WP_User
+	$user = [
+		"data" => [
+			"ID" => 1,
+			"user_login" 	=> "fake_username",
+			"user_email" 	=> "fake@wpfastendpoints.com",
+			"display_name" 	=> "André Gil",
+			"password"		=> "password1234",
+		],
+		"caps" => ["administrator" => true],
+		"roles" => ["administrator"],
+	];
+	// Create WP_REST_Request mock
+	$req = Mockery::mock('WP_REST_Request');
+	$req->shouldReceive('get_route')
+		->andReturn('user');
+	// Validate response
+	$data = $response->returns($req, $user);
+	var_dump($data);
+	expect($data)->toMatchObject(Helper::toJSON([
+		"data" => [
+			"ID" 			=> 1,
+			"user_email" 	=> "fake@wpfastendpoints.com",
+		],
+		"is_admin" => false,
+	]));
+});

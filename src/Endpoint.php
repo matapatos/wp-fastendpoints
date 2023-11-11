@@ -269,9 +269,9 @@ class Endpoint implements EndpointInterface
 	 * @throws TypeError - If $schema is neither a string|array.
 	 * @return Endpoint
 	 */
-	public function returns($schema, int $priority = 10): Endpoint
+	public function returns($schema, int $priority = 10, ?bool $removeAdditionalProperties = true): Endpoint
 	{
-		$this->responseSchema = new Response($schema);
+		$this->responseSchema = new Response($schema, $removeAdditionalProperties);
 		$this->append($this->postHandlers, [$this->responseSchema, 'returns'], $priority);
 		return $this;
 	}

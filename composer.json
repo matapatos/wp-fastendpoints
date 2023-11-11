@@ -39,6 +39,10 @@
 		],
 		"fix": [
 			"phpcbf"
+		],
+		"tests": [
+			"./vendor/bin/pest --group=unit",
+			"./vendor/bin/pest --group=integration"
 		]
 	},
 	"minimum-stability": "dev",

@@ -35,12 +35,20 @@ if (!function_exists('esc_html')) {
 if (!class_exists('WP_Http')) {
 	class WP_Http {
 		const NOT_FOUND = 404;
+		const UNPROCESSABLE_ENTITY = 422;
 	}
 }
 
 if (!class_exists('WP_Error')) {
 	class WP_Error {
-		public function __construct($code = '', $message = '', $data = '') {}
+		public $code;
+		public $message;
+		public $data;
+		public function __construct($code = '', $message = '', $data = '') {
+			$this->code = $code;
+			$this->message = $message;
+			$this->data = $data;
+		}
 	}
 }
 
