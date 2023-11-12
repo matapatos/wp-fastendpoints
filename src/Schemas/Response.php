@@ -47,9 +47,9 @@ class Response extends Base implements ResponseContract
 	 * Do we want to remove additional properties from the response
 	 *
 	 * @since 0.9.0
-	 * @var bool
+	 * @var bool|string
 	 */
-	private bool $removeAdditionalProperties;
+	private $removeAdditionalProperties;
 
 	/**
 	 * Determines if a schema has been updated regarding the additional properties
@@ -64,9 +64,12 @@ class Response extends Base implements ResponseContract
 	 *
 	 * @since 0.9.0
 	 * @param string|array<mixed> $schema - File name or path to the JSON schema or a JSON schema as an array.
+	 * @param bool|string $removeAdditionalProperties - Determines if we want to keep additional properties.
+	 * If set to null assumes that the schema will take care of that. If a string is given it assumes only those
+	 * types of properties are allowed.
 	 * @throws TypeError - if $schema is neither a string or an array.
 	 */
-	public function __construct($schema, ?bool $removeAdditionalProperties = true)
+	public function __construct($schema, $removeAdditionalProperties = true)
 	{
 		parent::__construct($schema);
 		$this->removeAdditionalProperties = $removeAdditionalProperties;
@@ -75,9 +78,6 @@ class Response extends Base implements ResponseContract
 	/**
 	 * Makes sure that the data to be sent back to the client corresponds to the given JSON schema.
 	 * It removes additional properties if the schema has 'additionalProperties' set to false (i.e. default value).
-	 *
-	 * @param bool? $removeAdditionalProperties - Determines if we want to keep additional properties.
-	 * If set to null assumes that the schema will take care of that.
 	 */
 	protected function updateSchemaToAcceptOrDiscardAdditionalProperties(): void 
 	{
@@ -108,7 +108,13 @@ class Response extends Base implements ResponseContract
 		    foreach ($schemaKeys as $key) {
 		        $contents = &$contents[$key];
 		    }
-		    $contents['additionalProperties'] = !$this->removeAdditionalProperties;
+
+		    if (is_bool($this->removeAdditionalProperties)) {
+		    	$contents['additionalProperties'] = !$this->removeAdditionalProperties;
+		    }
+		    else {
+	    		$contents['additionalProperties'] = ['type' => $this->removeAdditionalProperties];
+		    }
 		}
 	}
 
