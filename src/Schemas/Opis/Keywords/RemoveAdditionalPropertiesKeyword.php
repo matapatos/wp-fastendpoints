@@ -69,7 +69,7 @@ class RemoveAdditionalPropertiesKeyword extends AdditionalPropertiesKeyword
 
 		if ($object && $object->count()) {
 			$context->addEvaluatedProperties($object->getArrayCopy());
-			$props = $context->getUncheckedProperties();
+			$props = $context->getUnevaluatedProperties();
 			if (!$props) {
 				return null;
 			}
