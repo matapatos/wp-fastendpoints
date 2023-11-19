@@ -209,3 +209,23 @@ test('Ignores additional properties expect a given type in returns()', function 
 		"keep-this" => 1,
 	]));
 });
+
+test('Ignores additional properties specified by the schema', function () {
+	$response = new Response('Users/WithAdditionalProperties', null);
+	$response->appendSchemaDir(\SCHEMAS_DIR);
+	$user = Faker::getWpUser();
+	// Create WP_REST_Request mock
+	$req = Mockery::mock('WP_REST_Request');
+	$req->shouldReceive('get_route')
+		->andReturn('user');
+	// Validate response
+	$data = $response->returns($req, $user);
+	expect($data)->toMatchObject(Helper::toJSON([
+		"data" => [
+			"user_email" => "fake@wpfastendpoints.com",
+			"user_url" => "https://www.wpfastendpoints.com/wp",
+			"display_name" => "André Gil",
+		],
+		"cap_key" => "wp_capabilities",
+	]));
+});
