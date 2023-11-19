@@ -23,10 +23,10 @@
 			"required": [
 				"user_email"
 			]
-		},
-		"additionalProperties": {
-			"type": "string"
 		}
+	},
+	"additionalProperties": {
+		"type": "string"
 	},
 	"required": [
 		"data"

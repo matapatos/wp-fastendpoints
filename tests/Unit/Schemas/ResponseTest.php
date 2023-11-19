@@ -88,7 +88,7 @@ test('Passing a valid schema directories to appendSchemaDir()', function (...$va
 	expect($schemaDirs)
 		->toBeArray()
 		->toHaveCount(count($validDirectories))
-		->toMatchArray($validDirectories);
+		->toEqual($validDirectories);
 })->with([
 	'Schemas', 'Others/Schemas', 'Random/Another/Schemas',
 	['Hey', 'Dude'], ['Great/Man', 'Yes/ItWorks'],
@@ -155,7 +155,7 @@ test('returns() matches expected return value - Basic', function ($value) {
 ]);
 
 test('Ignoring additional properties in returns()', function () {
-	$response = new Response('Users/Get');
+	$response = new Response('Users/Get', true);
 	$response->appendSchemaDir(\SCHEMAS_DIR);
 	$user = Faker::getWpUser();
 	// Create WP_REST_Request mock
@@ -164,7 +164,7 @@ test('Ignoring additional properties in returns()', function () {
 		->andReturn('user');
 	// Validate response
 	$data = $response->returns($req, $user);
-	expect($data)->toMatchObject(Helper::toJSON([
+	expect($data)->toEqual(Helper::toJSON([
 		"data" => [
 			"user_email" => "fake@wpfastendpoints.com",
 			"user_url" => "https://www.wpfastendpoints.com/wp",
@@ -183,32 +183,39 @@ test('Keeps additional properties in returns()', function () {
 		->andReturn('user');
 	// Validate response
 	$data = $response->returns($req, $user);
-	expect($data)->toMatchObject(Helper::toJSON($user));
+	expect($data)->toEqual(Helper::toJSON($user));
 });
 
-test('Ignores additional properties expect a given type in returns()', function () {
-	$response = new Response('Users/Get', 'integer');
+test('Ignores additional properties expect a given type in returns()', function ($type, $expectedData) {
+	$response = new Response('Users/Get', $type);
 	$response->appendSchemaDir(\SCHEMAS_DIR);
 	$user = Faker::getWpUser();
-	$user['keep-this'] = 1;
-	$user['should-remove-this'] = "Yup remove";
-	$user['should-remove-this-too'] = [1,2,3];
+	$user['is_admin'] = true;
 	// Create WP_REST_Request mock
 	$req = Mockery::mock('WP_REST_Request');
 	$req->shouldReceive('get_route')
 		->andReturn('user');
 	// Validate response
 	$data = $response->returns($req, $user);
-	expect($data)->toMatchObject(Helper::toJSON([
-		"data" => [
-			"user_email" => "fake@wpfastendpoints.com",
-			"user_url" => "https://www.wpfastendpoints.com/wp",
-			"display_name" => "André Gil",
-		],
-		"ID" => 5,
-		"keep-this" => 1,
-	]));
-});
+	$expectedData = array_merge(["data" => [
+		"user_email" => "fake@wpfastendpoints.com",
+		"user_url" => "https://www.wpfastendpoints.com/wp",
+		"display_name" => "André Gil",
+	]], $expectedData);
+	var_dump($data);
+	expect($data)->toEqual(Helper::toJSON($expectedData));
+})->with([
+	['integer', ['ID' => 5]],
+	['string', ['cap_key' => 'wp_capabilities', 'data' => Faker::getWpUser()['data']]],
+	['number', ['ID' => 5]],
+	['boolean', ['is_admin' => true]],
+	['null', ['filter' => null]],
+	['object', [
+		'caps' => ['administrator' => true],
+        "allcaps" => ['switch_themes' => true, 'edit_themes' => true, 'administrator' => true],
+    ]],
+	['array', ['roles' => ['administrator']]],
+]);
 
 test('Ignores additional properties specified by the schema', function () {
 	$response = new Response('Users/WithAdditionalProperties', null);
@@ -220,7 +227,7 @@ test('Ignores additional properties specified by the schema', function () {
 		->andReturn('user');
 	// Validate response
 	$data = $response->returns($req, $user);
-	expect($data)->toMatchObject(Helper::toJSON([
+	expect($data)->toEqual(Helper::toJSON([
 		"data" => [
 			"user_email" => "fake@wpfastendpoints.com",
 			"user_url" => "https://www.wpfastendpoints.com/wp",
