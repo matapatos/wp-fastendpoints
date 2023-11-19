@@ -28,7 +28,8 @@
 		"mockery/mockery": "^1.5",
 		"dingo-d/wp-pest": "^1.6",
 		"mikey179/vfsstream": "^1.6",
-		"roots/acorn": "^2.1"
+		"roots/acorn": "^2.1",
+		"roots/wordpress": "6.3"
 	},
 	"scripts": {
 		"analyze": [
@@ -51,7 +52,8 @@
 		"allow-plugins": {
 			"composer/installers": true,
 			"pestphp/pest-plugin": true,
-			"dealerdirect/phpcodesniffer-composer-installer": true
+			"dealerdirect/phpcodesniffer-composer-installer": true,
+			"roots/wordpress-core-installer": true
 		}
 	}
 }
