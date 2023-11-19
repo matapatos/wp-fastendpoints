@@ -9,18 +9,18 @@ class Helpers
     /**
      * Determines if we only want to run unit tests
      *
-     * @version 1.0.0
+     * @since 0.9.0
      * @return bool
      */
     public static function isUnitTest(): bool
     {
-        return !empty($GLOBALS['argv']) && $GLOBALS['argv'][1] === '--group=unit';
+        return !empty($GLOBALS['argv']) && in_array('--group=unit', $GLOBALS['argv'], true);
     }
 
     /**
      * Invokes a private/protected class method and retrieves it's result
      *
-     * @version 1.0.0
+     * @since 0.9.0
      * @param object $class - Class containing the private/protected method.
      * @param string $methodName - The name of the method to be called.
      * @param array $args - Arguments to be sent over method, if needed.
@@ -38,7 +38,7 @@ class Helpers
     /**
      * Retrieves the value of a private/protected class property
      *
-     * @version 1.0.0
+     * @since 0.9.0
      * @param object $class - Class containing the private/protected property.
      * @param string $propertyName - The name of the property to be retrieved.
      * @return mixed
@@ -55,7 +55,7 @@ class Helpers
     /**
      * Retrieves the value of a private/protected class property
      *
-     * @version 1.0.0
+     * @since 0.9.0
      * @param object $class - Class containing the private/protected property.
      * @param string $propertyName - The name of the property to be updated.
      * @param mixed $propertyValue - The new value of the property.

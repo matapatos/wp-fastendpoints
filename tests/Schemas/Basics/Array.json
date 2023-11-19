@@ -1,0 +1,9 @@
+{
+	"$id": "https://app.voicedistillery.co.uk/schemas/Basics/Array.json",
+	"type": "array",
+	"contains": {
+		"type": "integer"
+	},
+	"uniqueItems": true,
+	"minContains": 2
+}

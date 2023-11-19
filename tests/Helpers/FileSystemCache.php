@@ -7,19 +7,18 @@ namespace Tests\Wp\FastEndpoints\Helpers;
 /**
  * Class used to emulate a file system.
  *
- * @version 1.0.0
+ * @since 0.9.0
  */
 class FileSystemCache
 {
     /**
      * Root caching directory
      *
-     * @version 1.0.0
+     * @since 0.9.0
      */
     private string $dir;
 
-    public function __construct()
-    {
+    public function __construct() {
         $name = uniqid('tests-');
         $this->dir = sys_get_temp_dir() . \DIRECTORY_SEPARATOR . $name;
 
@@ -33,7 +32,7 @@ class FileSystemCache
      *
      * @param array<string> $filepaths - The files/directories in question.
      * @return array<string>
-     */
+     */ 
     public function getFilepaths(array $filepaths): array
     {
         $fullpaths = [];
@@ -46,7 +45,7 @@ class FileSystemCache
     /**
      * Retrieves the fullpath of a given file/directory regarding the caching directory
      *
-     * @version 1.0.0
+     * @since 0.9.0
      * @param string $filename - The filename in question.
      * @return string
      */
@@ -58,7 +57,7 @@ class FileSystemCache
     /**
      * Creates a multiple directories inside the root caching directory.
      *
-     * @version 1.0.0
+     * @since 0.9.0
      * @uses touchDirectory
      * @param array<string> $directories - An array of directories to be created.
      * @return array<string>
@@ -75,7 +74,7 @@ class FileSystemCache
     /**
      * Creates a recusive directory inside the root caching directory.
      *
-     * @version 1.0.0
+     * @since 0.9.0
      * @param string $directoryName - The name of the directory to be created.
      * @return string
      */
@@ -93,7 +92,7 @@ class FileSystemCache
     /**
      * Saves data to a file inside the caching directory
      *
-     * @version 1.0.0
+     * @since 0.9.0
      * @param string $filename - The filename of the file to be stored.
      * @param mixed $data - Serializable data to be put into the file.
      */
@@ -112,9 +111,9 @@ class FileSystemCache
     /**
      * Retrieves the caching root directory
      *
-     * @version 1.0.0
+     * @since 0.9.0
      * @return string
-     */
+     */ 
     public function getRootDir(): string
     {
         return $this->dir;
