@@ -75,6 +75,13 @@ class RemoveAdditionalPropertiesKeyword extends AdditionalPropertiesKeyword
 			}
 		}
 
+		if ($error) {
+			foreach ($error->subErrors() as $subError) {
+				$data = $subError->data();
+				$this->removeAdditionalProperties($context, $data->path());
+			}
+		}
+
 		$this->removeAdditionalProperties($context, $props);
 		return null;
 	}
