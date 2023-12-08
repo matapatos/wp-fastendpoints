@@ -17,7 +17,6 @@ use Exception;
 use TypeError;
 use Mockery;
 use org\bovigo\vfs\vfsStream;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Opis\JsonSchema\Helper;
 
@@ -26,6 +25,12 @@ use Tests\Wp\FastEndpoints\Helpers\FileSystemCache;
 use Tests\Wp\FastEndpoints\Helpers\Faker;
 
 use Wp\FastEndpoints\Schemas\Response;
+
+abstract class LoadSchema
+{
+    const FromFile = 0;
+    const FromArray = 1;
+}
 
 afterEach(function () {
     Mockery::close();
@@ -127,9 +132,13 @@ test('Retrieving a json schema filepath when providing a relative filepath', fun
 
 // returns()
 
-test('returns() matches expected return value - Basic', function ($value) {
+test('returns() matches expected return value - Basic', function ($loadSchemaFrom, $value) {
     $schemaName = Str::ucfirst(Str::lower(gettype($value)));
-    $response = new Response('Basics/' . $schemaName);
+    $schema = 'Basics/' . $schemaName;
+    if ($loadSchemaFrom == LoadSchema::FromArray) {
+        $schema = Helpers::loadSchema(\SCHEMAS_DIR . $schema);
+    }
+    $response = new Response($schema);
     $response->appendSchemaDir(\SCHEMAS_DIR);
     // Create WP_REST_Request mock
     $req = Mockery::mock('WP_REST_Request');
@@ -139,13 +148,26 @@ test('returns() matches expected return value - Basic', function ($value) {
     $data = $response->returns($req, $value);
     expect($data)->toEqual($value);
 })->with([
-    0.674,
-    255,
-    true,
-    null,
-    "this is a string",
-    [[1,2,3,4,5]],
-    [(object) [
+    [LoadSchema::FromFile, 0.674],
+    [LoadSchema::FromFile, 255],
+    [LoadSchema::FromFile, true],
+    [LoadSchema::FromFile, null],
+    [LoadSchema::FromFile, "this is a string"],
+    [LoadSchema::FromFile, [1,2,3,4,5]],
+    [LoadSchema::FromFile, (object) [
+        "stringVal" => "hello",
+        "intVal"    => 1,
+        "arrayVal"  => [1,2,3],
+        "doubleVal" => 0.82,
+        "boolVal"   => false,
+    ]],
+    [LoadSchema::FromArray, 0.674],
+    [LoadSchema::FromArray, 255],
+    [LoadSchema::FromArray, true],
+    [LoadSchema::FromArray, null],
+    [LoadSchema::FromArray, "this is a string"],
+    [LoadSchema::FromArray, [1,2,3,4,5]],
+    [LoadSchema::FromArray, (object) [
         "stringVal" => "hello",
         "intVal"    => 1,
         "arrayVal"  => [1,2,3],
@@ -154,8 +176,12 @@ test('returns() matches expected return value - Basic', function ($value) {
     ]],
 ]);
 
-test('Ignoring additional properties in returns()', function () {
-    $response = new Response('Users/Get', true);
+test('Ignoring additional properties in returns()', function ($loadSchemaFrom) {
+    $schema = 'Users/Get';
+    if ($loadSchemaFrom == LoadSchema::FromArray) {
+        $schema = Helpers::loadSchema(\SCHEMAS_DIR . $schema);
+    }
+    $response = new Response($schema, true);
     $response->appendSchemaDir(\SCHEMAS_DIR);
     $user = Faker::getWpUser();
     // Create WP_REST_Request mock
@@ -171,10 +197,17 @@ test('Ignoring additional properties in returns()', function () {
             "display_name" => "André Gil",
         ]
     ]));
-});
+})->with([
+    LoadSchema::FromFile,
+    LoadSchema::FromArray,
+]);
 
-test('Keeps additional properties in returns()', function () {
-    $response = new Response('Users/Get', false);
+test('Keeps additional properties in returns()', function ($loadSchemaFrom) {
+    $schema = 'Users/Get';
+    if ($loadSchemaFrom == LoadSchema::FromArray) {
+        $schema = Helpers::loadSchema(\SCHEMAS_DIR . $schema);
+    }
+    $response = new Response($schema, false);
     $response->appendSchemaDir(\SCHEMAS_DIR);
     $user = Faker::getWpUser();
     // Create WP_REST_Request mock
@@ -184,10 +217,17 @@ test('Keeps additional properties in returns()', function () {
     // Validate response
     $data = $response->returns($req, $user);
     expect($data)->toEqual(Helper::toJSON($user));
-});
+})->with([
+    LoadSchema::FromFile,
+    LoadSchema::FromArray,
+]);
 
-test('Ignores additional properties expect a given type in returns()', function ($type, $expectedData) {
-    $response = new Response('Users/Get', $type);
+test('Ignores additional properties expect a given type in returns()', function ($loadSchemaFrom, $type, $expectedData) {
+    $schema = 'Users/Get';
+    if ($loadSchemaFrom == LoadSchema::FromArray) {
+        $schema = Helpers::loadSchema(\SCHEMAS_DIR . $schema);
+    }
+    $response = new Response($schema, $type);
     $response->appendSchemaDir(\SCHEMAS_DIR);
     $user = Faker::getWpUser();
     $user['is_admin'] = true;
@@ -204,20 +244,34 @@ test('Ignores additional properties expect a given type in returns()', function 
     ]], $expectedData);
     expect($data)->toEqual(Helper::toJSON($expectedData));
 })->with([
-    ['integer', ['ID' => 5]],
-    ['string', ['cap_key' => 'wp_capabilities', 'data' => Faker::getWpUser()['data']]],
-    ['number', ['ID' => 5]],
-    ['boolean', ['is_admin' => true]],
-    ['null', ['filter' => null]],
-    ['object', [
+    [LoadSchema::FromFile, 'integer', ['ID' => 5]],
+    [LoadSchema::FromFile, 'string', ['cap_key' => 'wp_capabilities', 'data' => Faker::getWpUser()['data']]],
+    [LoadSchema::FromFile, 'number', ['ID' => 5]],
+    [LoadSchema::FromFile, 'boolean', ['is_admin' => true]],
+    [LoadSchema::FromFile, 'null', ['filter' => null]],
+    [LoadSchema::FromFile, 'object', [
         'caps' => ['administrator' => true],
         "allcaps" => ['switch_themes' => true, 'edit_themes' => true, 'administrator' => true],
     ]],
-    ['array', ['roles' => ['administrator']]],
+    [LoadSchema::FromFile, 'array', ['roles' => ['administrator']]],
+    [LoadSchema::FromArray, 'integer', ['ID' => 5]],
+    [LoadSchema::FromArray, 'string', ['cap_key' => 'wp_capabilities', 'data' => Faker::getWpUser()['data']]],
+    [LoadSchema::FromArray, 'number', ['ID' => 5]],
+    [LoadSchema::FromArray, 'boolean', ['is_admin' => true]],
+    [LoadSchema::FromArray, 'null', ['filter' => null]],
+    [LoadSchema::FromArray, 'object', [
+        'caps' => ['administrator' => true],
+        "allcaps" => ['switch_themes' => true, 'edit_themes' => true, 'administrator' => true],
+    ]],
+    [LoadSchema::FromArray, 'array', ['roles' => ['administrator']]],
 ]);
 
-test('Ignores additional properties specified by the schema', function () {
-    $response = new Response('Users/WithAdditionalProperties', null);
+test('Ignores additional properties specified by the schema', function ($loadSchemaFrom) {
+    $schema = 'Users/WithAdditionalProperties';
+    if ($loadSchemaFrom == LoadSchema::FromArray) {
+        $schema = Helpers::loadSchema(\SCHEMAS_DIR . $schema);
+    }
+    $response = new Response($schema, null);
     $response->appendSchemaDir(\SCHEMAS_DIR);
     $user = Faker::getWpUser();
     // Create WP_REST_Request mock
@@ -234,4 +288,7 @@ test('Ignores additional properties specified by the schema', function () {
         ],
         "cap_key" => "wp_capabilities",
     ]));
-});
+})->with([
+    LoadSchema::FromFile,
+    LoadSchema::FromArray,
+]);
