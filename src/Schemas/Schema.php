@@ -62,7 +62,6 @@ class Schema extends Base implements SchemaInterface
 			return true;
 		}
 
-		$schemaId = $this->getSchemaId($req);
 		$params = \apply_filters($this->suffix . '_params', $req->get_params(), $req, $this);
 		$json = Helper::toJSON($params);
 		$schema = Helper::toJSON($this->contents);
@@ -71,8 +70,8 @@ class Schema extends Base implements SchemaInterface
 			$result = $validator->validate($json, $schema);
 		} catch (SchemaException $e) {
 			return new WpError(
-				WP_Http::UNPROCESSABLE_ENTITY,
-				sprintf(esc_html__("Unprocessable schema %s"), $schemaId),
+				WP_Http::INTERNAL_SERVER_ERROR,
+				sprintf(esc_html__("Invalid request route schema %s"), $e->getMessage()),
 			);
 		}
 
@@ -80,10 +79,9 @@ class Schema extends Base implements SchemaInterface
 		if (!$isValid) {
 			$error = $this->getError($result);
 			$data = is_string($error) ? [] : $error;
-			$error = sprintf(esc_html__("Unprocessable schema %s"), $schemaId);
 			return new WpError(
 				WP_Http::UNPROCESSABLE_ENTITY,
-				$error,
+				esc_html__("Unprocessable request"),
 				$data,
 			);
 		}

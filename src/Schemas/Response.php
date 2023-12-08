@@ -147,10 +147,9 @@ class Response extends Base implements ResponseContract
 		try {
 			$result = $validator->validate(self::$data, $schema);
 		} catch (SchemaException $e) {
-			$schemaId = $this->getSchemaId($req);
 			return new WpError(
-				WP_Http::UNPROCESSABLE_ENTITY,
-				sprintf(esc_html__("Unprocessable resource %s"), $schemaId),
+				WP_Http::INTERNAL_SERVER_ERROR,
+				sprintf(esc_html__("Invalid response route schema %s"), $e->getMessage()),
 			);
 		}
 

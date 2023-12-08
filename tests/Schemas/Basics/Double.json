@@ -1,5 +1,4 @@
 {
-	"$id": "https://app.voicedistillery.co.uk/schemas/Basics/Double.json",
 	"type": "number",
 	"minimum": 0,
 	"maximum": 1

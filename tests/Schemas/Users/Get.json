@@ -1,5 +1,4 @@
 {
-	"$id": "https://wp-fastendpoints/schemas/Users/Get.json",
 	"type": "object",
 	"properties": {
 		"data": {

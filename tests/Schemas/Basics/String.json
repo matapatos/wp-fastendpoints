@@ -1,5 +1,4 @@
 {
-  "$id": "https://app.voicedistillery.co.uk/schemas/Basics/String.json",
   "type": "string",
   "minLength": 3
 }

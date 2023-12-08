@@ -157,27 +157,6 @@ abstract class Base
 	}
 
 	/**
-	 * Retrieves the ID of the schema
-	 *
-	 * @since 0.9.0
-	 * @param WP_REST_Request $req - Current REST Request.
-	 * @return string - URL schema id.
-	 */
-	protected function getSchemaId(WP_REST_Request $req): string
-	{
-		$filename = \basename($this->filepath);
-		$route = $req->get_route();
-		if (!\str_starts_with($route, '/wp-json')) {
-			$route = "/wp-json{$route}";
-		}
-		if (!\str_ends_with($route, $filename)) {
-			$route = "{$route}{$filename}";
-		}
-		$schemaId = \get_site_url(null, $route);
-		return \apply_filters($this->suffix . '_id', $schemaId, $this, $req);
-	}
-
-	/**
 	 * Retrieves a properly formatted error from Opis/json-schema
 	 *
 	 * @since 0.9.0
