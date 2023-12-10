@@ -23,14 +23,9 @@ use Opis\JsonSchema\Helper;
 use Tests\Wp\FastEndpoints\Helpers\Helpers;
 use Tests\Wp\FastEndpoints\Helpers\FileSystemCache;
 use Tests\Wp\FastEndpoints\Helpers\Faker;
+use Tests\Wp\FastEndpoints\Helpers\LoadSchema;
 
 use Wp\FastEndpoints\Schemas\Response;
-
-abstract class LoadSchema
-{
-    const FromFile = 0;
-    const FromArray = 1;
-}
 
 afterEach(function () {
     Mockery::close();
@@ -129,6 +124,48 @@ test('Retrieving a json schema filepath when providing a relative filepath', fun
     expect(Helpers::invokeNonPublicClassMethod($response, 'getValidSchemaFilepath'))
         ->toBe($schemaFullpath);
 })->with(['schema', 'schema.json']);
+
+// getContents() and updateSchemaToAcceptOrDiscardAdditionalProperties()
+
+test('getContents() retrieves correct schema', function ($loadSchemaFrom, $removeAdditionalProperties) {
+    $schema = 'Users/Get';
+    $expectedContents = Helpers::loadSchema(\SCHEMAS_DIR . $schema);
+    if ($loadSchemaFrom == LoadSchema::FromArray) {
+        $schema = $expectedContents;
+    }
+    $response = new Response($schema, $removeAdditionalProperties);
+    $response->appendSchemaDir(\SCHEMAS_DIR);
+    $contents = $response->getContents();
+    if (is_bool($removeAdditionalProperties)) {
+        $expectedContents["additionalProperties"] = !$removeAdditionalProperties;
+        $expectedContents["properties"]["data"]["additionalProperties"] = !$removeAdditionalProperties;
+    } else if (is_string($removeAdditionalProperties)) {
+        $expectedContents["additionalProperties"] = ["type" => $removeAdditionalProperties];
+        $expectedContents["properties"]["data"]["additionalProperties"] = ["type" => $removeAdditionalProperties];
+    }
+    expect($contents)->toEqual($expectedContents);
+})->with([
+    [LoadSchema::FromFile, true],
+    [LoadSchema::FromArray, true],
+    [LoadSchema::FromFile, false],
+    [LoadSchema::FromArray, false],
+    [LoadSchema::FromFile, null],
+    [LoadSchema::FromArray, null],
+    [LoadSchema::FromFile, "string"],
+    [LoadSchema::FromArray, "string"],
+    [LoadSchema::FromFile, "integer"],
+    [LoadSchema::FromArray, "integer"],
+    [LoadSchema::FromFile, "number"],
+    [LoadSchema::FromArray, "number"],
+    [LoadSchema::FromFile, "boolean"],
+    [LoadSchema::FromArray, "boolean"],
+    [LoadSchema::FromFile, "null"],
+    [LoadSchema::FromArray, "null"],
+    [LoadSchema::FromFile, "object"],
+    [LoadSchema::FromArray, "object"],
+    [LoadSchema::FromFile, "array"],
+    [LoadSchema::FromArray, "array"],
+]);
 
 // returns()
 
