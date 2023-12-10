@@ -145,7 +145,7 @@ test('getContents() retrieves correct schema', function ($loadSchemaFrom) {
 
 // validate()
 
-test('validate() valid schema', function ($loadSchemaFrom) {
+test('validate() valid parameters', function ($loadSchemaFrom) {
     $schema = 'Users/Get';
     $expectedContents = Helpers::loadSchema(\SCHEMAS_DIR . $schema);
     if ($loadSchemaFrom == LoadSchema::FromArray) {
@@ -170,7 +170,7 @@ test('validate() valid schema', function ($loadSchemaFrom) {
     LoadSchema::FromArray,
 ]);
 
-test('validate() invalid schema', function ($loadSchemaFrom) {
+test('validate() invalid parameters', function ($loadSchemaFrom) {
     $schema = 'Users/Get';
     $expectedContents = Helpers::loadSchema(\SCHEMAS_DIR . $schema);
     if ($loadSchemaFrom == LoadSchema::FromArray) {
@@ -193,3 +193,19 @@ test('validate() invalid schema', function ($loadSchemaFrom) {
     LoadSchema::FromFile,
     LoadSchema::FromArray,
 ]);
+
+test('validate() invalid schema', function () {
+    $schema = new Schema(["type" => "invalid"]);
+    $schema->appendSchemaDir(\SCHEMAS_DIR);
+    $user = [
+        'data' => [
+            'user_email' => 'invalid-email',
+        ],
+    ];
+    $req = Mockery::mock('WP_REST_Request');
+    $req->shouldReceive('get_params')
+        ->andReturn($user);
+    $result = $schema->validate($req);
+    expect($result)->toBeInstanceOf(WP_Error::class);
+    expect($result->code)->toBe(500);
+});
