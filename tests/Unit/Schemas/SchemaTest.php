@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Holds tests for the Response class.
+ * Holds tests for the Schema class.
  *
  * @since 0.9.0
  *
@@ -18,11 +18,9 @@ use TypeError;
 use Mockery;
 use org\bovigo\vfs\vfsStream;
 use Illuminate\Support\Str;
-use Opis\JsonSchema\Helper;
 
 use Tests\Wp\FastEndpoints\Helpers\Helpers;
 use Tests\Wp\FastEndpoints\Helpers\FileSystemCache;
-use Tests\Wp\FastEndpoints\Helpers\Faker;
 use Tests\Wp\FastEndpoints\Helpers\LoadSchema;
 
 use Wp\FastEndpoints\Schemas\Schema;

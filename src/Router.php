@@ -55,9 +55,9 @@ class Router implements RouterContract
 	 * Parent router
 	 *
 	 * @since 0.9.0
-	 * @var ?RouterContract
+	 * @var ?Router
 	 */
-	protected ?RouterContract $parent = null;
+	protected ?Router $parent = null;
 
 	/**
 	 * Sub routers
@@ -84,7 +84,7 @@ class Router implements RouterContract
 	protected array $schemaDirs = [];
 
 	/**
-	 * Router version - used only if it's a parent router
+	 * Router version used only if it's a parent router
 	 *
 	 * @since 0.9.0
 	 * @var string
@@ -94,9 +94,9 @@ class Router implements RouterContract
 	/**
 	 * Creates a new Router instance
 	 *
-	 * @param string $base - Router base path - if this router is the parent router would be used as
+	 * @param string $base Router base path if this router is the parent router would be used as
 	 * the namespace. Default value: 'api'.
-	 * @param string $version - Router version. Default value: ''.
+	 * @param string $version Router version. Default value: ''.
 	 */
 	public function __construct(string $base = 'api', string $version = '')
 	{
@@ -108,59 +108,59 @@ class Router implements RouterContract
 	 * Adds a new GET endpoint
 	 *
 	 * @since 0.9.0
-	 * @param string $route - Endpoint route.
-	 * @param callable $handler - User specified handler for the endpoint.
-	 * @param array<mixed> $args - Same as the WordPress register_rest_route $args parameter. If set it can override the default
+	 * @param string $route Endpoint route.
+	 * @param callable $handler User specified handler for the endpoint.
+	 * @param array<mixed> $args Same as the WordPress register_rest_route $args parameter. If set it can override the default
 	 * WP FastEndpoints arguments. Default value: [].
-	 * @param bool $override - Same as the WordPress register_rest_route $override parameter. Defaul value: false.
+	 * @param bool $override Same as the WordPress register_rest_route $override parameter. Defaul value: false.
 	 * @return EndpointContract
 	 */
 	public function get(string $route, callable $handler, array $args = [], bool $override = false): EndpointContract
 	{
-		return $this->endpoint('GET', $route, $handler, $args);
+		return $this->endpoint('GET', $route, $handler, $args, $override);
 	}
 
 	/**
 	 * Adds a new POST endpoint
 	 *
 	 * @since 0.9.0
-	 * @param string $route - Endpoint route.
-	 * @param callable $handler - User specified handler for the endpoint.
-	 * @param array<mixed> $args - Same as the WordPress register_rest_route $args parameter. If set it can override the default
+	 * @param string $route Endpoint route.
+	 * @param callable $handler User specified handler for the endpoint.
+	 * @param array<mixed> $args Same as the WordPress register_rest_route $args parameter. If set it can override the default
 	 * WP FastEndpoints arguments. Default value: [].
-	 * @param bool $override - Same as the WordPress register_rest_route $override parameter. Defaul value: false.
+	 * @param bool $override Same as the WordPress register_rest_route $override parameter. Defaul value: false.
 	 * @return EndpointContract
 	 */
 	public function post(string $route, callable $handler, array $args = [], $override = false): EndpointContract
 	{
-		return $this->endpoint('POST', $route, $handler, $args);
+		return $this->endpoint('POST', $route, $handler, $args, $override);
 	}
 
 	/**
 	 * Adds a new PUT endpoint
 	 *
 	 * @since 0.9.0
-	 * @param string $route - Endpoint route.
-	 * @param callable $handler - User specified handler for the endpoint.
-	 * @param array<mixed> $args - Same as the WordPress register_rest_route $args parameter. If set it can override the default
+	 * @param string $route Endpoint route.
+	 * @param callable $handler User specified handler for the endpoint.
+	 * @param array<mixed> $args Same as the WordPress register_rest_route $args parameter. If set it can override the default
 	 * WP FastEndpoints arguments. Default value: [].
-	 * @param bool $override - Same as the WordPress register_rest_route $override parameter. Defaul value: false.
+	 * @param bool $override Same as the WordPress register_rest_route $override parameter. Defaul value: false.
 	 * @return EndpointContract
 	 */
 	public function put(string $route, callable $handler, array $args = [], bool $override = false): EndpointContract
 	{
-		return $this->endpoint('PUT', $route, $handler, $args);
+		return $this->endpoint('PUT', $route, $handler, $args, $override);
 	}
 
 	/**
 	 * Adds a new DELETE endpoint
 	 *
 	 * @since 0.9.0
-	 * @param string $route - Endpoint route.
-	 * @param callable $handler - User specified handler for the endpoint.
-	 * @param array<mixed> $args - Same as the WordPress register_rest_route $args parameter. If set it can override the default
+	 * @param string $route Endpoint route.
+	 * @param callable $handler User specified handler for the endpoint.
+	 * @param array<mixed> $args Same as the WordPress register_rest_route $args parameter. If set it can override the default
 	 * WP FastEndpoints arguments. Default value: [].
-	 * @param bool $override - Same as the WordPress register_rest_route $override parameter. Defaul value: false.
+	 * @param bool $override Same as the WordPress register_rest_route $override parameter. Defaul value: false.
 	 * @return EndpointContract
 	 */
 	public function delete(string $route, callable $handler, array $args = [], bool $override = false): EndpointContract
@@ -169,10 +169,26 @@ class Router implements RouterContract
 	}
 
 	/**
+	 * Adds a new PATCH endpoint
+	 *
+	 * @since 0.9.0
+	 * @param string $route Endpoint route.
+	 * @param callable $handler User specified handler for the endpoint.
+	 * @param array<mixed> $args Same as the WordPress register_rest_route $args parameter. If set it can override the default
+	 * WP FastEndpoints arguments. Default value: [].
+	 * @param bool $override Same as the WordPress register_rest_route $override parameter. Defaul value: false.
+	 * @return EndpointContract
+	 */
+	public function patch(string $route, callable $handler, array $args = [], bool $override = false): EndpointContract
+	{
+		return $this->endpoint('PATCH', $route, $handler, $args, $override);
+	}
+
+	/**
 	 * Includes a router as a sub router
 	 *
 	 * @since 0.9.0
-	 * @param RouterContract $router - REST sub router.
+	 * @param RouterContract $router REST sub router.
 	 */
 	public function includeRouter(RouterContract &$router): void
 	{
@@ -184,7 +200,7 @@ class Router implements RouterContract
 	 * Appends an additional directory where to look for the schema
 	 *
 	 * @since 0.9.0
-	 * @param string|array<string> $dir - Directory path or an array of directories where to
+	 * @param string|array<string> $dir Directory path or an array of directories where to
 	 * look for JSON schemas.
 	 */
 	public function appendSchemaDir($dir): void
@@ -271,7 +287,7 @@ class Router implements RouterContract
 	 * Retrieves the base router namespace for each endpoint
 	 *
 	 * @since 0.9.0
-	 * @param bool $isToApplyFilters - Flag used to ignore wp_fastendpoints filters
+	 * @param bool $isToApplyFilters Flag used to ignore wp_fastendpoints filters
 	 * (i.e. this is needed to disable multiple calls to the filter given that it's a
 	 * recursive function). Default value: true.
 	 * @return string
@@ -287,7 +303,7 @@ class Router implements RouterContract
 			$namespace .= '/' . \trim($this->version, '/');
 		}
 
-		// Ignore recursive call to apply_filters - without it, would be anoying for developers.
+		// Ignore recursive call to apply_filters without it, would be anoying for developers.
 		if (!$isToApplyFilters) {
 			return $namespace;
 		}
@@ -300,7 +316,7 @@ class Router implements RouterContract
 	 * the namespace and is before the endpoint route.
 	 *
 	 * @since 0.9.0
-	 * @param bool $isToApplyFilters - Flag used to ignore wp_fastendpoints filters
+	 * @param bool $isToApplyFilters Flag used to ignore wp_fastendpoints filters
 	 * (i.e. this is needed to disable multiple calls to the filter given that it's a
 	 * recursive function). Default value: true.
 	 * @return string
@@ -321,7 +337,7 @@ class Router implements RouterContract
 			$restBase .= '/' . \trim($this->version, '/');
 		}
 
-		// Ignore recursive call to apply_filters - without it, would be anoying for developers.
+		// Ignore recursive call to apply_filters without it, would be anoying for developers.
 		if (!$isToApplyFilters) {
 			return $restBase;
 		}
@@ -333,12 +349,12 @@ class Router implements RouterContract
 	 * Creates and retrieves a new endpoint instance
 	 *
 	 * @since 0.9.0
-	 * @param string $method - POST, GET, PUT or DELETE or a value from WP_REST_Server (e.g. WP_REST_Server::EDITABLE).
-	 * @param string $route - Endpoint route.
-	 * @param callable $handler - User specified handler for the endpoint.
-	 * @param array<mixed> $args - Same as the WordPress register_rest_route $args parameter. If set it can override the default
+	 * @param string $method POST, GET, PUT or DELETE or a value from WP_REST_Server (e.g. WP_REST_Server::EDITABLE).
+	 * @param string $route Endpoint route.
+	 * @param callable $handler User specified handler for the endpoint.
+	 * @param array<mixed> $args Same as the WordPress register_rest_route $args parameter. If set it can override the default
 	 * WP FastEndpoints arguments. Default value: [].
-	 * @param bool $override - Same as the WordPress register_rest_route $override parameter. Defaul value: false.
+	 * @param bool $override Same as the WordPress register_rest_route $override parameter. Defaul value: false.
 	 * @return EndpointContract
 	 */
 	public function endpoint(
