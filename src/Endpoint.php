@@ -52,7 +52,7 @@ class Endpoint implements EndpointInterface
 	 * Same as the register_rest_route $args parameter
 	 *
 	 * @since 0.9.0
-	 * @var array<mixed>
+	 * @var array
 	 */
 	private array $args = [];
 
@@ -127,7 +127,7 @@ class Endpoint implements EndpointInterface
 	 * @param string $method - POST, GET, PUT or DELETE or a value from WP_REST_Server (e.g. WP_REST_Server::EDITABLE).
 	 * @param string $route - Endpoint route.
 	 * @param callable $handler - User specified handler for the endpoint.
-	 * @param array<mixed> $args - Same as the WordPress register_rest_route $args parameter. If set it can override the default
+	 * @param array $args - Same as the WordPress register_rest_route $args parameter. If set it can override the default
 	 * WP FastEndpoints arguments.
 	 * @param bool $override - Same as the WordPress register_rest_route $override parameter. Default value: false.
 	 */
@@ -182,7 +182,7 @@ class Endpoint implements EndpointInterface
 	 * Checks if the current user has the given WP capabilities
 	 *
 	 * @since 0.9.0
-	 * @param string|array<mixed> $capabilities - WordPress user capabilities.
+	 * @param string|array $capabilities - WordPress user capabilities.
 	 * @param int $priority - Specifies the order in which the function is executed.
 	 * Lower numbers correspond with earlier execution, and functions with the same priority
 	 * are executed in the order in which they were added. Default value: 10.
@@ -242,7 +242,7 @@ class Endpoint implements EndpointInterface
 	 * validate a REST request according to the given JSON schema.
 	 *
 	 * @since 0.9.0
-	 * @param string|array<mixed> $schema - Filepath to the JSON schema or a JSON schema as an array.
+	 * @param string|array $schema - Filepath to the JSON schema or a JSON schema as an array.
 	 * @param int $priority - Specifies the order in which the function is executed.
 	 * Lower numbers correspond with earlier execution, and functions with the same priority
 	 * are executed in the order in which they were added. Default value: 10.
@@ -262,7 +262,7 @@ class Endpoint implements EndpointInterface
 	 * 2) Making sure that the required data is retrieved.
 	 *
 	 * @since 0.9.0
-	 * @param string|array<mixed> $schema - Filepath to the JSON schema or a JSON schema as an array.
+	 * @param string|array $schema - Filepath to the JSON schema or a JSON schema as an array.
 	 * @param int $priority - Specifies the order in which the function is executed.
 	 * Lower numbers correspond with earlier execution, and functions with the same priority
 	 * are executed in the order in which they were added. Default value: 10.
@@ -330,7 +330,7 @@ class Endpoint implements EndpointInterface
 	 *
 	 * @since 0.9.0
 	 * @param string $name - Name of the argument.
-	 * @param array<mixed>|callable $validate - Either an array that WordPress uses (e.g. ['required'=>true, 'default'=>null])
+	 * @param array|callable $validate - Either an array that WordPress uses (e.g. ['required'=>true, 'default'=>null])
 	 * or a validation callback.
 	 * @throws TypeError - if $validate is neither an array or callable.
 	 * @return Endpoint

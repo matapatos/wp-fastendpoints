@@ -28,8 +28,6 @@ afterEach(function () {
     vfsStream::setup();
 });
 
-// Constructor
-
 dataset('http_methods', [
     'GET',
     'POST',
@@ -38,12 +36,14 @@ dataset('http_methods', [
     'DELETE',
 ]);
 
+// Constructor
+
 test('Creating Router instance', function () {
     $router = new Router();
     expect($router)->toBeInstanceOf(Router::class);
     $router = new Router('my-api', 'v45');
     expect($router)->toBeInstanceOf(Router::class);
-});
+})->group('constructor');
 
 test('Creating a Router instance with invalid parameters', function ($api, $version) {
     expect(fn() => new Router($api, $version))->toThrow(TypeError::class);
@@ -52,7 +52,9 @@ test('Creating a Router instance with invalid parameters', function ($api, $vers
     [[], ''],
     [1, ''],
     ['', 1],
-]);
+])->group('constructor');
+
+// REST endpoints
 
 test('Create a REST endpoint', function (string $method, string $api, string $version, string $route, ?array $args = [], $override = false) {
     $router = new Router($api, $version);
@@ -71,7 +73,9 @@ test('Create a REST endpoint', function (string $method, string $api, string $ve
     ['my-api3', 'v3', '/my-custom-route3', ['my-custom-arg' => 'hello'], true],
     ['my-api4', '/v4', 'my-custom-route4'],
     ['my-api5', '/v5', '/my-custom-route5'],
-]);
+])->group('router');
+
+// Sub routers
 
 test('Include sub-routers', function () {
     $mainRouter = new Router('my-api', 'v1');
@@ -89,8 +93,11 @@ test('Include sub-routers', function () {
     expect(Helpers::getNonPublicClassProperty($mainRouter, 'endpoints'))->toMatchArray([$readyzEndpoint]);
     expect(Helpers::getNonPublicClassProperty($usersRouter, 'endpoints'))->toMatchArray([$user123Endpoint, $currentUserEndpoint]);
     expect(Helpers::getNonPublicClassProperty($mainRouter, 'subRouters'))->toMatchArray([$usersRouter]);
-});
+})->group('includeRouter');
 
+// Router namespace
+
+// TODO: Check if apply filter has been called
 test('Get router namespace', function (string $api, string $version) {
     $apiNamespace = 'my-api/v3';
     $router = new Router($api, $version);
@@ -108,8 +115,11 @@ test('Get router namespace', function (string $api, string $version) {
     ['my-api/', 'v3/'],
     ['/my-api/', '/v3'],
     ['/my-api/', '/v3/'],
-]);
+])->group('getNamespace');
 
+// Router REST path
+
+// TODO: Check if apply filter has been called
 test('Get router REST path', function (string $api, string $version) {
     $router = new Router($api, $version);
     expect(Helpers::invokeNonPublicClassMethod($router, 'getRestBase'))->toBe('');
@@ -126,4 +136,17 @@ test('Get router REST path', function (string $api, string $version) {
     ['my-api/', 'v3/'],
     ['/my-api/', '/v3'],
     ['/my-api/', '/v3/'],
-]);
+])->group('router', 'includeRouter');
+
+// Schema dirs
+
+test('Append schema directories', function ($invalidDir) {
+    $router = new Router('custom-api', 'v1');
+    expect($router->appendSchemaDir($invalidDir))->toThrow(Exception::class);
+})->with([true, false, null, '', []])->group('appendSchemaDir');
+
+// test('Append schema directories', function () {
+//     $router = new Router('custom-api', 'v1');
+//     $router->appendSchemaDir(dirname(__FILE__));
+    
+// });

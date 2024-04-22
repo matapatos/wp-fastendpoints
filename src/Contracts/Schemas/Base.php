@@ -63,7 +63,7 @@ abstract class Base
 	 * Creates a new instance of Base
 	 *
 	 * @since 0.9.0
-	 * @param string|array<mixed> $schema - File name or path to the JSON schema or a JSON schema as an array.
+	 * @param string|array $schema - File name or path to the JSON schema or a JSON schema as an array.
 	 * @throws TypeError - if $schema is neither a string or an array.
 	 */
 	public function __construct($schema)

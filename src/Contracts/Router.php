@@ -35,7 +35,7 @@ interface Router
 	 * @since 0.9.0
 	 * @param string $route - Endpoint route.
 	 * @param callable $handler - User specified handler for the endpoint.
-	 * @param array<mixed> $args - Same as the WordPress register_rest_route $args parameter. If set it can override the default
+	 * @param array $args - Same as the WordPress register_rest_route $args parameter. If set it can override the default
 	 * WP FastEndpoints arguments. Default value: [].
 	 * @param bool $override - Same as the WordPress register_rest_route $override parameter. Defaul value: false.
 	 * @return Endpoint
@@ -48,7 +48,7 @@ interface Router
 	 * @since 0.9.0
 	 * @param string $route - Endpoint route.
 	 * @param callable $handler - User specified handler for the endpoint.
-	 * @param array<mixed> $args - Same as the WordPress register_rest_route $args parameter. If set it can override the default
+	 * @param array $args - Same as the WordPress register_rest_route $args parameter. If set it can override the default
 	 * WP FastEndpoints arguments. Default value: [].
 	 * @param bool $override - Same as the WordPress register_rest_route $override parameter. Defaul value: false.
 	 * @return Endpoint
@@ -61,7 +61,7 @@ interface Router
 	 * @since 0.9.0
 	 * @param string $route - Endpoint route.
 	 * @param callable $handler - User specified handler for the endpoint.
-	 * @param array<mixed> $args - Same as the WordPress register_rest_route $args parameter. If set it can override the default
+	 * @param array $args - Same as the WordPress register_rest_route $args parameter. If set it can override the default
 	 * WP FastEndpoints arguments. Default value: [].
 	 * @param bool $override - Same as the WordPress register_rest_route $override parameter. Defaul value: false.
 	 * @return Endpoint
@@ -74,7 +74,7 @@ interface Router
 	 * @since 0.9.0
 	 * @param string $route - Endpoint route.
 	 * @param callable $handler - User specified handler for the endpoint.
-	 * @param array<mixed> $args - Same as the WordPress register_rest_route $args parameter. If set it can override the default
+	 * @param array $args - Same as the WordPress register_rest_route $args parameter. If set it can override the default
 	 * WP FastEndpoints arguments. Default value: [].
 	 * @param bool $override - Same as the WordPress register_rest_route $override parameter. Defaul value: false.
 	 * @return Endpoint
@@ -111,7 +111,7 @@ interface Router
 	 * @param string $method - POST, GET, PUT or DELETE or a value from WP_REST_Server (e.g. WP_REST_Server::EDITABLE).
 	 * @param string $route - Endpoint route.
 	 * @param callable $handler - User specified handler for the endpoint.
-	 * @param array<mixed> $args - Same as the WordPress register_rest_route $args parameter. If set it can override the default
+	 * @param array $args - Same as the WordPress register_rest_route $args parameter. If set it can override the default
 	 * WP FastEndpoints arguments. Default value: [].
 	 * @param bool $override - Same as the WordPress register_rest_route $override parameter. Defaul value: false.
 	 * @return Endpoint

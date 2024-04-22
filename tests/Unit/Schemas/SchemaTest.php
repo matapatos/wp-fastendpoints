@@ -35,15 +35,15 @@ afterEach(function () {
 
 test('Creating Schema instance with $schema as a string', function () {
     expect(new Schema('User/Get'))->toBeInstanceOf(Schema::class);
-});
+})->group('constructor');
 
 test('Creating Schema instance with $schema as an array', function () {
     expect(new Schema([]))->toBeInstanceOf(Schema::class);
-});
+})->group('constructor');
 
 test('Creating Schema instance with an invalid $schema type', function ($value) {
     expect(fn() => new Schema($value))->toThrow(TypeError::class);
-})->with([1, 1.67, true, false]);
+})->with([1, 1.67, true, false])->group('constructor');
 
 // getSuffix()
 
@@ -51,7 +51,7 @@ test('Checking correct Schema suffix', function () {
     $schema = new Schema([]);
     $suffix = Helpers::invokeNonPublicClassMethod($schema, 'getSuffix');
     expect($suffix)->toBe('schema');
-});
+})->group('getSuffix');
 
 // appendSchemaDir()
 
@@ -61,7 +61,7 @@ test('Passing invalid schema directories to appendSchemaDir()', function (...$in
 })->with([
     125, 62.5, 'fakedirectory', 'fake/dir/ups', '',
     ['', ''], ['fake', '/fake/ups'], [1,2],
-]);
+])->group('appendSchemaDir');
 
 test('Passing both valid and invalid schema directories to appendSchemaDir()', function (...$invalidDirectories) {
     $schema = new Schema([]);
@@ -71,7 +71,7 @@ test('Passing both valid and invalid schema directories to appendSchemaDir()', f
     expect(fn() => Helpers::invokeNonPublicClassMethod($schema, 'appendSchemaDir', $invalidDirectories))->toThrow(TypeError::class);
 })->with([
     ['valid', 'invalid'], ['fake', 'fake/ups'], ['yup', 'true', 'yes'],
-]);
+])->group('appendSchemaDir');
 
 test('Passing a valid schema directories to appendSchemaDir()', function (...$validDirectories) {
     $cache = new FileSystemCache();
@@ -91,7 +91,7 @@ test('Passing a valid schema directories to appendSchemaDir()', function (...$va
 })->with([
     'Schemas', 'Others/Schemas', 'Random/Another/Schemas',
     ['Hey', 'Dude'], ['Great/Man', 'Yes/ItWorks'],
-]);
+])->group('appendSchemaDir');
 
 // getValidSchemaFilepath()
 
@@ -99,13 +99,13 @@ test('Trying to retrieve a json schema filepath without providing a filename', f
     $schema = new Schema([]);
     expect(fn() => Helpers::invokeNonPublicClassMethod($schema, 'getValidSchemaFilepath'))
         ->toThrow(Exception::class);
-});
+})->group('getValidSchemaFilepath');
 
 test('Trying to retrieve a json schema filepath of a file that doesn\'t exists', function () {
     $schema = new Schema('random.json');
     expect(fn() => Helpers::invokeNonPublicClassMethod($schema, 'getValidSchemaFilepath'))
         ->toThrow(Exception::class);
-});
+})->group('getValidSchemaFilepath');
 
 test('Retrieving a json schema filepath when providing a full filepath', function () {
     $cache = new FileSystemCache();
@@ -113,7 +113,7 @@ test('Retrieving a json schema filepath when providing a full filepath', functio
     $schema = new Schema($schemaFullpath);
     expect(Helpers::invokeNonPublicClassMethod($schema, 'getValidSchemaFilepath'))
         ->toBe($schemaFullpath);
-});
+})->group('getValidSchemaFilepath');
 
 test('Retrieving a json schema filepath when providing a relative filepath', function (string $schemaRelativePath) {
     $cache = new FileSystemCache();
@@ -122,7 +122,7 @@ test('Retrieving a json schema filepath when providing a relative filepath', fun
     Helpers::setNonPublicClassProperty($schema, 'schemaDirs', [$cache->getRootDir()]);
     expect(Helpers::invokeNonPublicClassMethod($schema, 'getValidSchemaFilepath'))
         ->toBe($schemaFullpath);
-})->with(['schema', 'schema.json']);
+})->with(['schema', 'schema.json'])->group('getValidSchemaFilepath');
 
 // getContents()
 
@@ -139,7 +139,7 @@ test('getContents() retrieves correct schema', function ($loadSchemaFrom) {
 })->with([
     LoadSchema::FromFile,
     LoadSchema::FromArray,
-]);
+])->group('getContents');
 
 // validate()
 
@@ -166,7 +166,7 @@ test('validate() valid parameters', function ($loadSchemaFrom) {
 })->with([
     LoadSchema::FromFile,
     LoadSchema::FromArray,
-]);
+])->group('validate');
 
 test('validate() invalid parameters', function ($loadSchemaFrom) {
     $schema = 'Users/Get';
@@ -190,7 +190,7 @@ test('validate() invalid parameters', function ($loadSchemaFrom) {
 })->with([
     LoadSchema::FromFile,
     LoadSchema::FromArray,
-]);
+])->group('validate');
 
 test('validate() invalid schema', function () {
     $schema = new Schema(["type" => "invalid"]);
@@ -206,4 +206,4 @@ test('validate() invalid schema', function () {
     $result = $schema->validate($req);
     expect($result)->toBeInstanceOf(WP_Error::class);
     expect($result->code)->toBe(500);
-});
+})->group('validate');

@@ -63,7 +63,7 @@ class Response extends Base implements ResponseContract
 	 * Creates a new instance of Base
 	 *
 	 * @since 0.9.0
-	 * @param string|array<mixed> $schema - File name or path to the JSON schema or a JSON schema as an array.
+	 * @param string|array $schema - File name or path to the JSON schema or a JSON schema as an array.
 	 * @param bool|string|null $removeAdditionalProperties - Determines if we want to keep additional properties.
 	 * If set to null assumes that the schema will take care of that. If a string is given it assumes only those
 	 * types of properties are allowed.

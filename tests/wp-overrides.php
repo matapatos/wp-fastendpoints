@@ -32,6 +32,13 @@ if (!function_exists('esc_html')) {
 	}
 }
 
+if (!function_exists('wp_die')) {
+	function wp_die(string $string): string
+	{
+		throw new Exception($string);
+	}
+}
+
 if (!class_exists('WP_Http')) {
 	class WP_Http {
 		const NOT_FOUND = 404;

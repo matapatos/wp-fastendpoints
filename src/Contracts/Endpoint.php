@@ -37,7 +37,7 @@ interface Endpoint
 	 * Checks if the current user has the given WP capabilities
 	 *
 	 * @since 0.9.0
-	 * @param string|array<mixed> $capabilities - WordPress user capabilities.
+	 * @param string|array $capabilities - WordPress user capabilities.
 	 * @param int $priority - Specifies the order in which the function is executed.
 	 * Lower numbers correspond with earlier execution, and functions with the same priority
 	 * are executed in the order in which they were added. Default value: 10.
@@ -50,7 +50,7 @@ interface Endpoint
 	 * validate a REST request according to the given JSON schema.
 	 *
 	 * @since 0.9.0
-	 * @param string|array<mixed> $schema - Filepath to the JSON schema or a JSON schema as an array.
+	 * @param string|array $schema - Filepath to the JSON schema or a JSON schema as an array.
 	 * @param int $priority - Specifies the order in which the function is executed.
 	 * Lower numbers correspond with earlier execution, and functions with the same priority
 	 * are executed in the order in which they were added. Default value: 10.
@@ -65,7 +65,7 @@ interface Endpoint
 	 * 2) Making sure that the required data is retrieved.
 	 *
 	 * @since 0.9.0
-	 * @param string|array<mixed> $schema - Filepath to the JSON schema or a JSON schema as an array.
+	 * @param string|array $schema - Filepath to the JSON schema or a JSON schema as an array.
 	 * @param int $priority - Specifies the order in which the function is executed.
 	 * Lower numbers correspond with earlier execution, and functions with the same priority
 	 * are executed in the order in which they were added. Default value: 10.
@@ -91,7 +91,7 @@ interface Endpoint
 	 *
 	 * @since 0.9.0
 	 * @param string $name - Name of the argument.
-	 * @param array<mixed>|callable $validate - Either an array that WordPress uses (e.g. ['required'=>true, 'default'=>null])
+	 * @param array|callable $validate - Either an array that WordPress uses (e.g. ['required'=>true, 'default'=>null])
 	 * or a validation callback.
 	 * @throws TypeError - if $validate is neither an array or callable.
 	 * @return Endpoint
