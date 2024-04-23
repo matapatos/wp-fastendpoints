@@ -12,15 +12,15 @@ declare(strict_types=1);
 
 namespace Wp\FastEndpoints\Schemas;
 
-use Opis\JsonSchema\Validator;
-use Opis\JsonSchema\Helper;
 use Opis\JsonSchema\Exceptions\SchemaException;
-use WP_REST_Request;
-use WP_Error;
-use WP_Http;
+use Opis\JsonSchema\Helper;
+use Opis\JsonSchema\Validator;
 use Wp\FastEndpoints\Contracts\Schemas\Base;
 use Wp\FastEndpoints\Contracts\Schemas\Schema as SchemaInterface;
-use Wp\FastEndpoints\Contracts\WpError;
+use Wp\FastEndpoints\Helpers\WpError;
+use WP_Error;
+use WP_Http;
+use WP_REST_Request;
 
 /**
  * Schema class that validates a WP_REST_Request using Opis/json-schema
@@ -35,8 +35,8 @@ class Schema extends Base implements SchemaInterface
 	 *
 	 * @since 0.9.0
 	 * @see $this->parse()
-	 * @param WP_REST_Request $req - Current REST Request.
-	 * @return true|WP_Error - true on success and WP_Error on error.
+	 * @param WP_REST_Request $req Current REST Request.
+	 * @return true|WP_Error true on success and WP_Error on error.
 	 */
 	public function validate(WP_REST_Request $req)
 	{
@@ -49,8 +49,8 @@ class Schema extends Base implements SchemaInterface
 	 *
 	 * @since 0.9.0
 	 * @see https://opis.io/json-schema
-	 * @param WP_REST_Request $req - Current REST Request.
-	 * @return true|WP_Error - true on success and WP_Error on error.
+	 * @param WP_REST_Request $req Current REST Request.
+	 * @return true|WP_Error true on success and WP_Error on error.
 	 */
 	protected function parse(WP_REST_Request $req)
 	{

@@ -14,6 +14,9 @@ declare(strict_types=1);
 namespace Tests\Wp\FastEndpoints\Unit\Schemas;
 
 use Exception;
+use Opis\JsonSchema\Errors\ErrorFormatter;
+use Opis\JsonSchema\Errors\ValidationError;
+use Opis\JsonSchema\ValidationResult;
 use TypeError;
 use Mockery;
 use org\bovigo\vfs\vfsStream;
@@ -21,6 +24,8 @@ use Illuminate\Support\Str;
 use Opis\JsonSchema\Helper;
 use Brain\Monkey;
 use Brain\Monkey\Functions;
+use Brain\Monkey\Actions;
+use Brain\Monkey\Filters;
 
 use Tests\Wp\FastEndpoints\Helpers\Helpers;
 use Tests\Wp\FastEndpoints\Helpers\FileSystemCache;
@@ -28,6 +33,7 @@ use Tests\Wp\FastEndpoints\Helpers\Faker;
 use Tests\Wp\FastEndpoints\Helpers\LoadSchema;
 
 use Wp\FastEndpoints\Schemas\Response;
+use Wp\FastEndpoints\Schemas\Schema;
 
 beforeEach(function () {
     Monkey\setUp();
@@ -39,119 +45,9 @@ afterEach(function () {
     vfsStream::setup();
 });
 
-// Constructor
-
-test('Creating Response instance with $schema as a string', function () {
-    expect(new Response('User/Get'))->toBeInstanceOf(Response::class);
-})->group('constructor');
-
-test('Creating Response instance with $schema as an array', function () {
-    expect(new Response([]))->toBeInstanceOf(Response::class);
-})->group('constructor');
-
-test('Creating Response instance with an invalid $schema type', function ($value) {
-    Functions\when('esc_html__')->returnArg();
-    Functions\when('esc_html')->returnArg();
-    expect(function () use ($value) {
-        new Response($value);
-    })->toThrow(TypeError::class);
-})->with([1, 1.67, true, false])->group('constructor');
-
-// getSuffix()
-
-test('Checking correct Response suffix', function () {
-    $response = new Response([]);
-    $suffix = Helpers::invokeNonPublicClassMethod($response, 'getSuffix');
-    expect($suffix)->toBe('response');
-})->group('getSuffix');
-
-// appendSchemaDir()
-
-test('Passing invalid schema directories to appendSchemaDir()', function (...$invalidDirectories) {
-    Functions\when('esc_html__')->returnArg();
-    Functions\when('esc_html')->returnArg();
-    $response = new Response([]);
-    expect(function () use ($response, $invalidDirectories) {
-        Helpers::invokeNonPublicClassMethod($response, 'appendSchemaDir', $invalidDirectories);
-    })->toThrow(TypeError::class);
-})->with([
-    125, 62.5, 'fakedirectory', 'fake/dir/ups', '',
-    ['', ''], ['fake', '/fake/ups'], [1,2],
-])->group('appendSchemaDir');
-
-test('Passing both valid and invalid schema directories to appendSchemaDir()', function (...$invalidDirectories) {
-    Functions\when('esc_html__')->returnArg();
-    Functions\when('esc_html')->returnArg();
-    $response = new Response([]);
-    $cache = new FileSystemCache();
-    $invalidDirectories[0] = $cache->touchDirectory($invalidDirectories[0]);
-
-    expect(function () use ($response, $invalidDirectories) {
-        Helpers::invokeNonPublicClassMethod($response, 'appendSchemaDir', $invalidDirectories);
-    })->toThrow(TypeError::class);
-})->with([
-    ['valid', 'invalid'], ['fake', 'fake/ups'], ['yup', 'true', 'yes'],
-])->group('appendSchemaDir');
-
-test('Passing a valid schema directories to appendSchemaDir()', function (...$validDirectories) {
-    $cache = new FileSystemCache();
-    $validDirectories = $cache->touchDirectories($validDirectories);
-
-    $response = new Response([]);
-    $schemaDirs = Helpers::getNonPublicClassProperty($response, 'schemaDirs');
-    expect($schemaDirs)
-        ->toBeArray()
-        ->toBeEmpty();
-    Helpers::invokeNonPublicClassMethod($response, 'appendSchemaDir', $validDirectories);
-    $schemaDirs = Helpers::getNonPublicClassProperty($response, 'schemaDirs');
-    expect($schemaDirs)
-        ->toBeArray()
-        ->toHaveCount(count($validDirectories))
-        ->toEqual($validDirectories);
-})->with([
-    'Schemas', 'Others/Schemas', 'Random/Another/Schemas',
-    ['Hey', 'Dude'], ['Great/Man', 'Yes/ItWorks'],
-])->group('appendSchemaDir');
-
-// getValidSchemaFilepath()
-
-test('Trying to retrieve a json schema filepath without providing a filename', function () {
-    $response = new Response([]);
-    expect(function () use ($response) {
-        Helpers::invokeNonPublicClassMethod($response, 'getValidSchemaFilepath');
-    })->toThrow(Exception::class);
-})->group('getValidSchemaFilepath');
-
-test('Trying to retrieve a json schema filepath of a file that doesn\'t exists', function () {
-    $response = new Response('random.json');
-    expect(function () use ($response) {
-        Helpers::invokeNonPublicClassMethod($response, 'getValidSchemaFilepath');
-    })->toThrow(Exception::class);
-})->group('getValidSchemaFilepath');
-
-test('Retrieving a json schema filepath when providing a full filepath', function () {
-    $cache = new FileSystemCache();
-    $schemaFullPath = $cache->store('schema.json', '{}');
-    $response = new Response($schemaFullPath);
-    expect(Helpers::invokeNonPublicClassMethod($response, 'getValidSchemaFilepath'))
-        ->toBe($schemaFullPath);
-})->group('getValidSchemaFilepath');
-
-test('Retrieving a json schema filepath when providing a relative filepath', function (string $schemaRelativePath) {
-    Functions\when('path_join')->alias(function ($path1, $path2) {
-        return $path1 . '/' . $path2;
-    });
-    $cache = new FileSystemCache();
-    $schemaFullpath = $cache->store(Str::finish($schemaRelativePath, '.json'), '{}');
-    $response = new Response($schemaRelativePath);
-    Helpers::setNonPublicClassProperty($response, 'schemaDirs', [$cache->getRootDir()]);
-    expect(Helpers::invokeNonPublicClassMethod($response, 'getValidSchemaFilepath'))
-        ->toBe($schemaFullpath);
-})->with(['schema', 'schema.json'])->group('getValidSchemaFilepath');
-
 // getContents() and updateSchemaToAcceptOrDiscardAdditionalProperties()
 
-test('getContents() retrieves correct schema', function ($loadSchemaFrom, $removeAdditionalProperties) {
+test('getContents retrieves correct schema', function ($loadSchemaFrom, $removeAdditionalProperties) {
     Functions\when('path_join')->alias(function ($path1, $path2) {
         return $path1 . '/' . $path2;
     });
@@ -162,6 +58,9 @@ test('getContents() retrieves correct schema', function ($loadSchemaFrom, $remov
     }
     $response = new Response($schema, $removeAdditionalProperties);
     $response->appendSchemaDir(\SCHEMAS_DIR);
+    Filters\expectApplied('response_contents')
+        ->with($expectedContents, $response)
+        ->once();
     $contents = $response->getContents();
     if (is_bool($removeAdditionalProperties)) {
         $expectedContents["additionalProperties"] = !$removeAdditionalProperties;
@@ -192,7 +91,7 @@ test('getContents() retrieves correct schema', function ($loadSchemaFrom, $remov
     [LoadSchema::FromArray, "object"],
     [LoadSchema::FromFile, "array"],
     [LoadSchema::FromArray, "array"],
-])->group('getContents');
+])->group('response', 'getContents');
 
 // returns()
 
@@ -241,7 +140,7 @@ test('returns() matches expected return value - Basic', function ($loadSchemaFro
         "doubleVal" => 0.82,
         "boolVal"   => false,
     ]],
-])->group('returns');
+])->group('response', 'returns');
 
 test('Ignoring additional properties in returns()', function ($loadSchemaFrom) {
     Functions\when('path_join')->alias(function ($path1, $path2) {
@@ -270,7 +169,7 @@ test('Ignoring additional properties in returns()', function ($loadSchemaFrom) {
 })->with([
     LoadSchema::FromFile,
     LoadSchema::FromArray,
-])->group('returns');
+])->group('response', 'returns');
 
 test('Keeps additional properties in returns()', function ($loadSchemaFrom) {
     Functions\when('path_join')->alias(function ($path1, $path2) {
@@ -293,7 +192,7 @@ test('Keeps additional properties in returns()', function ($loadSchemaFrom) {
 })->with([
     LoadSchema::FromFile,
     LoadSchema::FromArray,
-])->group('returns');
+])->group('response', 'returns');
 
 test('Ignores additional properties expect a given type in returns()', function ($loadSchemaFrom, $type, $expectedData) {
     Functions\when('esc_html__')->returnArg();
@@ -341,7 +240,7 @@ test('Ignores additional properties expect a given type in returns()', function 
         "allcaps" => ['switch_themes' => true, 'edit_themes' => true, 'administrator' => true],
     ]],
     [LoadSchema::FromArray, 'array', ['roles' => ['administrator']]],
-])->group('returns');
+])->group('response', 'returns');
 
 test('Ignores additional properties specified by the schema', function ($loadSchemaFrom) {
     Functions\when('esc_html__')->returnArg();
@@ -372,4 +271,4 @@ test('Ignores additional properties specified by the schema', function ($loadSch
 })->with([
     LoadSchema::FromFile,
     LoadSchema::FromArray,
-])->group('returns');
+])->group('response', 'returns');

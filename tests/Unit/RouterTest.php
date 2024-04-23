@@ -17,12 +17,16 @@ use Exception;
 use Illuminate\Support\Facades\Route;
 use Mockery;
 use org\bovigo\vfs\vfsStream;
+use PHPUnit\Util\Filter;
 use Tests\Wp\FastEndpoints\Helpers\Helpers;
 use TypeError;
 use Wp\FastEndpoints\Endpoint;
 use Wp\FastEndpoints\Router;
 use Brain\Monkey;
 use Brain\Monkey\Functions;
+use Brain\Monkey\Actions;
+use Brain\Monkey\Filters;
+use function PHPUnit\Framework\assertFalse;
 
 beforeEach(function () {
     Monkey\setUp();
@@ -49,7 +53,7 @@ test('Creating Router instance', function () {
     expect($router)->toBeInstanceOf(Router::class);
     $router = new Router('my-api', 'v45');
     expect($router)->toBeInstanceOf(Router::class);
-})->group('constructor');
+})->group('router', 'constructor');
 
 test('Creating a Router instance with invalid parameters', function ($api, $version) {
     expect(function () use ($api, $version) {
@@ -60,7 +64,7 @@ test('Creating a Router instance with invalid parameters', function ($api, $vers
     [[], ''],
     [1, ''],
     ['', 1],
-])->group('constructor');
+])->group('router', 'constructor');
 
 // REST endpoints
 
@@ -81,7 +85,7 @@ test('Create a REST endpoint', function (string $method, string $api, string $ve
     ['my-api3', 'v3', '/my-custom-route3', ['my-custom-arg' => 'hello'], true],
     ['my-api4', '/v4', 'my-custom-route4'],
     ['my-api5', '/v5', '/my-custom-route5'],
-])->group('router');
+])->group('router', 'endpoints');
 
 // Sub routers
 
@@ -101,78 +105,233 @@ test('Include sub-routers', function () {
     expect(Helpers::getNonPublicClassProperty($mainRouter, 'endpoints'))->toMatchArray([$readyzEndpoint])
         ->and(Helpers::getNonPublicClassProperty($usersRouter, 'endpoints'))->toMatchArray([$user123Endpoint, $currentUserEndpoint])
         ->and(Helpers::getNonPublicClassProperty($mainRouter, 'subRouters'))->toMatchArray([$usersRouter]);
-})->group('includeRouter');
+})->group('router', 'includeRouter');
 
 // Router namespace
 
-// TODO: Check if apply filter has been called
 test('Get router namespace', function (string $api, string $version) {
     $apiNamespace = 'my-api/v3';
     $router = new Router($api, $version);
     expect(Helpers::invokeNonPublicClassMethod($router, 'getNamespace'))->toBe($apiNamespace);
+    $this->assertSame(Filters\applied('wp_fastendpoints_router_namespace'), 1);
     $subRouter = new Router('users', 'v87');
     expect(Helpers::invokeNonPublicClassMethod($subRouter, 'getNamespace'))->toBe('users/v87');
+    $this->assertSame(Filters\applied('wp_fastendpoints_router_namespace'), 2);
     $router->includeRouter($subRouter);
     expect(Helpers::invokeNonPublicClassMethod($subRouter, 'getNamespace'))->toBe($apiNamespace);
+    $this->assertSame(Filters\applied('wp_fastendpoints_router_namespace'), 2);
     $subSubRouter = new Router('myself', 'v100');
     expect(Helpers::invokeNonPublicClassMethod($subSubRouter, 'getNamespace'))->toBe('myself/v100');
+    $this->assertSame(Filters\applied('wp_fastendpoints_router_namespace'), 3);
     $subRouter->includeRouter($subSubRouter);
     expect(Helpers::invokeNonPublicClassMethod($subSubRouter, 'getNamespace'))->toBe($apiNamespace);
+    $this->assertSame(Filters\applied('wp_fastendpoints_router_namespace'), 3);
 })->with([
     ['my-api', 'v3'],
     ['my-api/', 'v3/'],
     ['/my-api/', '/v3'],
     ['/my-api/', '/v3/'],
-])->group('getNamespace');
+])->group('router', 'getNamespace');
 
 // Router REST path
 
-// TODO: Check if apply filter has been called
 test('Get router REST path', function (string $api, string $version) {
     $router = new Router($api, $version);
     expect(Helpers::invokeNonPublicClassMethod($router, 'getRestBase'))->toBe('');
+    $this->assertSame(Filters\applied('wp_fastendpoints_router_rest_base'), 0);
     $subRouter = new Router('users', 'v87');
     expect(Helpers::invokeNonPublicClassMethod($subRouter, 'getRestBase'))->toBe('');
+    $this->assertSame(Filters\applied('wp_fastendpoints_router_rest_base'), 0);
     $router->includeRouter($subRouter);
     expect(Helpers::invokeNonPublicClassMethod($subRouter, 'getRestBase'))->toBe('users/v87');
+    $this->assertSame(Filters\applied('wp_fastendpoints_router_rest_base'), 1);
     $subSubRouter = new Router('myself', 'v100');
     expect(Helpers::invokeNonPublicClassMethod($subSubRouter, 'getRestBase'))->toBe('');
+    $this->assertSame(Filters\applied('wp_fastendpoints_router_rest_base'), 1);
     $subRouter->includeRouter($subSubRouter);
     expect(Helpers::invokeNonPublicClassMethod($subSubRouter, 'getRestBase'))->toBe('myself/v100');
+    $this->assertSame(Filters\applied('wp_fastendpoints_router_rest_base'), 2);
 })->with([
     ['my-api', 'v3'],
     ['my-api/', 'v3/'],
     ['/my-api/', '/v3'],
     ['/my-api/', '/v3/'],
-])->group('router', 'includeRouter');
+])->group('router', 'getRestBase');
 
 // Schema dirs
 
-test('Append invalid schema directories', function () {
-    $invalidDir=true;
+test('Append invalid schema directories', function ($invalidDir, $errorMessage) {
     Functions\when('esc_html__')->returnArg();
     Functions\when('esc_html')->returnArg();
-    Functions\expect('wp_die')->andThrow(new Exception());
+    Functions\when('wp_die')->alias(function ($msg) {
+        throw new Exception($msg);
+    });
     $router = new Router('custom-api', 'v1');
     expect(Helpers::getNonPublicClassProperty($router, 'schemaDirs'))->toBe([])
         ->and(function () use ($invalidDir, $router) {
             $router->appendSchemaDir($invalidDir);
-        })->toThrow(Exception::class)
+        })->toThrow(Exception::class, $errorMessage)
         ->and(Helpers::getNonPublicClassProperty($router, 'schemaDirs'))->toBe([]);
-})->with([true, false, null, '', [true], '/invalid'])->group('appendSchemaDir')->group('appendSchemaDir');
+})->with([
+    [true, 'Expected a directory as a string but got: boolean'],
+    [false, 'Invalid schema directory'],
+    [null, 'Invalid schema directory'],
+    ['', 'Invalid schema directory'],
+    [[true], 'Expected a directory as a string but got: boolean'],
+    ['/invalid', 'Schema directory not found: /invalid'],
+    [__FILE__, 'Expected a directory with schemas but got a file: ' . __FILE__],
+])->group('router', 'appendSchemaDir');
 
 test('Append schema directories', function ($dir) {
     $router = new Router('custom-api', 'v1');
     expect(Helpers::getNonPublicClassProperty($router, 'schemaDirs'))->toBe([]);
     $router->appendSchemaDir($dir);
     expect(Helpers::getNonPublicClassProperty($router, 'schemaDirs'))->toBe([$dir]);
-})->with([dirname(__FILE__), dirname(__FILE__) . '/../Schemas'])->group('appendSchemaDir');
+})->with([dirname(__FILE__), dirname(__FILE__) . '/../Schemas'])->group('router', 'appendSchemaDir');
 
 // Register endpoints
 
-// test('Append schema directories', function ($dir) {
-//     $router = new Router('custom-api', 'v1');
-//     expect(Helpers::getNonPublicClassProperty($router, 'schemaDirs'))->toBe([]);
-//     $router->appendSchemaDir($dir);
-//     expect(Helpers::getNonPublicClassProperty($router, 'schemaDirs'))->toBe([$dir]);
-// })->with([dirname(__FILE__), dirname(__FILE__) . '/../Schemas'])->group('registerEndpoints');
+test('Register endpoints', function () {
+    $endpointMock1 = Mockery::mock(Endpoint::class)
+        ->expects()
+        ->register('custom-api/v3', '', ['my-schema-dir', 'tests-schema-dir'])
+        ->getMock();
+    $endpointMock2 = Mockery::mock(Endpoint::class)
+        ->expects()
+        ->register('custom-api/v3', '', ['my-schema-dir', 'tests-schema-dir'])
+        ->getMock();
+
+    $router = new Router('custom-api', 'v3');
+    Helpers::setNonPublicClassProperty($router, 'schemaDirs', ['my-schema-dir', 'tests-schema-dir']);
+    Helpers::setNonPublicClassProperty($router, 'endpoints', [$endpointMock1, $endpointMock2]);
+    expect(Helpers::getNonPublicClassProperty($router, 'registered'))->toBeFalse();
+    $router->registerEndpoints();
+    expect(Helpers::getNonPublicClassProperty($router, 'registered'))->toBeTrue();
+})->group('router', 'registerEndpoints');
+
+// Register router
+
+test('Skipping registering a router via hook', function () {
+    Filters\expectApplied('wp_fastendpoints_is_to_register')
+        ->once()
+        ->with(true, Mockery::type(Router::class))
+        ->andReturn(false);
+
+    $router = new Router();
+    $router->register();
+    $this->assertSame(Filters\applied('wp_fastendpoints_is_to_register'), 1);
+    $this->assertSame(Actions\did('wp_fastendpoints_before_register'), 0);
+    $this->assertSame(Actions\did('wp_fastendpoints_after_register'), 0);
+    $this->assertFalse(has_action('rest_api_init', [$router, 'registerEndpoints']));
+})->group('router', 'register');
+
+test('Register router with invalid base namespace', function () {
+    Functions\when('esc_html__')->returnArg();
+    Functions\when('wp_die')->alias(function ($msg) {
+        throw new Exception($msg);
+    });
+    $router = new Router('');
+    expect(function() use ($router) {
+        $router->register();
+    })->toThrow(Exception::class, 'No api namespace specified in the parent router');
+
+    $this->assertSame(Filters\applied('wp_fastendpoints_is_to_register'), 1);
+    $this->assertSame(Actions\did('wp_fastendpoints_before_register'), 0);
+    $this->assertSame(Actions\did('wp_fastendpoints_after_register'), 0);
+    $this->assertFalse(has_action('rest_api_init', [$router, 'registerEndpoints']));
+})->group('router', 'register');
+
+test('Register router with invalid version', function () {
+    Functions\when('esc_html__')->returnArg();
+    Functions\when('wp_die')->alias(function ($msg) {
+        throw new Exception($msg);
+    });
+    $router = new Router();
+    expect(function() use ($router) {
+        $router->register();
+    })->toThrow(Exception::class, 'No api version specified in the parent router');
+
+    $this->assertSame(Filters\applied('wp_fastendpoints_is_to_register'), 1);
+    $this->assertSame(Actions\did('wp_fastendpoints_before_register'), 0);
+    $this->assertSame(Actions\did('wp_fastendpoints_after_register'), 0);
+    $this->assertFalse(has_action('rest_api_init', [$router, 'registerEndpoints']));
+})->group('router', 'register');
+
+test('Trying to register a sub-router first', function () {
+    Functions\when('esc_html__')->returnArg();
+    Functions\when('wp_die')->alias(function ($msg) {
+        throw new Exception($msg);
+    });
+    $router = new Router('api', 'v1');
+    $subRouter = new Router('sub-api' );
+    $router->includeRouter($subRouter);
+    expect(function() use ($subRouter) {
+        $subRouter->register();
+    })->toThrow(Exception::class, 'You are trying to build a sub-router before building the parent router. \
+					Call the build() function on the parent router only!');
+
+    $this->assertSame(Filters\applied('wp_fastendpoints_is_to_register'), 1);
+    $this->assertSame(Actions\did('wp_fastendpoints_before_register'), 0);
+    $this->assertSame(Actions\did('wp_fastendpoints_after_register'), 0);
+    $this->assertFalse(has_action('rest_api_init', [$router, 'registerEndpoints']));
+})->group('router', 'register');
+
+test('Register single router', function () {
+    Actions\expectAdded('rest_api_init')
+        ->with('Wp\FastEndpoints\Router->registerEndpoints()')
+        ->times(1);
+    $router = new Router('api', 'v1');
+    $router->register();
+
+    $this->assertSame(Filters\applied('wp_fastendpoints_is_to_register'), 1);
+    $this->assertSame(Actions\did('wp_fastendpoints_before_register'), 1);
+    $this->assertSame(Actions\did('wp_fastendpoints_after_register'), 1);
+})->group('router', 'register');
+
+test('Register router with sub-routers mocks', function () {
+    Actions\expectAdded('rest_api_init')
+        ->with('Wp\FastEndpoints\Router->registerEndpoints()')
+        ->times(1);
+    $router = new Router('api', 'v1');
+    $subRouter1 = Mockery::mock(Router::class)
+        ->expects()
+        ->appendSchemaDir(['fake-schema-dir', '/test-dir'])
+        ->getMock()
+        ->expects()
+        ->register()
+        ->getMock();
+    $subRouter2 = Mockery::mock(Router::class)
+        ->expects()
+        ->appendSchemaDir(['fake-schema-dir', '/test-dir'])
+        ->getMock()
+        ->expects()
+        ->register()
+        ->getMock();
+    Helpers::setNonPublicClassProperty($router, 'subRouters', [$subRouter1, $subRouter2]);
+    Helpers::setNonPublicClassProperty($router, 'schemaDirs', ['fake-schema-dir', '/test-dir']);
+    $router->register();
+
+    $this->assertSame(Filters\applied('wp_fastendpoints_is_to_register'), 1);
+    $this->assertSame(Actions\did('wp_fastendpoints_before_register'), 1);
+    $this->assertSame(Actions\did('wp_fastendpoints_after_register'), 1);
+})->group('router', 'register');
+
+test('Register router with sub-routers', function () {
+    Functions\when('esc_html__')->returnArg();
+    Functions\when('wp_die')->alias(function ($msg) {
+        throw new Exception($msg);
+    });
+    Actions\expectAdded('rest_api_init')
+        ->with('Wp\FastEndpoints\Router->registerEndpoints()')
+        ->times(3);
+    $router = new Router('api', 'v1');
+    $firstSubRouter = new Router('first');
+    $secondSubRouter = new Router('second');
+    $router->includeRouter($firstSubRouter);
+    $router->includeRouter($secondSubRouter);
+    $router->register();
+
+    $this->assertSame(Filters\applied('wp_fastendpoints_is_to_register'), 3);
+    $this->assertSame(Actions\did('wp_fastendpoints_before_register'), 1);
+    $this->assertSame(Actions\did('wp_fastendpoints_after_register'), 1);
+})->group('router', 'register');

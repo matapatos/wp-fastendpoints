@@ -98,4 +98,16 @@ class Helpers
 
         return $schema;
     }
+
+    /**
+     * Retrieves the class name in snake case
+     *
+     * @since 0.9.0
+     * @return string
+     */
+    public static function getClassNameInSnakeCase($instance): string
+    {
+        $suffix = \basename(\str_replace('\\', '/', \get_class($instance)));
+        return \ltrim(\strtolower(\preg_replace('/[A-Z]([A-Z](?![a-z]))*/', '_$0', $suffix)), '_');
+    }
 }

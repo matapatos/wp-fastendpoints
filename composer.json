@@ -10,8 +10,9 @@
 	"license": "MIT",
 	"require": {
     	"php": "^7.4|^8.0",
-		"opis/json-schema": "^2.3"
-	},
+		"opis/json-schema": "^2.3",
+      	"ext-json": "*"
+    },
 	"autoload": {
 		"psr-4": {
 			"Wp\\FastEndpoints\\": "src/"

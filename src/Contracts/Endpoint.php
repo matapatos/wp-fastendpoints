@@ -26,10 +26,10 @@ interface Endpoint
 	 * NOTE: Expects to be called inside the 'rest_api_init' WordPress action
 	 *
 	 * @since 0.9.0
-	 * @param string $namespace - WordPress REST namespace.
-	 * @param string $restBase - Endpoint REST base.
-	 * @param array<string> $schemaDirs - Array of directories to look for JSON schemas. Default value: [].
-	 * @return true|false - true if successfully registered a REST route or false otherwise.
+	 * @param string $namespace WordPress REST namespace.
+	 * @param string $restBase Endpoint REST base.
+	 * @param array<string> $schemaDirs Array of directories to look for JSON schemas. Default value: [].
+	 * @return true|false true if successfully registered a REST route or false otherwise.
 	 */
 	public function register(string $namespace, string $restBase, array $schemaDirs = []): bool;
 
@@ -37,8 +37,8 @@ interface Endpoint
 	 * Checks if the current user has the given WP capabilities
 	 *
 	 * @since 0.9.0
-	 * @param string|array $capabilities - WordPress user capabilities.
-	 * @param int $priority - Specifies the order in which the function is executed.
+	 * @param string|array $capabilities WordPress user capabilities.
+	 * @param int $priority Specifies the order in which the function is executed.
 	 * Lower numbers correspond with earlier execution, and functions with the same priority
 	 * are executed in the order in which they were added. Default value: 10.
 	 * @return Endpoint
@@ -50,8 +50,8 @@ interface Endpoint
 	 * validate a REST request according to the given JSON schema.
 	 *
 	 * @since 0.9.0
-	 * @param string|array $schema - Filepath to the JSON schema or a JSON schema as an array.
-	 * @param int $priority - Specifies the order in which the function is executed.
+	 * @param string|array $schema Filepath to the JSON schema or a JSON schema as an array.
+	 * @param int $priority Specifies the order in which the function is executed.
 	 * Lower numbers correspond with earlier execution, and functions with the same priority
 	 * are executed in the order in which they were added. Default value: 10.
 	 * @return Endpoint
@@ -65,11 +65,11 @@ interface Endpoint
 	 * 2) Making sure that the required data is retrieved.
 	 *
 	 * @since 0.9.0
-	 * @param string|array $schema - Filepath to the JSON schema or a JSON schema as an array.
-	 * @param int $priority - Specifies the order in which the function is executed.
+	 * @param string|array $schema Filepath to the JSON schema or a JSON schema as an array.
+	 * @param int $priority Specifies the order in which the function is executed.
 	 * Lower numbers correspond with earlier execution, and functions with the same priority
 	 * are executed in the order in which they were added. Default value: 10.
-	 * @throws TypeError - If $schema is neither a string|array.
+	 * @throws TypeError If $schema is neither a string|array.
 	 * @return Endpoint
 	 */
 	public function returns($schema, int $priority = 10): Endpoint;
@@ -78,8 +78,8 @@ interface Endpoint
 	 * Registers a middleware with a given priority
 	 *
 	 * @since 0.9.0
-	 * @param callable $middleware - Function to be used as a middleware.
-	 * @param int $priority - Specifies the order in which the function is executed.
+	 * @param callable $middleware Function to be used as a middleware.
+	 * @param int $priority Specifies the order in which the function is executed.
 	 * Lower numbers correspond with earlier execution, and functions with the same priority
 	 * are executed in the order in which they were added. Default value: 10.
 	 * @return Endpoint
@@ -90,10 +90,10 @@ interface Endpoint
 	 * Registers an argument
 	 *
 	 * @since 0.9.0
-	 * @param string $name - Name of the argument.
-	 * @param array|callable $validate - Either an array that WordPress uses (e.g. ['required'=>true, 'default'=>null])
+	 * @param string $name Name of the argument.
+	 * @param array|callable $validate Either an array that WordPress uses (e.g. ['required'=>true, 'default'=>null])
 	 * or a validation callback.
-	 * @throws TypeError - if $validate is neither an array or callable.
+	 * @throws TypeError if $validate is neither an array or callable.
 	 * @return Endpoint
 	 */
 	public function arg(string $name, $validate): Endpoint;
@@ -102,8 +102,8 @@ interface Endpoint
 	 * Registers a permission callback
 	 *
 	 * @since 0.9.0
-	 * @param callable $permissionCb - Method to be called to check current user permissions.
-	 * @param int $priority - Specifies the order in which the function is executed.
+	 * @param callable $permissionCb Method to be called to check current user permissions.
+	 * @param int $priority Specifies the order in which the function is executed.
 	 * Lower numbers correspond with earlier execution, and functions with the same priority
 	 * are executed in the order in which they were added. Default value: 10.
 	 * @return Endpoint

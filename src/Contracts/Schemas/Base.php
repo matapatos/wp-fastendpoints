@@ -59,16 +59,25 @@ abstract class Base
 	 */
 	protected array $schemaDirs = [];
 
+    /**
+     * Class used to format validation errors which are shown to the user
+     *
+     * @since 0.9.0
+     * @var ErrorFormatter
+     */
+    protected ErrorFormatter $errorFormatter;
+
 	/**
 	 * Creates a new instance of Base
 	 *
 	 * @since 0.9.0
-	 * @param string|array $schema - File name or path to the JSON schema or a JSON schema as an array.
-	 * @throws TypeError - if $schema is neither a string or an array.
+	 * @param string|array $schema File name or path to the JSON schema or a JSON schema as an array.
+	 * @throws TypeError if $schema is neither a string or an array.
 	 */
 	public function __construct($schema)
 	{
-		$this->suffix = $this->getSuffix();
+        $this->errorFormatter = new ErrorFormatter();
+        $this->suffix = $this->getSuffix();
 		if (\is_string($schema)) {
 			$this->filepath = $schema;
 			if (!\str_ends_with($schema, '.json')) {
@@ -103,7 +112,7 @@ abstract class Base
 	 * Appends an additional directory where to look for the schema
 	 *
 	 * @since 0.9.0
-	 * @param string|array<string> $schemaDir - Directory path or an array of directories where to
+	 * @param string|array<string> $schemaDir Directory path or an array of directories where to
 	 * look for JSON schemas.
 	 */
 	public function appendSchemaDir($schemaDir): void
@@ -160,13 +169,12 @@ abstract class Base
 	 * Retrieves a properly formatted error from Opis/json-schema
 	 *
 	 * @since 0.9.0
-	 * @param ValidationResult $result - JSON Opis validation error result.
+	 * @param ValidationResult $result JSON Opis validation error result.
 	 * @return mixed
 	 */
 	protected function getError(ValidationResult $result)
 	{
-		$formatter = new ErrorFormatter();
-		return \apply_filters($this->suffix . '_error', $formatter->formatKeyed($result->error()), $result, $this);
+		return \apply_filters($this->suffix . '_error', $this->errorFormatter->formatKeyed($result->error()), $result, $this);
 	}
 
 	/**
@@ -188,13 +196,13 @@ abstract class Base
 		$result = \file_get_contents($filepath);
 		if ($result === false) {
 			/* translators: 1: Schema filepath */
-			return \wp_die(\sprintf(\esc_html__("Unable to read file: %s"), \esc_html($this->filepath)));
+			\wp_die(\sprintf(\esc_html__("Unable to read file: %s"), \esc_html($this->filepath)));
 		}
 
 		$this->contents = \json_decode($result, true);
 		if ($this->contents === null && \JSON_ERROR_NONE !== \json_last_error()) {
 			/* translators: 1: Schema filepath, 2: JSON error message */
-			return \wp_die(\sprintf(
+			\wp_die(\sprintf(
 				\esc_html__("Invalid json file: %1\$s %2\$s"),
 				\esc_html($this->filepath),
 				\esc_html(\json_last_error_msg()),

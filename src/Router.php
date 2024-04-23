@@ -20,6 +20,7 @@ use Wp\FastEndpoints\Helpers\Arr;
  * A Router can help developers in creating groups of endpoints. This way developers can aggregate
  * closely related endpoints in the same router. Example:
  *
+ * ```php
  * $usersRouter = new Router('users');
  * $usersRouter->get(...); // Retrieve a user
  * $usersRouter->put(...); // Update a user
@@ -27,6 +28,7 @@ use Wp\FastEndpoints\Helpers\Arr;
  * $postsRouter = new Router('posts');
  * $postsRouter->get(...); // Retrieve a post
  * $postsRouter->put(...); // Update a post
+ * ```
  *
  * @since 0.9.0
  * @author André Gil <andre_gil22@hotmail.com>
@@ -263,7 +265,9 @@ class Router implements RouterContract
 
 		// Register each sub router, if any.
 		foreach ($this->subRouters as $router) {
-			$router->appendSchemaDir($this->schemaDirs);
+            if ($this->schemaDirs) {
+                $router->appendSchemaDir($this->schemaDirs);
+            }
 			$router->register();
 		}
 
@@ -291,13 +295,13 @@ class Router implements RouterContract
 	/**
 	 * Retrieves the base router namespace for each endpoint
 	 *
-	 * @since 0.9.0
 	 * @param bool $isToApplyFilters Flag used to ignore wp_fastendpoints filters
 	 * (i.e. this is needed to disable multiple calls to the filter given that it's a
 	 * recursive function). Default value: true.
 	 * @return string
+	 *@since 0.9.0
 	 */
-	protected function getNamespace($isToApplyFilters = true): string
+	protected function getNamespace(bool $isToApplyFilters = true): string
 	{
 		if ($this->parent) {
 			return $this->parent->getNamespace(false);
@@ -308,7 +312,7 @@ class Router implements RouterContract
 			$namespace .= '/' . \trim($this->version, '/');
 		}
 
-		// Ignore recursive call to apply_filters without it, would be anoying for developers.
+		// Ignore recursive call to apply_filters without it, would be annoying for developers.
 		if (!$isToApplyFilters) {
 			return $namespace;
 		}
@@ -321,30 +325,17 @@ class Router implements RouterContract
 	 * the namespace and is before the endpoint route.
 	 *
 	 * @since 0.9.0
-	 * @param bool $isToApplyFilters Flag used to ignore wp_fastendpoints filters
-	 * (i.e. this is needed to disable multiple calls to the filter given that it's a
-	 * recursive function). Default value: true.
 	 * @return string
 	 */
-	protected function getRestBase(bool $isToApplyFilters = true): string
+	protected function getRestBase(): string
 	{
 		if (!$this->parent) {
 			return '';
 		}
 
-		$restBase = $this->parent->getRestBase(false);
-		if ($restBase) {
-			$restBase .= '/';
-		}
-
 		$restBase = \trim($this->base, '/');
 		if ($this->version) {
 			$restBase .= '/' . \trim($this->version, '/');
-		}
-
-		// Ignore recursive call to apply_filters without it, would be anoying for developers.
-		if (!$isToApplyFilters) {
-			return $restBase;
 		}
 
 		return \apply_filters('wp_fastendpoints_router_rest_base', $restBase, $this);

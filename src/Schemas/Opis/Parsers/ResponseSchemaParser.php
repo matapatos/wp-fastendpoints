@@ -31,8 +31,8 @@ class ResponseSchemaParser extends SchemaParser
 	 * Retrieves a dictionary with the supported JSON schema drafts.
 	 *
 	 * @since 0.9.0
-	 * @param ?Vocabulary $extraVocabulary - To add additional vocabulary to the drafts.
-	 * @return array<string, mixed> - Supported JSON schema drafts.
+	 * @param ?Vocabulary $extraVocabulary To add additional vocabulary to the drafts.
+	 * @return array<string, mixed> Supported JSON schema drafts.
 	 */
 	protected function getDrafts(?Vocabulary $extraVocabulary): array
 	{

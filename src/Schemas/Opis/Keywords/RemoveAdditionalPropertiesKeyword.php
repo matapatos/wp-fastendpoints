@@ -28,9 +28,9 @@ class RemoveAdditionalPropertiesKeyword extends AdditionalPropertiesKeyword
 	 * Removes "additionalProperties" from the data, if specified.
 	 *
 	 * @see AdditionalPropertiesKeyword->validate()
-	 * @param ValidationContext $context - Current validation context.
-	 * @param Schema $schema - Schema currently being used.
-	 * @return ?ValidationError - ValidationError if an error occurs or null otherwise.
+	 * @param ValidationContext $context Current validation context.
+	 * @param Schema $schema Schema currently being used.
+	 * @return ?ValidationError ValidationError if an error occurs or null otherwise.
 	 */
 	public function validate(ValidationContext $context, Schema $schema): ?ValidationError
 	{
@@ -91,8 +91,8 @@ class RemoveAdditionalPropertiesKeyword extends AdditionalPropertiesKeyword
 	 *
 	 * @since 0.9.0
 	 *
-	 * @param ValidationContext $context - Current validation context.
-	 * @param array $properties - Additional properties to be removed.
+	 * @param ValidationContext $context Current validation context.
+	 * @param array $properties Additional properties to be removed.
 	 */
 	protected function removeAdditionalProperties(ValidationContext $context, array $properties)
 	{

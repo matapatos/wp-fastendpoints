@@ -12,17 +12,17 @@ declare(strict_types=1);
 
 namespace Wp\FastEndpoints;
 
-use Wp\FastEndpoints\Schemas\Schema;
-use Wp\FastEndpoints\Schemas\Response;
-use Wp\FastEndpoints\Contracts\Schemas\Schema as SchemaInterface;
-use Wp\FastEndpoints\Contracts\Schemas\Response as ResponseInterface;
-use Wp\FastEndpoints\Contracts\Endpoint as EndpointInterface;
-use Wp\FastEndpoints\Helpers\Arr;
-use WP_REST_Request;
 use TypeError;
-use Wp\FastEndpoints\Contracts\WpError;
+use Wp\FastEndpoints\Contracts\Endpoint as EndpointInterface;
+use Wp\FastEndpoints\Contracts\Schemas\Response as ResponseInterface;
+use Wp\FastEndpoints\Contracts\Schemas\Schema as SchemaInterface;
+use Wp\FastEndpoints\Helpers\Arr;
+use Wp\FastEndpoints\Helpers\WpError;
+use Wp\FastEndpoints\Schemas\Response;
+use Wp\FastEndpoints\Schemas\Schema;
 use WP_Error;
 use WP_Http;
+use WP_REST_Request;
 
 /**
  * REST Endpoint that registers custom WordPress REST endpoint using register_rest_route
@@ -124,12 +124,12 @@ class Endpoint implements EndpointInterface
 	 * Creates a new instance of Endpoint
 	 *
 	 * @since 0.9.0
-	 * @param string $method - POST, GET, PUT or DELETE or a value from WP_REST_Server (e.g. WP_REST_Server::EDITABLE).
-	 * @param string $route - Endpoint route.
-	 * @param callable $handler - User specified handler for the endpoint.
-	 * @param array $args - Same as the WordPress register_rest_route $args parameter. If set it can override the default
+	 * @param string $method POST, GET, PUT or DELETE or a value from WP_REST_Server (e.g. WP_REST_Server::EDITABLE).
+	 * @param string $route Endpoint route.
+	 * @param callable $handler User specified handler for the endpoint.
+	 * @param array $args Same as the WordPress register_rest_route $args parameter. If set it can override the default
 	 * WP FastEndpoints arguments.
-	 * @param bool $override - Same as the WordPress register_rest_route $override parameter. Default value: false.
+	 * @param bool $override Same as the WordPress register_rest_route $override parameter. Default value: false.
 	 */
 	public function __construct(string $method, string $route, callable $handler, array $args = [], bool $override = false)
 	{
@@ -146,10 +146,10 @@ class Endpoint implements EndpointInterface
 	 * NOTE: Expects to be called inside the 'rest_api_init' WordPress action
 	 *
 	 * @since 0.9.0
-	 * @param string $namespace - WordPress REST namespace.
-	 * @param string $restBase - Endpoint REST base.
-	 * @param array<string> $schemaDirs - Array of directories to look for JSON schemas. Default value: [].
-	 * @return true|false - true if successfully registered a REST route or false otherwise.
+	 * @param string $namespace WordPress REST namespace.
+	 * @param string $restBase Endpoint REST base.
+	 * @param array<string> $schemaDirs Array of directories to look for JSON schemas. Default value: [].
+	 * @return true|false true if successfully registered a REST route or false otherwise.
 	 */
 	public function register(string $namespace, string $restBase, array $schemaDirs = []): bool
 	{
@@ -182,8 +182,8 @@ class Endpoint implements EndpointInterface
 	 * Checks if the current user has the given WP capabilities
 	 *
 	 * @since 0.9.0
-	 * @param string|array $capabilities - WordPress user capabilities.
-	 * @param int $priority - Specifies the order in which the function is executed.
+	 * @param string|array $capabilities WordPress user capabilities.
+	 * @param int $priority Specifies the order in which the function is executed.
 	 * Lower numbers correspond with earlier execution, and functions with the same priority
 	 * are executed in the order in which they were added. Default value: 10.
 	 * @return Endpoint
@@ -242,8 +242,8 @@ class Endpoint implements EndpointInterface
 	 * validate a REST request according to the given JSON schema.
 	 *
 	 * @since 0.9.0
-	 * @param string|array $schema - Filepath to the JSON schema or a JSON schema as an array.
-	 * @param int $priority - Specifies the order in which the function is executed.
+	 * @param string|array $schema Filepath to the JSON schema or a JSON schema as an array.
+	 * @param int $priority Specifies the order in which the function is executed.
 	 * Lower numbers correspond with earlier execution, and functions with the same priority
 	 * are executed in the order in which they were added. Default value: 10.
 	 * @return Endpoint
@@ -262,11 +262,11 @@ class Endpoint implements EndpointInterface
 	 * 2) Making sure that the required data is retrieved.
 	 *
 	 * @since 0.9.0
-	 * @param string|array $schema - Filepath to the JSON schema or a JSON schema as an array.
-	 * @param int $priority - Specifies the order in which the function is executed.
+	 * @param string|array $schema Filepath to the JSON schema or a JSON schema as an array.
+	 * @param int $priority Specifies the order in which the function is executed.
 	 * Lower numbers correspond with earlier execution, and functions with the same priority
 	 * are executed in the order in which they were added. Default value: 10.
-	 * @throws TypeError - If $schema is neither a string|array.
+	 * @throws TypeError If $schema is neither a string|array.
 	 * @return Endpoint
 	 */
 	public function returns($schema, int $priority = 10, ?bool $removeAdditionalProperties = true): Endpoint
@@ -280,8 +280,8 @@ class Endpoint implements EndpointInterface
 	 * Registers a middleware with a given priority
 	 *
 	 * @since 0.9.0
-	 * @param callable $middleware - Function to be used as a middleware.
-	 * @param int $priority - Specifies the order in which the function is executed.
+	 * @param callable $middleware Function to be used as a middleware.
+	 * @param int $priority Specifies the order in which the function is executed.
 	 * Lower numbers correspond with earlier execution, and functions with the same priority
 	 * are executed in the order in which they were added. Default value: 10.
 	 * @return Endpoint
@@ -296,11 +296,11 @@ class Endpoint implements EndpointInterface
 	 * Registers a middleware to set the current endpoint post. Used in get_post(...) function.
 	 *
 	 * @since 0.9.0
-	 * @param string|int $id - The post id or a string with a replaceable REST param.
-	 * @param int $priority - Specifies the order in which the function is executed.
+	 * @param string|int $id The post id or a string with a replaceable REST param.
+	 * @param int $priority Specifies the order in which the function is executed.
 	 * Lower numbers correspond with earlier execution, and functions with the same priority
 	 * are executed in the order in which they were added. Default value: 10.
-	 * @param bool $override - Flag that determines if a post is already set if it should override it or not. Default: false.
+	 * @param bool $override Flag that determines if a post is already set if it should override it or not. Default: false.
 	 * @return Endpoint
 	 */
 	public function post($id, int $priority = 30, bool $override = false): Endpoint
@@ -329,10 +329,10 @@ class Endpoint implements EndpointInterface
 	 * Registers an argument
 	 *
 	 * @since 0.9.0
-	 * @param string $name - Name of the argument.
-	 * @param array|callable $validate - Either an array that WordPress uses (e.g. ['required'=>true, 'default'=>null])
+	 * @param string $name Name of the argument.
+	 * @param array|callable $validate Either an array that WordPress uses (e.g. ['required'=>true, 'default'=>null])
 	 * or a validation callback.
-	 * @throws TypeError - if $validate is neither an array or callable.
+	 * @throws TypeError if $validate is neither an array nor a callable.
 	 * @return Endpoint
 	 */
 	public function arg(string $name, $validate): Endpoint
@@ -361,8 +361,8 @@ class Endpoint implements EndpointInterface
 	 * Registers a permission callback
 	 *
 	 * @since 0.9.0
-	 * @param callable $permissionCb - Method to be called to check current user permissions.
-	 * @param int $priority - Specifies the order in which the function is executed.
+	 * @param callable $permissionCb Method to be called to check current user permissions.
+	 * @param int $priority Specifies the order in which the function is executed.
 	 * Lower numbers correspond with earlier execution, and functions with the same priority
 	 * are executed in the order in which they were added. Default value: 10.
 	 * @return Endpoint
@@ -379,7 +379,7 @@ class Endpoint implements EndpointInterface
 	 * @since 0.9.0
 	 * @internal
 	 *
-	 * @param WP_REST_Request $req - Current REST Request.
+	 * @param WP_REST_Request $req Current REST Request.
 	 * @see rest_ensure_response
 	 * @return WP_REST_Response|WP_Error
 	 */
@@ -414,7 +414,7 @@ class Endpoint implements EndpointInterface
 	 * @since 0.9.0
 	 * @internal
 	 *
-	 * @param WP_REST_Request $req - Current REST request.
+	 * @param WP_REST_Request $req Current REST request.
 	 * @return mixed
 	 */
 	public function permissionCallback(WP_REST_Request $req)
@@ -430,7 +430,7 @@ class Endpoint implements EndpointInterface
 	 * Retrieves the current endpoint route
 	 *
 	 * @since 0.9.0
-	 * @param string $restBase - REST base route.
+	 * @param string $restBase REST base route.
 	 * @return string
 	 */
 	protected function getRoute(string $restBase): string
@@ -447,9 +447,9 @@ class Endpoint implements EndpointInterface
 	 * Replaces specials values, like: {jobId} by $req->get_param('jobId')
 	 *
 	 * @since 0.9.0
-	 * @param WP_REST_Request $req - Current REST request.
-	 * @param mixed $value - Value to be checked.
-	 * @return mixed - The $value variable with all special parameters replaced.
+	 * @param WP_REST_Request $req Current REST request.
+	 * @param mixed $value Value to be checked.
+	 * @return mixed The $value variable with all special parameters replaced.
 	 */
 	protected function replaceSpecialValue(WP_REST_Request $req, $value)
 	{
@@ -486,9 +486,9 @@ class Endpoint implements EndpointInterface
 	 * Calls each handler ordered by priority.
 	 *
 	 * @since 0.9.0
-	 * @param array<int,array<callable>> $allHandlers - Associative array of callables indexed by priority.
-	 * @param mixed ...$args - Arguments to be passed in handlers.
-	 * @return mixed|WP_Error - Returns the result of the last callable or if no handlers are set the
+	 * @param array<int,array<callable>> $allHandlers Associative array of callables indexed by priority.
+	 * @param mixed ...$args Arguments to be passed in handlers.
+	 * @return mixed|WP_Error Returns the result of the last callable or if no handlers are set the
 	 * last result passed as argument if any. If an error occurs a WP_Error instance is returned.
 	 */
 	protected function runHandlers(array &$allHandlers, ...$args)
@@ -513,9 +513,9 @@ class Endpoint implements EndpointInterface
 	 * (works the same as the WordPress actions/filters priority argument)
 	 *
 	 * @since 0.9.0
-	 * @param array<int,array<callable>> $arrVar - Variable used to store the priority of the function.
-	 * @param callable $cb - Function to be called.
-	 * @param int $priority - Specifies the order in which the function is executed.
+	 * @param array<int,array<callable>> $arrVar Variable used to store the priority of the function.
+	 * @param callable $cb Function to be called.
+	 * @param int $priority Specifies the order in which the function is executed.
 	 * Lower numbers correspond with earlier execution, and functions with the same priority
 	 * are executed in the order in which they were added.
 	 * @return void

@@ -24,8 +24,8 @@ class Arr
 	 * Checks if the given array is an associative array.
 	 *
 	 * @version 0.9.0
-	 * @param array $array - Array to be checked.
-	 * @return bool - true if it seems an associative array or false otherwise.
+	 * @param array $array Array to be checked.
+	 * @return bool true if it seems an associative array or false otherwise.
 	 */
 	public static function isAssoc(array $array): bool
 	{
@@ -37,7 +37,7 @@ class Arr
 	 * Wraps a variable as an array
 	 *
 	 * @since 0.9.0
-	 * @param mixed $value - The variable to be wrapped as an array.
+	 * @param mixed $value The variable to be wrapped as an array.
 	 * @return array
 	 */
 	public static function wrap($value): array
@@ -51,12 +51,12 @@ class Arr
 	/**
 	 * Recursively search for a key and value in an array
 	 *
-	 * @param array $haystack - Array to be searched for.
-	 * @param string|int $searchKey - The key to search for.
-	 * @param mixed $searchValue - The value to search for.
-	 * @param mixed $path - The paths to each index found.
-	 * @param mixed $currentIndex - The current index.
-	 * @return array<array<string|int>> - An array of found indexes. 
+	 * @param array $haystack Array to be searched for.
+	 * @param string|int $searchKey The key to search for.
+	 * @param mixed $searchValue The value to search for.
+	 * @param mixed $path The paths to each index found.
+	 * @param mixed $currentIndex The current index.
+	 * @return array<array<string|int>> An array of found indexes.
 	 */
 	public static function recursiveKeyValueSearch(array $haystack, $searchKey, $searchValue, array $path = [], array $currentIndex = []): array
 	{

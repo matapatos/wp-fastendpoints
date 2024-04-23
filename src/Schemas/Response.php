@@ -13,19 +13,19 @@ declare(strict_types=1);
 
 namespace Wp\FastEndpoints\Schemas;
 
+use Opis\JsonSchema\Exceptions\SchemaException;
+use Opis\JsonSchema\Helper;
+use Opis\JsonSchema\Resolvers\SchemaResolver;
+use Opis\JsonSchema\SchemaLoader;
+use Opis\JsonSchema\Validator;
 use Wp\FastEndpoints\Contracts\Schemas\Base;
 use Wp\FastEndpoints\Contracts\Schemas\Response as ResponseContract;
-use Opis\JsonSchema\Validator;
-use Opis\JsonSchema\Helper;
-use Opis\JsonSchema\SchemaLoader;
-use Opis\JsonSchema\Resolvers\SchemaResolver;
-use Opis\JsonSchema\Exceptions\SchemaException;
-use Wp\FastEndpoints\Contracts\WpError;
-use WP_REST_Request;
+use Wp\FastEndpoints\Helpers\Arr;
+use Wp\FastEndpoints\Helpers\WpError;
+use Wp\FastEndpoints\Schemas\Opis\Parsers\ResponseSchemaParser;
 use WP_Error;
 use WP_Http;
-use Wp\FastEndpoints\Helpers\Arr;
-use Wp\FastEndpoints\Schemas\Opis\Parsers\ResponseSchemaParser;
+use WP_REST_Request;
 
 /**
  * Response class that checks/parses the REST response of an endpoint before sending it to the client.
@@ -63,11 +63,11 @@ class Response extends Base implements ResponseContract
 	 * Creates a new instance of Base
 	 *
 	 * @since 0.9.0
-	 * @param string|array $schema - File name or path to the JSON schema or a JSON schema as an array.
-	 * @param bool|string|null $removeAdditionalProperties - Determines if we want to keep additional properties.
+	 * @param string|array $schema File name or path to the JSON schema or a JSON schema as an array.
+	 * @param bool|string|null $removeAdditionalProperties Determines if we want to keep additional properties.
 	 * If set to null assumes that the schema will take care of that. If a string is given it assumes only those
 	 * types of properties are allowed.
-	 * @throws TypeError - if $schema is neither a string or an array.
+	 * @throws TypeError if $schema is neither a string or an array.
 	 */
 	public function __construct($schema, $removeAdditionalProperties = true)
 	{
@@ -123,9 +123,9 @@ class Response extends Base implements ResponseContract
 	 * It removes additional properties if the schema has 'additionalProperties' set to false (i.e. default value).
 	 *
 	 * @since 0.9.0
-	 * @param WP_REST_Request $req - Current REST Request.
-	 * @param mixed $res - Current REST response.
-	 * @return mixed|WP_Error - Mixed on parsed response or WP_Error on error.
+	 * @param WP_REST_Request $req Current REST Request.
+	 * @param mixed $res Current REST response.
+	 * @return mixed|WP_Error Mixed on parsed response or WP_Error on error.
 	 */
 	public function returns(WP_REST_Request $req, $res)
 	{
@@ -182,7 +182,7 @@ class Response extends Base implements ResponseContract
 	 * Updates the data to be sent in the response
 	 *
 	 * @since 0.9.0
-	 * @param mixed $data - The data to be sent in the response.
+	 * @param mixed $data The data to be sent in the response.
 	 */
 	public static function setData($data): void
 	{
@@ -193,7 +193,7 @@ class Response extends Base implements ResponseContract
 	 * Retrieves the data to be sent in the response
 	 *
 	 * @since 0.9.0
-	 * @return mixed $data - The data to be sent in the response.
+	 * @return mixed $data The data to be sent in the response.
 	 */
 	public static function getData()
 	{

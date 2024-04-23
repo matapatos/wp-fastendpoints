@@ -26,9 +26,9 @@ interface Response
 	 * Parses and checks the data to be sent back to the client.
 	 *
 	 * @since 0.9.0
-	 * @param WP_REST_Request $req - Current REST Request.
-	 * @param mixed $res - Current REST response.
-	 * @return mixed|WP_Error - Mixed on parsed response or WP_Error on error.
+	 * @param WP_REST_Request $req Current REST Request.
+	 * @param mixed $res Current REST response.
+	 * @return mixed|WP_Error Mixed on parsed response or WP_Error on error.
 	 */
 	public function returns(WP_REST_Request $req, $res);
 
@@ -36,7 +36,7 @@ interface Response
 	 * Appends an additional directory where to look for the schema
 	 *
 	 * @since 0.9.0
-	 * @param string|array<string> $schemaDir - Directory path or an array of directories where to
+	 * @param string|array<string> $schemaDir Directory path or an array of directories where to
 	 * look for JSON schemas.
 	 */
 	public function appendSchemaDir($schemaDir): void;
