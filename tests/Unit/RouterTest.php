@@ -21,9 +21,15 @@ use Tests\Wp\FastEndpoints\Helpers\Helpers;
 use TypeError;
 use Wp\FastEndpoints\Endpoint;
 use Wp\FastEndpoints\Router;
-use WP_Error;
+use Brain\Monkey;
+use Brain\Monkey\Functions;
+
+beforeEach(function () {
+    Monkey\setUp();
+});
 
 afterEach(function () {
+    Monkey\tearDown();
     Mockery::close();
     vfsStream::setup();
 });
@@ -46,7 +52,9 @@ test('Creating Router instance', function () {
 })->group('constructor');
 
 test('Creating a Router instance with invalid parameters', function ($api, $version) {
-    expect(fn() => new Router($api, $version))->toThrow(TypeError::class);
+    expect(function () use ($api, $version) {
+        new Router($api, $version);
+    })->toThrow(TypeError::class);
 })->with([
     ['', []],
     [[], ''],
@@ -61,13 +69,13 @@ test('Create a REST endpoint', function (string $method, string $api, string $ve
     $endpoint = $router->{strtolower($method)}($route, function ($request) {
         return "endpoint-success";
     }, $args, $override);
-    expect($endpoint)->toBeInstanceOf(Endpoint::class);
-    expect(Helpers::getNonPublicClassProperty($endpoint, 'method'))->toBe($method);
-    expect(Helpers::getNonPublicClassProperty($endpoint, 'route'))->toBe($route);
-    expect(Helpers::getNonPublicClassProperty($endpoint, 'handler')(null))->toBe("endpoint-success");
-    expect(Helpers::getNonPublicClassProperty($endpoint, 'args'))->toBe($args);
-    expect(Helpers::getNonPublicClassProperty($endpoint, 'override'))->toBe($override);
-    expect(Helpers::getNonPublicClassProperty($router, 'endpoints'))->toMatchArray([$endpoint]);
+    expect($endpoint)->toBeInstanceOf(Endpoint::class)
+        ->and(Helpers::getNonPublicClassProperty($endpoint, 'method'))->toBe($method)
+        ->and(Helpers::getNonPublicClassProperty($endpoint, 'route'))->toBe($route)
+        ->and(Helpers::getNonPublicClassProperty($endpoint, 'handler')(null))->toBe("endpoint-success")
+        ->and(Helpers::getNonPublicClassProperty($endpoint, 'args'))->toBe($args)
+        ->and(Helpers::getNonPublicClassProperty($endpoint, 'override'))->toBe($override)
+        ->and(Helpers::getNonPublicClassProperty($router, 'endpoints'))->toMatchArray([$endpoint]);
 })->with('http_methods')->with([
     ['my-api2', 'v2', 'my-custom-route2'],
     ['my-api3', 'v3', '/my-custom-route3', ['my-custom-arg' => 'hello'], true],
@@ -90,9 +98,9 @@ test('Include sub-routers', function () {
         return "Current user";
     });
     $mainRouter->includeRouter($usersRouter);
-    expect(Helpers::getNonPublicClassProperty($mainRouter, 'endpoints'))->toMatchArray([$readyzEndpoint]);
-    expect(Helpers::getNonPublicClassProperty($usersRouter, 'endpoints'))->toMatchArray([$user123Endpoint, $currentUserEndpoint]);
-    expect(Helpers::getNonPublicClassProperty($mainRouter, 'subRouters'))->toMatchArray([$usersRouter]);
+    expect(Helpers::getNonPublicClassProperty($mainRouter, 'endpoints'))->toMatchArray([$readyzEndpoint])
+        ->and(Helpers::getNonPublicClassProperty($usersRouter, 'endpoints'))->toMatchArray([$user123Endpoint, $currentUserEndpoint])
+        ->and(Helpers::getNonPublicClassProperty($mainRouter, 'subRouters'))->toMatchArray([$usersRouter]);
 })->group('includeRouter');
 
 // Router namespace
@@ -140,13 +148,31 @@ test('Get router REST path', function (string $api, string $version) {
 
 // Schema dirs
 
-test('Append schema directories', function ($invalidDir) {
+test('Append invalid schema directories', function () {
+    $invalidDir=true;
+    Functions\when('esc_html__')->returnArg();
+    Functions\when('esc_html')->returnArg();
+    Functions\expect('wp_die')->andThrow(new Exception());
     $router = new Router('custom-api', 'v1');
-    expect($router->appendSchemaDir($invalidDir))->toThrow(Exception::class);
-})->with([true, false, null, '', []])->group('appendSchemaDir');
+    expect(Helpers::getNonPublicClassProperty($router, 'schemaDirs'))->toBe([])
+        ->and(function () use ($invalidDir, $router) {
+            $router->appendSchemaDir($invalidDir);
+        })->toThrow(Exception::class)
+        ->and(Helpers::getNonPublicClassProperty($router, 'schemaDirs'))->toBe([]);
+})->with([true, false, null, '', [true], '/invalid'])->group('appendSchemaDir')->group('appendSchemaDir');
 
-// test('Append schema directories', function () {
+test('Append schema directories', function ($dir) {
+    $router = new Router('custom-api', 'v1');
+    expect(Helpers::getNonPublicClassProperty($router, 'schemaDirs'))->toBe([]);
+    $router->appendSchemaDir($dir);
+    expect(Helpers::getNonPublicClassProperty($router, 'schemaDirs'))->toBe([$dir]);
+})->with([dirname(__FILE__), dirname(__FILE__) . '/../Schemas'])->group('appendSchemaDir');
+
+// Register endpoints
+
+// test('Append schema directories', function ($dir) {
 //     $router = new Router('custom-api', 'v1');
-//     $router->appendSchemaDir(dirname(__FILE__));
-    
-// });
+//     expect(Helpers::getNonPublicClassProperty($router, 'schemaDirs'))->toBe([]);
+//     $router->appendSchemaDir($dir);
+//     expect(Helpers::getNonPublicClassProperty($router, 'schemaDirs'))->toBe([$dir]);
+// })->with([dirname(__FILE__), dirname(__FILE__) . '/../Schemas'])->group('registerEndpoints');

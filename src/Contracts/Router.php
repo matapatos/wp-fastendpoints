@@ -93,9 +93,9 @@ interface Router
 	 * Includes a router as a sub router
 	 *
 	 * @since 0.9.0
-	 * @param string|array<string> $path - Directory path where to look for JSON schemas.
+	 * @param string|array<string> $dir - Directory path where to look for JSON schemas.
 	 */
-	public function appendSchemaDir($path): void;
+	public function appendSchemaDir($dir): void;
 
 	/**
 	 * Adds all actions required to register the defined endpoints

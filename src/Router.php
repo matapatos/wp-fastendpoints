@@ -211,6 +211,11 @@ class Router implements RouterContract
 
 		$dir = Arr::wrap($dir);
 		foreach ($dir as $d) {
+			if (!\is_string($d)) {
+				/* translators: 1: Schema directory */
+				\wp_die(\sprintf(\esc_html__('Expected a directory as a string but got: %s'), \esc_html(gettype($d))));
+			}
+
 			if (\is_file($d)) {
 				/* translators: 1: Schema directory */
 				\wp_die(\sprintf(\esc_html__('Expected a directory with schemas but got a file: %s'), \esc_html($d)));
