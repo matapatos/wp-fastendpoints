@@ -41,7 +41,7 @@ class Response extends Base implements ResponseContract
 	 * @since 0.9.0
 	 * @var mixed
 	 */
-	private static $data = null;
+    protected static $data = null;
 
 	/**
 	 * Do we want to remove additional properties from the response
@@ -49,15 +49,31 @@ class Response extends Base implements ResponseContract
 	 * @since 0.9.0
 	 * @var bool|string
 	 */
-	private $removeAdditionalProperties;
+	protected $removeAdditionalProperties;
 
 	/**
 	 * Determines if a schema has been updated regarding the additional properties
 	 *
 	 * @since 1.0.0
 	 * @var bool
-	 */ 
-	private bool $hasUpdatedSchema = false;
+	 */
+    protected bool $hasUpdatedSchema = false;
+
+    /**
+     * Holds all the possible removeAdditionalProperties options. Uses a dict for fast reading
+     *
+     * @since 1.0.0
+     * @var array
+     */
+    protected const VALID_STR_REMOVE_ADDITIONAL_PROPERTIES = [
+        'string' => 0,
+        'number' => 0,
+        'integer' => 0,
+        'boolean' => 0,
+        'null' => 0,
+        'object' => 0,
+        'array' => 0
+    ];
 
 	/**
 	 * Creates a new instance of Base
@@ -69,11 +85,32 @@ class Response extends Base implements ResponseContract
 	 * types of properties are allowed.
 	 * @throws TypeError if $schema is neither a string or an array.
 	 */
-	public function __construct($schema, $removeAdditionalProperties = true)
+	public function __construct($schema, $removeAdditionalProperties = null)
 	{
 		parent::__construct($schema);
-		$this->removeAdditionalProperties = $removeAdditionalProperties;
+        $this->removeAdditionalProperties = $this->parseRemoveAdditionalProperties($removeAdditionalProperties);
 	}
+
+    /**
+     * Validates a given removeAdditionalProperties option
+     *
+     * @param bool|null|string $removeAdditionalProperties Option to be validated
+     * @returns bool|null|string validated option
+     * @throws \ValueError if an invalid option is found
+     */
+    protected function parseRemoveAdditionalProperties($removeAdditionalProperties)
+    {
+        if (is_bool($removeAdditionalProperties) || is_null($removeAdditionalProperties)) {
+            return $removeAdditionalProperties;
+        }
+
+        if (array_key_exists($removeAdditionalProperties, self::VALID_STR_REMOVE_ADDITIONAL_PROPERTIES)) {
+            return $removeAdditionalProperties;
+        }
+
+        throw new \ValueError(sprintf(esc_html__("Invalid removeAdditionalProperties property (%s) '%s'"),
+            esc_html(gettype($removeAdditionalProperties)), esc_html($removeAdditionalProperties)));
+    }
 
 	/**
 	 * Makes sure that the data to be sent back to the client corresponds to the given JSON schema.
@@ -139,30 +176,27 @@ class Response extends Base implements ResponseContract
 		}
 
 		// Create Validator and enable it to return all errors.
-		$loader = new SchemaLoader(new ResponseSchemaParser(), new SchemaResolver(), true);
-		self::$data = \apply_filters($this->suffix . '_before_validating', $res, $req, $this);
-		self::$data = Helper::toJSON(self::$data);
-		$schema = Helper::toJSON($this->contents);
-		$validator = \apply_filters($this->suffix . '_validator', new Validator($loader), self::$data, $req, $this);
+		self::$data = \apply_filters($this->suffix . '_validation_data', $res, $req, $this);
+        $validator = \apply_filters($this->suffix . '_validator', self::getDefaultValidator(), self::$data, $req, $this);
+        $schema = Helper::toJSON($this->contents);
+        self::$data = Helper::toJSON(self::$data);
 		try {
 			$result = $validator->validate(self::$data, $schema);
 		} catch (SchemaException $e) {
-			return new WpError(
+			$wpError = new WpError(
 				WP_Http::INTERNAL_SERVER_ERROR,
-				sprintf(esc_html__("Invalid response route schema %s"), $e->getMessage()),
+				sprintf(esc_html__("Invalid response route schema %s"), esc_html__($e->getMessage())),
 			);
+            return \apply_filters($this->suffix . '_on_validation_error', $wpError, $req, $this);
 		}
 
 		$isValid = \apply_filters($this->suffix . '_is_valid', $result->isValid(), self::$data, $result, $req, $this);
 		if (!$isValid) {
-			$error = $this->getError($result);
-			return new WpError(
-				WP_Http::UNPROCESSABLE_ENTITY,
-				$error,
-			);
+            $wpError = new WpError(WP_Http::UNPROCESSABLE_ENTITY, $this->getError($result));
+			return \apply_filters($this->suffix . '_on_validation_error', $wpError, $req, $this);
 		}
 
-		return \apply_filters($this->suffix . '_after_validating', self::$data, $req, $this);
+		return \apply_filters($this->suffix . '_on_validation_success', self::$data, $req, $this);
 	}
 
 	/**

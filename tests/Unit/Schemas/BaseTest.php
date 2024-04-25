@@ -48,6 +48,18 @@ afterEach(function () {
 });
 
 dataset('base_classes', [Response::class, Schema::class]);
+dataset('schemas', [
+    'Basics/Array',
+    'Basics/Boolean',
+    'Basics/Double',
+    'Basics/Integer',
+    'Basics/Null',
+    'Basics/Object',
+    'Basics/String',
+    'Users/Get',
+    'Users/WithAdditionalProperties',
+    'Misc/MultipleTypeObjects'
+]);
 
 // Constructor
 
@@ -82,36 +94,44 @@ test('Getting error', function (string $class) {
     $schema = new $class([]);
     $mockedValidationError = Mockery::mock(ValidationError::class);
     $mockedValidationResult = Mockery::mock(ValidationResult::class)
-        ->expects()
-        ->error()
+        ->shouldReceive('error')
         ->andReturn($mockedValidationError)
         ->getMock();
     $mockedErrorFormatter = Mockery::mock(ErrorFormatter::class)
-        ->expects()
-        ->formatKeyed($mockedValidationError)
+        ->shouldReceive('formatKeyed')
+        ->with(Mockery::type(ValidationError::class))
         ->andReturn(['My error message'])
         ->getMock();
     $className = Helpers::getClassNameInSnakeCase($schema);
-    Filters\expectApplied($className . '_error')
-        ->with(['My error message'], Mockery::type(ValidationResult::class), Mockery::type($schema))
-        ->once();
     Helpers::setNonPublicClassProperty($schema, 'errorFormatter', $mockedErrorFormatter);
+    Filters\expectApplied($className . '_error')
+        ->once()
+        ->with(['My error message'], Mockery::type(ValidationResult::class), $schema);
     expect(Helpers::invokeNonPublicClassMethod($schema, 'getError', $mockedValidationResult))
         ->toBe(['My error message']);
 })->with('base_classes')->group('base', 'getError');
 
 // appendSchemaDir()
 
-test('Passing invalid schema directories to appendSchemaDir()', function (string $class, ...$invalidDirectories) {
+test('Passing invalid schema directories to appendSchemaDir()', function (string $class, $invalidDirectories, string $expectedErrorMessage) {
     Functions\when('esc_html__')->returnArg();
     Functions\when('esc_html')->returnArg();
     $schema = new $class([]);
     expect(function () use ($schema, $invalidDirectories) {
         Helpers::invokeNonPublicClassMethod($schema, 'appendSchemaDir', $invalidDirectories);
-    })->toThrow(TypeError::class);
+    })->toThrow(TypeError::class, $expectedErrorMessage);
 })->with('base_classes')->with([
-    125, 62.5, 'fakedirectory', 'fake/dir/ups', '',
-    ['', ''], ['fake', '/fake/ups'], [1,2],
+    [125, 'Expected a directory as a string but got: integer'],
+    [62.5, 'Expected a directory as a string but got: double'],
+    [true, 'Expected a directory as a string but got: boolean'],
+    [[1,2], 'Expected a directory as a string but got: integer'],
+    [null, 'Expected a directory as a string but got: NULL'],
+    ['', 'Invalid schema directory'],
+    [['', ''], 'Invalid schema directory'],
+    [__FILE__, 'Expected a directory with schemas but got a file: ' . __FILE__],
+    [[__FILE__], 'Expected a directory with schemas but got a file: ' . __FILE__],
+    ['fakedirectory', 'Schema directory not found: fakedirectory'],
+    [['fake', '/fake/ups'], 'Schema directory not found: fake'],
 ])->group('base', 'appendSchemaDir');
 
 test('Passing both valid and invalid schema directories to appendSchemaDir()', function (string $class, ...$invalidDirectories) {
@@ -183,3 +203,89 @@ test('Retrieving a json schema filepath when providing a relative filepath', fun
     expect(Helpers::invokeNonPublicClassMethod($schema, 'getValidSchemaFilepath'))
         ->toBe($schemaFullpath);
 })->with('base_classes')->with(['schema', 'schema.json'])->group('base', 'getValidSchemaFilepath');
+
+// getContents()
+
+test('getContents retrieves correct schema', function (string $class, $schema, $loadSchemaFrom) {
+    Functions\when('path_join')->alias(function ($path1, $path2) {
+        return $path1 . '/' . $path2;
+    });
+    $expectedContents = Helpers::loadSchema(\SCHEMAS_DIR . $schema);
+    if ($loadSchemaFrom == LoadSchema::FromArray) {
+        $schema = $expectedContents;
+    }
+    $schema = new $class($schema);
+    $suffix = Helpers::getClassNameInSnakeCase($schema);
+    Filters\expectApplied($suffix . '_contents')
+        ->once()
+        ->with($expectedContents, $schema);
+    $schema->appendSchemaDir(\SCHEMAS_DIR);
+    if ($loadSchemaFrom == LoadSchema::FromFile) {
+        expect(Helpers::getNonPublicClassProperty($schema, 'contents'))->toBeNull();
+    }
+    else {
+        expect(Helpers::getNonPublicClassProperty($schema, 'contents'))->toEqual($expectedContents);
+    }
+    $contents = $schema->getContents();
+    expect($contents)->toEqual($expectedContents)
+        ->and(Helpers::getNonPublicClassProperty($schema, 'contents'))->toEqual($expectedContents);
+})->with('base_classes')->with('schemas')->with([
+    LoadSchema::FromFile,
+    LoadSchema::FromArray,
+])->group('base', 'getContents');
+
+test('Getting schema that has been already loaded', function (string $class, $schema) {
+    $expectedContents = Helpers::loadSchema(\SCHEMAS_DIR . $schema);
+    $schema = new $class([]);
+    $suffix = Helpers::getClassNameInSnakeCase($schema);
+    Helpers::setNonPublicClassProperty($schema, 'contents', $expectedContents);
+    Filters\expectApplied($suffix . '_contents')
+        ->once()
+        ->with($expectedContents, $schema);
+    $schema->appendSchemaDir(\SCHEMAS_DIR);
+    $contents = $schema->getContents();
+    expect($contents)->toEqual($expectedContents);
+})->with('base_classes')->with('schemas')->group('base', 'getContents');
+
+test('Trying to load invalid json', function (string $class, $schemaFilepath) {
+    Functions\when('esc_html')->returnArg();
+    Functions\when('esc_html__')->returnArg();
+    Functions\when('wp_die')->alias(function ($msg) {
+        throw new Exception($msg);
+    });
+    Functions\when('path_join')->alias(function ($path1, $path2) {
+        return $path1 . '/' . $path2;
+    });
+    $schema = new $class($schemaFilepath);
+    $suffix = Helpers::getClassNameInSnakeCase($schema);
+    $schema->appendSchemaDir(\SCHEMAS_DIR);
+    expect(function () use ($schema) {
+        $schema->getContents();
+    })->toThrow(Exception::class, sprintf("Invalid json file: %1\$s", $schemaFilepath));
+    $this->assertEquals(Filters\applied($suffix . '_contents'), 0);
+})->with('base_classes')->with([
+    'Invalid/InvalidJson.json',
+    'Invalid/Text.json'
+])->group('base', 'getContents');
+
+test('Failed to load file contents', function (string $class) {
+    Functions\when('esc_html')->returnArg();
+    Functions\when('esc_html__')->returnArg();
+    Functions\when('wp_die')->alias(function ($msg) {
+        throw new Exception($msg);
+    });
+    $mockedSchema = Mockery::mock($class)
+        ->makePartial()
+        ->shouldAllowMockingProtectedMethods()
+        ->shouldReceive('getValidSchemaFilepath')
+        ->andReturn(false)
+        ->shouldReceive('getFileContents')
+        ->andReturn(false)
+        ->getMock();
+    $suffix = Helpers::getClassNameInSnakeCase($class);
+
+    expect(function () use ($mockedSchema) {
+        $mockedSchema->getContents();
+    })->toThrow(Exception::class, 'Unable to read file: ');
+    $this->assertEquals(Filters\applied($suffix . '_contents'), 0);
+})->with('base_classes')->group('base', 'getContents');

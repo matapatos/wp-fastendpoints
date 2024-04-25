@@ -16,7 +16,11 @@ namespace Tests\Wp\FastEndpoints\Unit\Schemas;
 use Exception;
 use Opis\JsonSchema\Errors\ErrorFormatter;
 use Opis\JsonSchema\Errors\ValidationError;
+use Opis\JsonSchema\Exceptions\ParseException;
+use Opis\JsonSchema\Exceptions\SchemaException;
 use Opis\JsonSchema\ValidationResult;
+use Opis\JsonSchema\Validator;
+use stdClass;
 use TypeError;
 use Mockery;
 use org\bovigo\vfs\vfsStream;
@@ -32,6 +36,7 @@ use Tests\Wp\FastEndpoints\Helpers\FileSystemCache;
 use Tests\Wp\FastEndpoints\Helpers\Faker;
 use Tests\Wp\FastEndpoints\Helpers\LoadSchema;
 
+use Wp\FastEndpoints\Helpers\WpError;
 use Wp\FastEndpoints\Schemas\Response;
 use Wp\FastEndpoints\Schemas\Schema;
 
@@ -44,6 +49,23 @@ afterEach(function () {
     Mockery::close();
     vfsStream::setup();
 });
+
+// Constructor
+
+test('Passing invalid options to removeAdditionalProperties', function ($loadSchemaFrom, $removeAdditionalProperties) {
+    Functions\when('esc_html__')->returnArg();
+    Functions\when('esc_html')->returnArg();
+    $schema = 'Basics/Array';
+    if ($loadSchemaFrom == LoadSchema::FromArray) {
+        $schema = Helpers::loadSchema(\SCHEMAS_DIR . $schema);
+    }
+    expect(function () use ($schema, $removeAdditionalProperties) {
+        new Response($schema, $removeAdditionalProperties);
+    })->toThrow(\ValueError::class, sprintf("Invalid removeAdditionalProperties property (%s) '%s'",
+        gettype($removeAdditionalProperties), $removeAdditionalProperties));
+})->with([LoadSchema::FromFile, LoadSchema::FromArray])->with([
+    'true', 'false', 'StRing', 'ntege', 'fake', 255, 232.123
+])->group('response', 'getContents');
 
 // getContents() and updateSchemaToAcceptOrDiscardAdditionalProperties()
 
@@ -59,8 +81,11 @@ test('getContents retrieves correct schema', function ($loadSchemaFrom, $removeA
     $response = new Response($schema, $removeAdditionalProperties);
     $response->appendSchemaDir(\SCHEMAS_DIR);
     Filters\expectApplied('response_contents')
-        ->with($expectedContents, $response)
-        ->once();
+        ->once()
+        ->with($expectedContents, $response);
+    Filters\expectApplied('response_remove_additional_properties')
+        ->once()
+        ->with($removeAdditionalProperties, $response);
     $contents = $response->getContents();
     if (is_bool($removeAdditionalProperties)) {
         $expectedContents["additionalProperties"] = !$removeAdditionalProperties;
@@ -70,32 +95,58 @@ test('getContents retrieves correct schema', function ($loadSchemaFrom, $removeA
         $expectedContents["properties"]["data"]["additionalProperties"] = ["type" => $removeAdditionalProperties];
     }
     expect($contents)->toEqual($expectedContents);
-})->with([
-    [LoadSchema::FromFile, true],
-    [LoadSchema::FromArray, true],
-    [LoadSchema::FromFile, false],
-    [LoadSchema::FromArray, false],
-    [LoadSchema::FromFile, null],
-    [LoadSchema::FromArray, null],
-    [LoadSchema::FromFile, "string"],
-    [LoadSchema::FromArray, "string"],
-    [LoadSchema::FromFile, "integer"],
-    [LoadSchema::FromArray, "integer"],
-    [LoadSchema::FromFile, "number"],
-    [LoadSchema::FromArray, "number"],
-    [LoadSchema::FromFile, "boolean"],
-    [LoadSchema::FromArray, "boolean"],
-    [LoadSchema::FromFile, "null"],
-    [LoadSchema::FromArray, "null"],
-    [LoadSchema::FromFile, "object"],
-    [LoadSchema::FromArray, "object"],
-    [LoadSchema::FromFile, "array"],
-    [LoadSchema::FromArray, "array"],
-])->group('response', 'getContents');
+})->with([LoadSchema::FromFile, LoadSchema::FromArray])->with([
+    true, false, null, "string", "integer", "number",
+    "boolean", "null", "object", "array",
+])->group('response', 'getContents', 'updateSchemaToAcceptOrDiscardAdditionalProperties');
+
+// updateSchemaToAcceptOrDiscardAdditionalProperties
+
+test('Avoids re-updating schema', function () {
+    $response = new Response(['hello'], true);
+    expect(Helpers::getNonPublicClassProperty($response, 'hasUpdatedSchema'))->toBeFalse();
+    Helpers::setNonPublicClassProperty($response, 'hasUpdatedSchema', true);
+    Helpers::invokeNonPublicClassMethod($response, 'updateSchemaToAcceptOrDiscardAdditionalProperties');
+    $this->assertEquals(Filters\applied('response_remove_additional_properties'), 0);
+    expect(Helpers::getNonPublicClassProperty($response, 'contents'))->toMatchArray(['hello']);
+})->group('response', 'updateSchemaToAcceptOrDiscardAdditionalProperties');
+
+test('Ignore removing properties if schema is empty or doesnt have a type object', function ($schema) {
+    $response = new Response($schema, true);
+    Filters\expectApplied('response_remove_additional_properties')
+        ->once()
+        ->with(true, $response);
+    Helpers::invokeNonPublicClassMethod($response, 'updateSchemaToAcceptOrDiscardAdditionalProperties');
+    expect(Helpers::getNonPublicClassProperty($response, 'contents'))->toMatchArray($schema);
+})->with([[[]], [[['type' => 'hello']]]])->group('response', 'updateSchemaToAcceptOrDiscardAdditionalProperties');
 
 // returns()
 
-test('returns() matches expected return value - Basic', function ($loadSchemaFrom, $value) {
+function looseExpectAllReturnHooks($req, $response) {
+    Filters\expectApplied('response_is_to_validate')
+        ->once()
+        ->with(true, $response);
+    Filters\expectApplied('response_contents')
+        ->once()
+        ->withAnyArgs();
+    Filters\expectApplied('response_remove_additional_properties')
+        ->once()
+        ->with(Mockery::any(), $response);
+    Filters\expectApplied('response_validation_data')
+        ->once()
+        ->with(Mockery::any(), $req, $response);
+    Filters\expectApplied('response_validator')
+        ->once()
+        ->with(Mockery::type(Validator::class), Mockery::any(), $req, $response);
+    Filters\expectApplied('response_is_valid')
+        ->once()
+        ->with(true, Mockery::any(), Mockery::type(ValidationResult::class), $req, $response);
+    Filters\expectApplied('response_on_validation_success')
+        ->once()
+        ->with(Mockery::any(), $req, $response);
+}
+
+test('returns matches expected return value - Basic', function ($loadSchemaFrom, $value) {
     Functions\when('path_join')->alias(function ($path1, $path2) {
         return $path1 . '/' . $path2;
     });
@@ -104,45 +155,58 @@ test('returns() matches expected return value - Basic', function ($loadSchemaFro
     if ($loadSchemaFrom == LoadSchema::FromArray) {
         $schema = Helpers::loadSchema(\SCHEMAS_DIR . $schema);
     }
-    $response = new Response($schema);
+    $response = new Response($schema, true);
     $response->appendSchemaDir(\SCHEMAS_DIR);
     // Create WP_REST_Request mock
     $req = Mockery::mock('WP_REST_Request');
     $req->shouldReceive('get_route')
         ->andReturn('value');
+    // Check all filters are called
+    Filters\expectApplied('response_is_to_validate')
+        ->once()
+        ->with(true, $response);
+    Filters\expectApplied('response_contents')
+        ->once()
+        ->withAnyArgs();
+    Filters\expectApplied('response_remove_additional_properties')
+        ->once()
+        ->with(true, $response);
+    Filters\expectApplied('response_validation_data')
+        ->once()
+        ->with($value, $req, $response);
+    Filters\expectApplied('response_validator')
+        ->once()
+        ->with(Mockery::type(Validator::class), $value, $req, $response);
+    Filters\expectApplied('response_is_valid')
+        ->once()
+        ->with(true, Mockery::any(), Mockery::type(ValidationResult::class), $req, $response)
+        ->andReturnUsing(function ($isValid, $givenValue, $result, $req, $response) use ($value) {
+            expect($givenValue)->toEqual($value);
+            return $isValid;
+        });
+    Filters\expectApplied('response_on_validation_success')
+        ->once()
+        ->with(Mockery::any(), $req, $response)
+        ->andReturnUsing(function ($givenValue, $givenReq, $givenResponse) use ($value) {
+            expect($givenValue)->toEqual($value);
+            return $givenValue;
+        });
     // Validate response
     $data = $response->returns($req, $value);
     expect($data)->toEqual($value);
-})->with([
-    [LoadSchema::FromFile, 0.674],
-    [LoadSchema::FromFile, 255],
-    [LoadSchema::FromFile, true],
-    [LoadSchema::FromFile, null],
-    [LoadSchema::FromFile, "this is a string"],
-    [LoadSchema::FromFile, [1,2,3,4,5]],
-    [LoadSchema::FromFile, (object) [
+    $this->assertEquals(Filters\applied('response_on_validation_error'), 0);
+})->with([LoadSchema::FromArray, LoadSchema::FromFile])->with([
+    0.674, 255, true, null, "this is a string", [[1,2,3,4,5]],
+    (object) [
         "stringVal" => "hello",
         "intVal"    => 1,
         "arrayVal"  => [1,2,3],
         "doubleVal" => 0.82,
         "boolVal"   => false,
-    ]],
-    [LoadSchema::FromArray, 0.674],
-    [LoadSchema::FromArray, 255],
-    [LoadSchema::FromArray, true],
-    [LoadSchema::FromArray, null],
-    [LoadSchema::FromArray, "this is a string"],
-    [LoadSchema::FromArray, [1,2,3,4,5]],
-    [LoadSchema::FromArray, (object) [
-        "stringVal" => "hello",
-        "intVal"    => 1,
-        "arrayVal"  => [1,2,3],
-        "doubleVal" => 0.82,
-        "boolVal"   => false,
-    ]],
+    ]
 ])->group('response', 'returns');
 
-test('Ignoring additional properties in returns()', function ($loadSchemaFrom) {
+test('Ignoring additional properties in returns', function ($loadSchemaFrom) {
     Functions\when('path_join')->alias(function ($path1, $path2) {
         return $path1 . '/' . $path2;
     });
@@ -157,7 +221,8 @@ test('Ignoring additional properties in returns()', function ($loadSchemaFrom) {
     $req = Mockery::mock('WP_REST_Request');
     $req->shouldReceive('get_route')
         ->andReturn('user');
-    // Validate response
+    // Expected hooks to be applied
+    looseExpectAllReturnHooks($req, $response);
     $data = $response->returns($req, $user);
     expect($data)->toEqual(Helper::toJSON([
         "data" => [
@@ -186,6 +251,8 @@ test('Keeps additional properties in returns()', function ($loadSchemaFrom) {
     $req = Mockery::mock('WP_REST_Request');
     $req->shouldReceive('get_route')
         ->andReturn('user');
+    // Expected hooks to be applied
+    looseExpectAllReturnHooks($req, $response);
     // Validate response
     $data = $response->returns($req, $user);
     expect($data)->toEqual(Helper::toJSON($user));
@@ -211,6 +278,8 @@ test('Ignores additional properties expect a given type in returns()', function 
     $req = Mockery::mock('WP_REST_Request');
     $req->shouldReceive('get_route')
         ->andReturn('user');
+    // Expected hooks to be applied
+    looseExpectAllReturnHooks($req, $response);
     // Validate response
     $data = $response->returns($req, $user);
     $expectedData = array_merge(["data" => [
@@ -219,27 +288,17 @@ test('Ignores additional properties expect a given type in returns()', function 
         "display_name" => "André Gil",
     ]], $expectedData);
     expect($data)->toEqual(Helper::toJSON($expectedData));
-})->with([
-    [LoadSchema::FromFile, 'integer', ['ID' => 5]],
-    [LoadSchema::FromFile, 'string', ['cap_key' => 'wp_capabilities', 'data' => Faker::getWpUser()['data']]],
-    [LoadSchema::FromFile, 'number', ['ID' => 5]],
-    [LoadSchema::FromFile, 'boolean', ['is_admin' => true]],
-    [LoadSchema::FromFile, 'null', ['filter' => null]],
-    [LoadSchema::FromFile, 'object', [
+})->with([LoadSchema::FromFile, LoadSchema::FromArray])->with([
+    ['integer', ['ID' => 5]],
+    ['string', ['cap_key' => 'wp_capabilities', 'data' => Faker::getWpUser()['data']]],
+    ['number', ['ID' => 5]],
+    ['boolean', ['is_admin' => true]],
+    ['null', ['filter' => null]],
+    ['object', [
         'caps' => ['administrator' => true],
         "allcaps" => ['switch_themes' => true, 'edit_themes' => true, 'administrator' => true],
     ]],
-    [LoadSchema::FromFile, 'array', ['roles' => ['administrator']]],
-    [LoadSchema::FromArray, 'integer', ['ID' => 5]],
-    [LoadSchema::FromArray, 'string', ['cap_key' => 'wp_capabilities', 'data' => Faker::getWpUser()['data']]],
-    [LoadSchema::FromArray, 'number', ['ID' => 5]],
-    [LoadSchema::FromArray, 'boolean', ['is_admin' => true]],
-    [LoadSchema::FromArray, 'null', ['filter' => null]],
-    [LoadSchema::FromArray, 'object', [
-        'caps' => ['administrator' => true],
-        "allcaps" => ['switch_themes' => true, 'edit_themes' => true, 'administrator' => true],
-    ]],
-    [LoadSchema::FromArray, 'array', ['roles' => ['administrator']]],
+    ['array', ['roles' => ['administrator']]]
 ])->group('response', 'returns');
 
 test('Ignores additional properties specified by the schema', function ($loadSchemaFrom) {
@@ -258,6 +317,8 @@ test('Ignores additional properties specified by the schema', function ($loadSch
     $req = Mockery::mock('WP_REST_Request');
     $req->shouldReceive('get_route')
         ->andReturn('user');
+    // Expected hooks to be applied
+    looseExpectAllReturnHooks($req, $response);
     // Validate response
     $data = $response->returns($req, $user);
     expect($data)->toEqual(Helper::toJSON([
@@ -272,3 +333,101 @@ test('Ignores additional properties specified by the schema', function ($loadSch
     LoadSchema::FromFile,
     LoadSchema::FromArray,
 ])->group('response', 'returns');
+
+test('Skipping response validation via hook', function () {
+    $response = new Response(['my-schema']);
+    // Create WP_REST_Request mock
+    $req = Mockery::mock('WP_REST_Request');
+    $req->shouldReceive('get_route')
+        ->andReturn('user');
+    Filters\expectApplied('response_is_to_validate')
+        ->once()
+        ->andReturn(false);
+    $data = $response->returns($req, 'my-response');
+    expect($data)->toEqual('my-response');
+})->group('response', 'returns');
+
+test('Skipping response validation when empty schema given', function () {
+    $response = new Response([]);
+    // Create WP_REST_Request mock
+    $req = Mockery::mock('WP_REST_Request');
+    $req->shouldReceive('get_route')
+        ->andReturn('user');
+    Filters\expectApplied('response_is_to_validate')
+        ->once()
+        ->with(true, $response);
+    $data = $response->returns($req, 'my-response');
+    expect($data)->toEqual('my-response');
+})->group('response', 'returns');
+
+test('SchemaException raised during validation', function () {
+    Functions\when('esc_html__')->returnArg();
+    $schema = Helpers::loadSchema(\SCHEMAS_DIR . 'Basics/Array');
+    $mockedValidator = Mockery::mock(Validator::class)
+        ->shouldReceive('validate')
+        ->andThrow(new ParseException('my-test-error'))
+        ->getMock();
+    $mockedResponse = Mockery::mock(Response::class)
+        ->makePartial()
+        ->shouldAllowMockingProtectedMethods()
+        ->shouldReceive('getContents')
+        ->andReturn($schema)
+        ->getMock();
+    // Create WP_REST_Request mock
+    $req = Mockery::mock('WP_REST_Request');
+    Filters\expectApplied('response_is_to_validate')
+        ->once()
+        ->with(true, $mockedResponse);
+    Filters\expectApplied('response_validation_data')
+        ->once()
+        ->with(Mockery::any(), $req, $mockedResponse);
+    Filters\expectApplied('response_validator')
+        ->once()
+        ->with(Mockery::type(Validator::class), Mockery::any(), $req, $mockedResponse)
+        ->andReturn($mockedValidator);
+    Helpers::setNonPublicClassProperty($mockedResponse, 'suffix', 'response');
+    $data = $mockedResponse->returns($req, [1,2,3,4,5]);
+    expect($data)->toBeInstanceOf(WpError::class)
+        ->toHaveProperty('code', 500)
+        ->toHaveProperty('message', 'Invalid response route schema my-test-error')
+        ->toHaveProperty('data', ['status' => 500]);
+    $this->assertEquals(Filters\applied('response_is_valid'), 0);
+    $this->assertEquals(Filters\applied('response_after_validation'), 0);
+})->group('response', 'returns');
+
+test('Validation always failing due to response_is_valid hook', function () {
+    Functions\when('path_join')->alias(function ($path1, $path2) {
+        return $path1 . '/' . $path2;
+    });
+    Functions\when('esc_html__')->returnArg();
+    $response = new Response('Basics/Double', true);
+    $response->appendSchemaDir(\SCHEMAS_DIR);
+    // Create WP_REST_Request mock
+    $req = Mockery::mock('WP_REST_Request');
+    $req->shouldReceive('get_route')
+        ->andReturn('value');
+    // Loose check for filters being called
+    Filters\expectApplied('response_is_to_validate')
+        ->once();
+    Filters\expectApplied('response_contents')
+        ->once();
+    Filters\expectApplied('response_remove_additional_properties')
+        ->once();
+    Filters\expectApplied('response_validation_data')
+        ->once();
+    Filters\expectApplied('response_validator')
+        ->once();
+    Filters\expectApplied('response_is_valid')
+        ->once()
+        ->andReturn(false);
+    Filters\expectApplied('response_on_validation_error')
+        ->once()
+        ->with(Mockery::type(WpError::class), $req, $response);
+    // Validate response
+    $data = $response->returns($req, 257.89);
+    expect($data)->toBeInstanceOf(WpError::class)
+        ->toHaveProperty('code', 422)
+        ->toHaveProperty('message', 'Number must be lower than or equal to 1')
+        ->toHaveProperty('data', ['status' => 422, 'all_messages' => ['/' => ['Number must be lower than or equal to 1']]]);
+    $this->assertEquals(Filters\applied('response_on_validation_success'), 0);
+})->group('response', 'returns');

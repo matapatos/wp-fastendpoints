@@ -13,8 +13,12 @@ declare(strict_types=1);
 namespace Wp\FastEndpoints\Contracts\Schemas;
 
 use Exception;
+use Opis\JsonSchema\Resolvers\SchemaResolver;
+use Opis\JsonSchema\SchemaLoader;
 use Opis\JsonSchema\ValidationResult;
 use Opis\JsonSchema\Errors\ErrorFormatter;
+use Opis\JsonSchema\Validator;
+use Wp\FastEndpoints\Schemas\Opis\Parsers\ResponseSchemaParser;
 use WP_REST_Request;
 use TypeError;
 use Wp\FastEndpoints\Helpers\Arr;
@@ -67,6 +71,13 @@ abstract class Base
      */
     protected ErrorFormatter $errorFormatter;
 
+    /**
+     * Validator used for checking data against their JSON schema
+     *
+     * @var Validator
+     */
+    protected static Validator $validator;
+
 	/**
 	 * Creates a new instance of Base
 	 *
@@ -96,6 +107,21 @@ abstract class Base
 		}
 	}
 
+    /**
+     * Retrieves the default validator for checking responses against a JSON schema
+     *
+     * @return Validator the default validator
+     */
+    protected static function getDefaultValidator(): Validator
+    {
+        if(!isset(self::$validator)) {
+            $loader = new SchemaLoader(new ResponseSchemaParser(), new SchemaResolver(), true);
+            self::$validator = new Validator($loader);
+        }
+
+        return self::$validator;
+    }
+
 	/**
 	 * Retrieves the child class name in snake case
 	 *
@@ -117,12 +143,16 @@ abstract class Base
 	 */
 	public function appendSchemaDir($schemaDir): void
 	{
-		if (!$schemaDir) {
-			throw new TypeError(\esc_html__('Invalid schema directory'));
-		}
-
 		$schemaDir = Arr::wrap($schemaDir);
 		foreach ($schemaDir as $dir) {
+            if (!\is_string($dir)) {
+                throw new TypeError(\sprintf(\esc_html__("Expected a directory as a string but got: %s"), gettype($dir)));
+            }
+
+            if (!$dir) {
+                throw new TypeError(\esc_html__('Invalid schema directory'));
+            }
+
 			if (\is_file($dir)) {
 				/* translators: 1: Directory */
 				throw new TypeError(\sprintf(\esc_html__("Expected a directory with schemas but got a file: %s"), \esc_html($dir)));
@@ -177,6 +207,18 @@ abstract class Base
 		return \apply_filters($this->suffix . '_error', $this->errorFormatter->formatKeyed($result->error()), $result, $this);
 	}
 
+    /**
+     * Retrieves the content of a file
+     *
+     * @since 0.9.0
+     * @param string $filePath the file to be loaded
+     * @return mixed
+     */
+    protected function getFileContents(string $filePath)
+    {
+        return \file_get_contents($filePath);
+    }
+
 	/**
 	 * Retrieves the JSON contents of the schema
 	 *
@@ -185,7 +227,7 @@ abstract class Base
 	 */
 	public function getContents()
 	{
-		if ($this->contents) {
+		if ($this->contents || is_array($this->contents)) {
 			$this->contents = \apply_filters($this->suffix . '_contents', $this->contents, $this);
 			return $this->contents;
 		}
@@ -193,7 +235,7 @@ abstract class Base
 		$filepath = $this->getValidSchemaFilepath();
 
 		// Read JSON file and retrieve it's content.
-		$result = \file_get_contents($filepath);
+		$result = $this->getFileContents($filepath);
 		if ($result === false) {
 			/* translators: 1: Schema filepath */
 			\wp_die(\sprintf(\esc_html__("Unable to read file: %s"), \esc_html($this->filepath)));

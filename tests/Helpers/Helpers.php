@@ -103,11 +103,13 @@ class Helpers
      * Retrieves the class name in snake case
      *
      * @since 0.9.0
+     * @param mixed $instance class instance to get the name
      * @return string
      */
     public static function getClassNameInSnakeCase($instance): string
     {
-        $suffix = \basename(\str_replace('\\', '/', \get_class($instance)));
+        $className = is_string($instance) ? $instance : \get_class($instance);
+        $suffix = \basename(\str_replace('\\', '/', $className));
         return \ltrim(\strtolower(\preg_replace('/[A-Z]([A-Z](?![a-z]))*/', '_$0', $suffix)), '_');
     }
 }

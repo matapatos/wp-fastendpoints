@@ -59,13 +59,16 @@ class Schema extends Base implements SchemaInterface
 		}
 
 		if (!$this->contents) {
-			return true;
+			return new WpError(
+                WP_Http::UNPROCESSABLE_ENTITY,
+                esc_html__('Unprocessable request. Always fails'),
+            );
 		}
 
 		$params = \apply_filters($this->suffix . '_params', $req->get_params(), $req, $this);
 		$json = Helper::toJSON($params);
 		$schema = Helper::toJSON($this->contents);
-		$validator = \apply_filters($this->suffix . '_validator', new Validator(), $req, $this);
+		$validator = \apply_filters($this->suffix . '_validator', self::getDefaultValidator(), $req, $this);
 		try {
 			$result = $validator->validate($json, $schema);
 		} catch (SchemaException $e) {
