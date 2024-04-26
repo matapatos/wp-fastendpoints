@@ -185,7 +185,7 @@ class Response extends Base implements ResponseContract
 		} catch (SchemaException $e) {
 			$wpError = new WpError(
 				WP_Http::INTERNAL_SERVER_ERROR,
-				sprintf(esc_html__("Invalid response route schema %s"), esc_html__($e->getMessage())),
+				sprintf(esc_html__("Invalid response schema: %s"), esc_html__($e->getMessage())),
 			);
             return \apply_filters($this->suffix . '_on_validation_error', $wpError, $req, $this);
 		}

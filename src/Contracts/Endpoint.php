@@ -33,17 +33,24 @@ interface Endpoint
 	 */
 	public function register(string $namespace, string $restBase, array $schemaDirs = []): bool;
 
-	/**
-	 * Checks if the current user has the given WP capabilities
-	 *
-	 * @since 0.9.0
-	 * @param string|array $capabilities WordPress user capabilities.
-	 * @param int $priority Specifies the order in which the function is executed.
-	 * Lower numbers correspond with earlier execution, and functions with the same priority
-	 * are executed in the order in which they were added. Default value: 10.
-	 * @return Endpoint
-	 */
-	public function hasCap($capabilities, int $priority = 10): Endpoint;
+    /**
+     * Checks if the current user has the given WP capabilities. Example usage:
+     *
+     *      hasCap('edit_posts');
+     *      hasCap(['edit_post', $post->ID]);
+     *      hasCap(['edit_post_meta', $post->ID, $meta_key]);
+     *      hasCap(['edit_post', '{post_id}']);  // Replaces {post_id} with request parameter named post_id
+     *
+     * @param string|array $capability WordPress user capability. If string should be the capability to check against.
+     * If array it should consist of the capability to be checked followed by optional parameters, typically the object ID.
+     * You can also replace with a given request parameter via curly braces e.g. {post_id}
+     * @param int $priority Specifies the order in which the function is executed.
+     * Lower numbers correspond with earlier execution, and functions with the same priority
+     * are executed in the order in which they were added. Default value: 10.
+     * @return Endpoint
+     * @since 0.9.0
+     */
+	public function hasCap($capability, int $priority = 10): Endpoint;
 
 	/**
 	 * Adds a schema validation to the validationHandlers, which will be later called in advance to
@@ -64,15 +71,18 @@ interface Endpoint
 	 * 1) Ignore additional properties in WP_REST_Response, avoiding the leakage of unnecessary data and
 	 * 2) Making sure that the required data is retrieved.
 	 *
-	 * @since 0.9.0
 	 * @param string|array $schema Filepath to the JSON schema or a JSON schema as an array.
 	 * @param int $priority Specifies the order in which the function is executed.
 	 * Lower numbers correspond with earlier execution, and functions with the same priority
 	 * are executed in the order in which they were added. Default value: 10.
+     * @param string|bool|null $removeAdditionalProperties Option which defines if we want to remove additional properties.
+     * If true removes all additional properties from the response. If false allows additional properties to be retrieved.
+     * If null it will use the JSON schema additionalProperties value. If a string allows only those variable types (e.g. integer)
+     * @return Endpoint
 	 * @throws TypeError If $schema is neither a string|array.
-	 * @return Endpoint
+	 * @since 0.9.0
 	 */
-	public function returns($schema, int $priority = 10): Endpoint;
+	public function returns($schema, int $priority = 10, $removeAdditionalProperties = true): Endpoint;
 
 	/**
 	 * Registers a middleware with a given priority
@@ -85,18 +95,6 @@ interface Endpoint
 	 * @return Endpoint
 	 */
 	public function middleware(callable $middleware, int $priority = 10): Endpoint;
-
-	/**
-	 * Registers an argument
-	 *
-	 * @since 0.9.0
-	 * @param string $name Name of the argument.
-	 * @param array|callable $validate Either an array that WordPress uses (e.g. ['required'=>true, 'default'=>null])
-	 * or a validation callback.
-	 * @throws TypeError if $validate is neither an array or callable.
-	 * @return Endpoint
-	 */
-	public function arg(string $name, $validate): Endpoint;
 
 	/**
 	 * Registers a permission callback

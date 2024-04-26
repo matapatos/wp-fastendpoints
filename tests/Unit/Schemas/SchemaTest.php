@@ -39,7 +39,6 @@ beforeEach(function () {
 
 afterEach(function () {
     Monkey\tearDown();
-    Mockery::close();
     vfsStream::setup();
 });
 
@@ -66,16 +65,16 @@ test('validate valid parameters', function ($loadSchemaFrom) {
     $req = Mockery::mock('WP_REST_Request');
     $req->shouldReceive('get_params')
         ->andReturn($user);
-    Filters\expectApplied('schema_is_to_parse')
+    Filters\expectApplied('fastendpoints_schema_is_to_parse')
         ->once()
         ->with(true, $schema);
-    Filters\expectApplied('schema_params')
+    Filters\expectApplied('fastendpoints_schema_params')
         ->once()
         ->with($user, Mockery::type(\WP_REST_Request::class), $schema);
-    Filters\expectApplied('schema_validator')
+    Filters\expectApplied('fastendpoints_schema_validator')
         ->once()
         ->with(Mockery::type(Validator::class), Mockery::type(\WP_REST_Request::class), $schema);
-    Filters\expectApplied('schema_is_valid')
+    Filters\expectApplied('fastendpoints_schema_is_valid')
         ->once()
         ->with(true, Mockery::type(ValidationResult::class), Mockery::type(\WP_REST_Request::class), $schema);
     $result = $schema->validate($req);
@@ -106,16 +105,16 @@ test('validate invalid parameters', function ($loadSchemaFrom) {
         ->shouldReceive('get_params')
         ->andReturn($user)
         ->getMock();
-    Filters\expectApplied('schema_is_to_parse')
+    Filters\expectApplied('fastendpoints_schema_is_to_parse')
         ->once()
         ->with(true, $schema);
-    Filters\expectApplied('schema_params')
+    Filters\expectApplied('fastendpoints_schema_params')
         ->once()
         ->with($user, Mockery::type(\WP_REST_Request::class), $schema);
-    Filters\expectApplied('schema_validator')
+    Filters\expectApplied('fastendpoints_schema_validator')
         ->once()
         ->with(Mockery::type(Validator::class), Mockery::type(\WP_REST_Request::class), $schema);
-    Filters\expectApplied('schema_is_valid')
+    Filters\expectApplied('fastendpoints_schema_is_valid')
         ->once()
         ->with(false, Mockery::type(ValidationResult::class), Mockery::type(\WP_REST_Request::class), $schema);
     $result = $schema->validate($req);
@@ -141,13 +140,13 @@ test('validate invalid schema', function () {
     $req = Mockery::mock('WP_REST_Request');
     $req->shouldReceive('get_params')
         ->andReturn($user);
-    Filters\expectApplied('schema_is_to_parse')
+    Filters\expectApplied('fastendpoints_schema_is_to_parse')
         ->once()
         ->with(true, $schema);
-    Filters\expectApplied('schema_params')
+    Filters\expectApplied('fastendpoints_schema_params')
         ->once()
         ->with($user, Mockery::type(\WP_REST_Request::class), $schema);
-    Filters\expectApplied('schema_validator')
+    Filters\expectApplied('fastendpoints_schema_validator')
         ->once()
         ->with(Mockery::type(Validator::class), Mockery::type(\WP_REST_Request::class), $schema);
     $result = $schema->validate($req);
@@ -162,15 +161,15 @@ test('validate invalid schema', function () {
 test('Skip parsing schema', function () {
     $schema = new Schema(['test']);
     $req = Mockery::mock('WP_REST_Request');
-    Filters\expectApplied('schema_is_to_parse')
+    Filters\expectApplied('fastendpoints_schema_is_to_parse')
         ->once()
         ->with(true, $schema)
         ->andReturn(false);
     $result = $schema->validate($req);
     expect($result)->toBeTrue();
-    $this->assertEquals(Filters\applied('schema_params'), 0);
-    $this->assertEquals(Filters\applied('schema_validator'), 0);
-    $this->assertEquals(Filters\applied('schema_is_valid'), 0);
+    $this->assertEquals(Filters\applied('fastendpoints_schema_params'), 0);
+    $this->assertEquals(Filters\applied('fastendpoints_schema_validator'), 0);
+    $this->assertEquals(Filters\applied('fastendpoints_schema_is_valid'), 0);
 })->group('schema', 'validate');
 
 test('Always rejects requests when no schema content is defined', function ($value) {
@@ -182,9 +181,9 @@ test('Always rejects requests when no schema content is defined', function ($val
         ->andReturn($value)
         ->getMock();
 
-    Helpers::setNonPublicClassProperty($mockedSchema, 'suffix', 'schema');
+    Helpers::setNonPublicClassProperty($mockedSchema, 'suffix', 'fastendpoints_schema');
     $req = Mockery::mock('WP_REST_Request');
-    Filters\expectApplied('schema_is_to_parse')
+    Filters\expectApplied('fastendpoints_schema_is_to_parse')
         ->once()
         ->with(true, $mockedSchema);
     $result = $mockedSchema->validate($req);

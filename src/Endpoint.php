@@ -38,7 +38,7 @@ class Endpoint implements EndpointInterface
 	 * @since 0.9.0
 	 * @var string
 	 */
-	private string $method;
+	protected string $method;
 
 	/**
 	 * HTTP route
@@ -46,7 +46,7 @@ class Endpoint implements EndpointInterface
 	 * @since 0.9.0
 	 * @var string
 	 */
-	private string $route;
+    protected string $route;
 
 	/**
 	 * Same as the register_rest_route $args parameter
@@ -54,7 +54,7 @@ class Endpoint implements EndpointInterface
 	 * @since 0.9.0
 	 * @var array
 	 */
-	private array $args = [];
+    protected array $args = [];
 
 	/**
 	 * Main endpoint handler
@@ -62,7 +62,7 @@ class Endpoint implements EndpointInterface
 	 * @since 0.9.0
 	 * @var callable
 	 */
-	private $handler;
+    protected $handler;
 
 	/**
 	 * Same as the register_rest_route $override parameter
@@ -70,7 +70,7 @@ class Endpoint implements EndpointInterface
 	 * @since 0.9.0
 	 * @var bool
 	 */
-	private bool $override;
+    protected bool $override;
 
 	/**
 	 * JSON Schema used to validate request params
@@ -94,7 +94,7 @@ class Endpoint implements EndpointInterface
 	 * @since 0.9.0
 	 * @var array<int,array<callable>>
 	 */
-	private array $permissionHandlers = [];
+    protected array $permissionHandlers = [];
 
 	/**
 	 * Set of functions used to validate request before being handled
@@ -102,7 +102,7 @@ class Endpoint implements EndpointInterface
 	 * @since 0.9.0
 	 * @var array<int,array<callable>>
 	 */
-	private array $validationHandlers = [];
+    protected array $validationHandlers = [];
 
 	/**
 	 * Set of middlewares to run before the main handler
@@ -110,7 +110,7 @@ class Endpoint implements EndpointInterface
 	 * @since 0.9.0
 	 * @var array<int,array<callable>>
 	 */
-	private array $middlewareHandlers = [];
+    protected array $middlewareHandlers = [];
 
 	/**
 	 * Set of functions to be run after processing the request - usually to handle response
@@ -118,7 +118,7 @@ class Endpoint implements EndpointInterface
 	 * @since 0.9.0
 	 * @var array<int,array<callable>>
 	 */
-	private array $postHandlers = [];
+    protected array $postHandlers = [];
 
 	/**
 	 * Creates a new instance of Endpoint
@@ -167,7 +167,7 @@ class Endpoint implements EndpointInterface
 		}
 		// Override default arguments.
 		$args = \array_merge($args, $this->args);
-		$args = \apply_filters('wp_fastendpoints_endpoint_args', $args, $this, $namespace, $restBase);
+		$args = \apply_filters('fastendpoints_endpoint_args', $args, $namespace, $restBase, $this);
 
 		// Skip registration if no args specified.
 		if (!$args) {
@@ -179,62 +179,44 @@ class Endpoint implements EndpointInterface
 	}
 
 	/**
-	 * Checks if the current user has the given WP capabilities
-	 *
-	 * @since 0.9.0
-	 * @param string|array $capabilities WordPress user capabilities.
+	 * Checks if the current user has the given WP capabilities. Example usage:
+     *
+     *      hasCap('edit_posts');
+     *      hasCap(['edit_post', $post->ID]);
+     *      hasCap(['edit_post_meta', $post->ID, $meta_key]);
+     *      hasCap(['edit_post', '{post_id}']);  // Replaces {post_id} with request parameter named post_id
+     *
+	 * @param string|array $capability WordPress user capability. If string should be the capability to check against.
+     * If array it should consist of the capability to be checked followed by optional parameters, typically the object ID.
+     * You can also replace with a given request parameter via curly braces e.g. {post_id}
 	 * @param int $priority Specifies the order in which the function is executed.
 	 * Lower numbers correspond with earlier execution, and functions with the same priority
 	 * are executed in the order in which they were added. Default value: 10.
 	 * @return Endpoint
+     * @since 0.9.0
 	 */
-	public function hasCap($capabilities, int $priority = 10): Endpoint
+	public function hasCap($capability, int $priority = 10): Endpoint
 	{
-		if (!\is_array($capabilities) || Arr::isAssoc($capabilities)) {
-			$capabilities = [$capabilities];
-		}
-		$this->permission(function (WP_REST_Request $req) use ($capabilities) {
-			foreach ($capabilities as $cap) {
-				if (\is_string($cap)) {
-					if (!\current_user_can($cap)) {
-						$data = defined('WP_DEBUG') && \WP_DEBUG ? ['missing_capabilities' => Arr::wrap($cap)] : [];
-						return new WpError(WP_Http::FORBIDDEN, 'Not enough permissions', $data);
-					}
-				} elseif (\is_array($cap)) {
-					if (!$cap) {
-						\wp_die(\esc_html__('Invalid capability. Empty array given'));
-					}
+        if (!$capability) {
+            \wp_die(\esc_html__('Invalid capability. Empty capability given'));
+        }
 
-					if (Arr::isAssoc($cap)) {
-						if (\count($cap) !== 1) {
-							\wp_die(\sprintf(
-								/* translators: 1: User capability */
-								\esc_html__('Invalid capability. Expected one dictionary key but %d given'),
-								\esc_html(\count($cap)),
-							));
-						}
-						$keys = \array_keys($cap);
-						// Flatten array.
-						$value = Arr::wrap($this->replaceSpecialValue($req, $cap[$keys[0]]));
-						$cap = \array_merge($keys, $value);
-					}
+		return $this->permission(function (WP_REST_Request $req) use ($capability) {
+            $allCaps = Arr::wrap($capability);
+            foreach ($allCaps as &$cap) {
+                if (!\is_string($cap)) {
+                    continue;
+                }
 
-					if (!\current_user_can(...$cap)) {
-						$data = defined('WP_DEBUG') && \WP_DEBUG ? ['missing_capabilities' => $cap] : [];
-						return new WpError(WP_Http::FORBIDDEN, 'Not enough permissions', $data);
-					}
-				} else {
-					\wp_die(\sprintf(
-						/* translators: 1: User capability */
-						\esc_html__('Invalid capability. Expected string or array but %s given'),
-						\esc_html($cap),
-					));
-				}
-			}
+                $cap = $this->replaceSpecialValue($req, $cap);
+            }
+
+            if (!\current_user_can(...$allCaps)) {
+                return new WpError(WP_Http::FORBIDDEN, 'Not enough permissions');
+            }
 
 			return true;
 		}, $priority);
-		return $this;
 	}
 
 	/**
@@ -266,10 +248,13 @@ class Endpoint implements EndpointInterface
 	 * @param int $priority Specifies the order in which the function is executed.
 	 * Lower numbers correspond with earlier execution, and functions with the same priority
 	 * are executed in the order in which they were added. Default value: 10.
+     * @param string|bool|null $removeAdditionalProperties Option which defines if we want to remove additional properties.
+     * If true removes all additional properties from the response. If false allows additional properties to be retrieved.
+     * If null it will use the JSON schema additionalProperties value. If a string allows only those variable types (e.g. integer)
 	 * @throws TypeError If $schema is neither a string|array.
 	 * @return Endpoint
 	 */
-	public function returns($schema, int $priority = 10, ?bool $removeAdditionalProperties = true): Endpoint
+	public function returns($schema, int $priority = 10, $removeAdditionalProperties = true): Endpoint
 	{
 		$this->responseSchema = new Response($schema, $removeAdditionalProperties);
 		$this->append($this->postHandlers, [$this->responseSchema, 'returns'], $priority);
@@ -289,71 +274,6 @@ class Endpoint implements EndpointInterface
 	public function middleware(callable $middleware, int $priority = 10): Endpoint
 	{
 		$this->append($this->middlewareHandlers, $middleware, $priority);
-		return $this;
-	}
-
-	/**
-	 * Registers a middleware to set the current endpoint post. Used in get_post(...) function.
-	 *
-	 * @since 0.9.0
-	 * @param string|int $id The post id or a string with a replaceable REST param.
-	 * @param int $priority Specifies the order in which the function is executed.
-	 * Lower numbers correspond with earlier execution, and functions with the same priority
-	 * are executed in the order in which they were added. Default value: 10.
-	 * @param bool $override Flag that determines if a post is already set if it should override it or not. Default: false.
-	 * @return Endpoint
-	 */
-	public function post($id, int $priority = 30, bool $override = false): Endpoint
-	{
-		$this->append($this->middlewareHandlers, function (WP_REST_Request $req) use ($id, $override) {
-			if (isset($GLOBALS['post']) && $override === false) {
-				return;
-			}
-
-			if (\is_string($id)) {
-				$id = $this->replaceSpecialValue($req, $id);
-			}
-			if (!\is_int($id)) {
-				return new WpError(
-					WP_Http::UNPROCESSABLE_ENTITY,
-					sprintf(esc_html__('Expected post id to be an int. Given %s with type %s'), $id, gettype($id)),
-				);
-			}
-
-			$GLOBALS['post'] = $id;
-		}, $priority);
-		return $this;
-	}
-
-	/**
-	 * Registers an argument
-	 *
-	 * @since 0.9.0
-	 * @param string $name Name of the argument.
-	 * @param array|callable $validate Either an array that WordPress uses (e.g. ['required'=>true, 'default'=>null])
-	 * or a validation callback.
-	 * @throws TypeError if $validate is neither an array nor a callable.
-	 * @return Endpoint
-	 */
-	public function arg(string $name, $validate): Endpoint
-	{
-		if (!isset($this->args['args'])) {
-			$this->args['args'] = [];
-		}
-		$args = [];
-		if (\is_array($validate)) {
-			$args = $validate;
-		} elseif (\is_callable($validate)) {
-			$args['validate_callback'] = $validate;
-		} else {
-			throw new TypeError(\sprintf(
-				/* translators: 1: PHP Type of $validate argument */
-				\esc_html__('Expected an array or a callable as the second argument of validateArg but %s given'),
-				\esc_html(\gettype($validate)),
-			));
-		}
-
-		$this->args['args'][$name] = $args;
 		return $this;
 	}
 
@@ -388,19 +308,19 @@ class Endpoint implements EndpointInterface
 		// Run pre validation methods.
 		$result = $this->runHandlers($this->validationHandlers, $req);
 		if (\is_wp_error($result)) {
-			return \rest_ensure_response($result);
+			return $result;
 		}
 
 		// Middleware methods.
 		$result = $this->runHandlers($this->middlewareHandlers, $req);
 		if (\is_wp_error($result)) {
-			return \rest_ensure_response($result);
+			return $result;
 		}
 
 		// Main handler.
 		$result = $this->handler->call($this, $req);
 		if (\is_wp_error($result)) {
-			return \rest_ensure_response($result);
+			return $result;
 		}
 
 		// Post handlers.
@@ -440,7 +360,7 @@ class Endpoint implements EndpointInterface
 			$route .= '/';
 		}
 		$route .= $this->route;
-		return \apply_filters('wp_fastendpoints_endpoint_route', $route, $this);
+		return \apply_filters('fastendpoints_endpoint_route', $route, $this);
 	}
 
 	/**
@@ -448,23 +368,11 @@ class Endpoint implements EndpointInterface
 	 *
 	 * @since 0.9.0
 	 * @param WP_REST_Request $req Current REST request.
-	 * @param mixed $value Value to be checked.
+	 * @param string $value Value to be checked.
 	 * @return mixed The $value variable with all special parameters replaced.
 	 */
-	protected function replaceSpecialValue(WP_REST_Request $req, $value)
+	protected function replaceSpecialValue(WP_REST_Request $req, string $value)
 	{
-		// Recursively search and replace all special value.
-		if (\is_array($value)) {
-			foreach ($value as &$v) {
-				$v = $this->replaceSpecialValue($req, $v);
-			}
-			return $value;
-		}
-
-		if (!\is_string($value)) {
-			return $value;
-		}
-
 		// Checks if value matches a special value.
 		// If so, replaces with request variable.
 		$newValue = \trim($value);
@@ -472,14 +380,12 @@ class Endpoint implements EndpointInterface
 			return $value;
 		}
 
-		$newValue = \ltrim($newValue, '{');
-		$newValue = \rtrim($newValue, '}');
+        $newValue = substr($newValue, 1, -1);
 		if (!$req->has_param($newValue)) {
 			return $value;
 		}
 
-		$newValue = $req->get_param($newValue);
-		return \is_numeric($newValue) ? $newValue + 0 : $newValue;
+		return $req->get_param($newValue);
 	}
 
 	/**

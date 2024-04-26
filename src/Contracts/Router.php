@@ -14,17 +14,15 @@ namespace Wp\FastEndpoints\Contracts;
 
 /**
  * An interface that helps developers in creating groups of endpoints. This way developers can aggregate
- * closely related endpoints in the same router. Example:
+ * closely related endpoints in the same router. Example usage:
  *
- * ```php
- * $usersRouter = new Router('users');
- * $usersRouter->get(...); // Retrieve a user
- * $usersRouter->put(...); // Update a user
+ *      $usersRouter = new Router('users');
+ *      $usersRouter->get(...); // Retrieve a user
+ *      $usersRouter->put(...); // Update a user
  *
- * $postsRouter = new Router('posts');
- * $postsRouter->get(...); // Retrieve a post
- * $postsRouter->put(...); // Update a post
- * ```
+ *      $postsRouter = new Router('posts');
+ *      $postsRouter->get(...); // Retrieve a post
+ *      $postsRouter->put(...); // Update a post
  *
  * @since 0.9.0
  * @author André Gil <andre_gil22@hotmail.com>

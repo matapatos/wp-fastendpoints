@@ -62,11 +62,6 @@ test('Wrapping values', function ($value) {
 // Recursive key value search
 
 test('Recursive search of key and value', function ($schema, $key, $value, $expectedResult) {
-    var_dump([
-        'schema' => $schema,
-        'key' => $key,
-        'value' => $value,
-    ]);
     $schema = Helpers::loadSchema(\SCHEMAS_DIR . $schema);
     expect(Arr::recursiveKeyValueSearch($schema, $key, $value))
         ->toBe($expectedResult);

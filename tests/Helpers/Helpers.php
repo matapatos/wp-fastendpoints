@@ -112,4 +112,17 @@ class Helpers
         $suffix = \basename(\str_replace('\\', '/', $className));
         return \ltrim(\strtolower(\preg_replace('/[A-Z]([A-Z](?![a-z]))*/', '_$0', $suffix)), '_');
     }
+
+    /**
+     * Retrieves the hooks suffix for a given class instance
+     *
+     * @since 0.9.0
+     * @param mixed $instance class instance to retrieve the suffix
+     * @return string
+     */
+    public static function getHooksSuffixFromClass($instance): string
+    {
+        $suffix = self::getClassNameInSnakeCase($instance);
+        return "fastendpoints_{$suffix}";
+    }
 }

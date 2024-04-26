@@ -20,6 +20,7 @@ use Tests\Wp\FastEndpoints\Helpers\Helpers;
 
 if (!class_exists('WP_Http')) {
 	class WP_Http {
+        const FORBIDDEN = 403;
 		const NOT_FOUND = 404;
 		const UNPROCESSABLE_ENTITY = 422;
 		const INTERNAL_SERVER_ERROR = 500;

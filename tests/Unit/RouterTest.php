@@ -34,7 +34,6 @@ beforeEach(function () {
 
 afterEach(function () {
     Monkey\tearDown();
-    Mockery::close();
     vfsStream::setup();
 });
 
@@ -113,19 +112,19 @@ test('Get router namespace', function (string $api, string $version) {
     $apiNamespace = 'my-api/v3';
     $router = new Router($api, $version);
     expect(Helpers::invokeNonPublicClassMethod($router, 'getNamespace'))->toBe($apiNamespace);
-    $this->assertSame(Filters\applied('wp_fastendpoints_router_namespace'), 1);
+    $this->assertSame(Filters\applied('fastendpoints_router_namespace'), 1);
     $subRouter = new Router('users', 'v87');
     expect(Helpers::invokeNonPublicClassMethod($subRouter, 'getNamespace'))->toBe('users/v87');
-    $this->assertSame(Filters\applied('wp_fastendpoints_router_namespace'), 2);
+    $this->assertSame(Filters\applied('fastendpoints_router_namespace'), 2);
     $router->includeRouter($subRouter);
     expect(Helpers::invokeNonPublicClassMethod($subRouter, 'getNamespace'))->toBe($apiNamespace);
-    $this->assertSame(Filters\applied('wp_fastendpoints_router_namespace'), 2);
+    $this->assertSame(Filters\applied('fastendpoints_router_namespace'), 2);
     $subSubRouter = new Router('myself', 'v100');
     expect(Helpers::invokeNonPublicClassMethod($subSubRouter, 'getNamespace'))->toBe('myself/v100');
-    $this->assertSame(Filters\applied('wp_fastendpoints_router_namespace'), 3);
+    $this->assertSame(Filters\applied('fastendpoints_router_namespace'), 3);
     $subRouter->includeRouter($subSubRouter);
     expect(Helpers::invokeNonPublicClassMethod($subSubRouter, 'getNamespace'))->toBe($apiNamespace);
-    $this->assertSame(Filters\applied('wp_fastendpoints_router_namespace'), 3);
+    $this->assertSame(Filters\applied('fastendpoints_router_namespace'), 3);
 })->with([
     ['my-api', 'v3'],
     ['my-api/', 'v3/'],
@@ -138,19 +137,19 @@ test('Get router namespace', function (string $api, string $version) {
 test('Get router REST path', function (string $api, string $version) {
     $router = new Router($api, $version);
     expect(Helpers::invokeNonPublicClassMethod($router, 'getRestBase'))->toBe('');
-    $this->assertSame(Filters\applied('wp_fastendpoints_router_rest_base'), 0);
+    $this->assertSame(Filters\applied('fastendpoints_router_rest_base'), 0);
     $subRouter = new Router('users', 'v87');
     expect(Helpers::invokeNonPublicClassMethod($subRouter, 'getRestBase'))->toBe('');
-    $this->assertSame(Filters\applied('wp_fastendpoints_router_rest_base'), 0);
+    $this->assertSame(Filters\applied('fastendpoints_router_rest_base'), 0);
     $router->includeRouter($subRouter);
     expect(Helpers::invokeNonPublicClassMethod($subRouter, 'getRestBase'))->toBe('users/v87');
-    $this->assertSame(Filters\applied('wp_fastendpoints_router_rest_base'), 1);
+    $this->assertSame(Filters\applied('fastendpoints_router_rest_base'), 1);
     $subSubRouter = new Router('myself', 'v100');
     expect(Helpers::invokeNonPublicClassMethod($subSubRouter, 'getRestBase'))->toBe('');
-    $this->assertSame(Filters\applied('wp_fastendpoints_router_rest_base'), 1);
+    $this->assertSame(Filters\applied('fastendpoints_router_rest_base'), 1);
     $subRouter->includeRouter($subSubRouter);
     expect(Helpers::invokeNonPublicClassMethod($subSubRouter, 'getRestBase'))->toBe('myself/v100');
-    $this->assertSame(Filters\applied('wp_fastendpoints_router_rest_base'), 2);
+    $this->assertSame(Filters\applied('fastendpoints_router_rest_base'), 2);
 })->with([
     ['my-api', 'v3'],
     ['my-api/', 'v3/'],
@@ -212,16 +211,16 @@ test('Register endpoints', function () {
 // Register router
 
 test('Skipping registering a router via hook', function () {
-    Filters\expectApplied('wp_fastendpoints_is_to_register')
+    Filters\expectApplied('fastendpoints_is_to_register')
         ->once()
         ->with(true, Mockery::type(Router::class))
         ->andReturn(false);
 
     $router = new Router();
     $router->register();
-    $this->assertSame(Filters\applied('wp_fastendpoints_is_to_register'), 1);
-    $this->assertSame(Actions\did('wp_fastendpoints_before_register'), 0);
-    $this->assertSame(Actions\did('wp_fastendpoints_after_register'), 0);
+    $this->assertSame(Filters\applied('fastendpoints_is_to_register'), 1);
+    $this->assertSame(Actions\did('fastendpoints_before_register'), 0);
+    $this->assertSame(Actions\did('fastendpoints_after_register'), 0);
     $this->assertFalse(has_action('rest_api_init', [$router, 'registerEndpoints']));
 })->group('router', 'register');
 
@@ -235,9 +234,9 @@ test('Register router with invalid base namespace', function () {
         $router->register();
     })->toThrow(Exception::class, 'No api namespace specified in the parent router');
 
-    $this->assertSame(Filters\applied('wp_fastendpoints_is_to_register'), 1);
-    $this->assertSame(Actions\did('wp_fastendpoints_before_register'), 0);
-    $this->assertSame(Actions\did('wp_fastendpoints_after_register'), 0);
+    $this->assertSame(Filters\applied('fastendpoints_is_to_register'), 1);
+    $this->assertSame(Actions\did('fastendpoints_before_register'), 0);
+    $this->assertSame(Actions\did('fastendpoints_after_register'), 0);
     $this->assertFalse(has_action('rest_api_init', [$router, 'registerEndpoints']));
 })->group('router', 'register');
 
@@ -251,9 +250,9 @@ test('Register router with invalid version', function () {
         $router->register();
     })->toThrow(Exception::class, 'No api version specified in the parent router');
 
-    $this->assertSame(Filters\applied('wp_fastendpoints_is_to_register'), 1);
-    $this->assertSame(Actions\did('wp_fastendpoints_before_register'), 0);
-    $this->assertSame(Actions\did('wp_fastendpoints_after_register'), 0);
+    $this->assertSame(Filters\applied('fastendpoints_is_to_register'), 1);
+    $this->assertSame(Actions\did('fastendpoints_before_register'), 0);
+    $this->assertSame(Actions\did('fastendpoints_after_register'), 0);
     $this->assertFalse(has_action('rest_api_init', [$router, 'registerEndpoints']));
 })->group('router', 'register');
 
@@ -270,9 +269,9 @@ test('Trying to register a sub-router first', function () {
     })->toThrow(Exception::class, 'You are trying to build a sub-router before building the parent router. \
 					Call the build() function on the parent router only!');
 
-    $this->assertSame(Filters\applied('wp_fastendpoints_is_to_register'), 1);
-    $this->assertSame(Actions\did('wp_fastendpoints_before_register'), 0);
-    $this->assertSame(Actions\did('wp_fastendpoints_after_register'), 0);
+    $this->assertSame(Filters\applied('fastendpoints_is_to_register'), 1);
+    $this->assertSame(Actions\did('fastendpoints_before_register'), 0);
+    $this->assertSame(Actions\did('fastendpoints_after_register'), 0);
     $this->assertFalse(has_action('rest_api_init', [$router, 'registerEndpoints']));
 })->group('router', 'register');
 
@@ -283,9 +282,9 @@ test('Register single router', function () {
     $router = new Router('api', 'v1');
     $router->register();
 
-    $this->assertSame(Filters\applied('wp_fastendpoints_is_to_register'), 1);
-    $this->assertSame(Actions\did('wp_fastendpoints_before_register'), 1);
-    $this->assertSame(Actions\did('wp_fastendpoints_after_register'), 1);
+    $this->assertSame(Filters\applied('fastendpoints_is_to_register'), 1);
+    $this->assertSame(Actions\did('fastendpoints_before_register'), 1);
+    $this->assertSame(Actions\did('fastendpoints_after_register'), 1);
 })->group('router', 'register');
 
 test('Register router with sub-routers mocks', function () {
@@ -311,9 +310,9 @@ test('Register router with sub-routers mocks', function () {
     Helpers::setNonPublicClassProperty($router, 'schemaDirs', ['fake-schema-dir', '/test-dir']);
     $router->register();
 
-    $this->assertSame(Filters\applied('wp_fastendpoints_is_to_register'), 1);
-    $this->assertSame(Actions\did('wp_fastendpoints_before_register'), 1);
-    $this->assertSame(Actions\did('wp_fastendpoints_after_register'), 1);
+    $this->assertSame(Filters\applied('fastendpoints_is_to_register'), 1);
+    $this->assertSame(Actions\did('fastendpoints_before_register'), 1);
+    $this->assertSame(Actions\did('fastendpoints_after_register'), 1);
 })->group('router', 'register');
 
 test('Register router with sub-routers', function () {
@@ -331,7 +330,7 @@ test('Register router with sub-routers', function () {
     $router->includeRouter($secondSubRouter);
     $router->register();
 
-    $this->assertSame(Filters\applied('wp_fastendpoints_is_to_register'), 3);
-    $this->assertSame(Actions\did('wp_fastendpoints_before_register'), 1);
-    $this->assertSame(Actions\did('wp_fastendpoints_after_register'), 1);
+    $this->assertSame(Filters\applied('fastendpoints_is_to_register'), 3);
+    $this->assertSame(Actions\did('fastendpoints_before_register'), 1);
+    $this->assertSame(Actions\did('fastendpoints_after_register'), 1);
 })->group('router', 'register');

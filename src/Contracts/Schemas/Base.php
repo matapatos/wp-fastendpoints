@@ -131,7 +131,8 @@ abstract class Base
 	protected function getSuffix(): string
 	{
 		$suffix = \basename(\str_replace('\\', '/', \get_class($this)));
-		return \ltrim(\strtolower(\preg_replace('/[A-Z]([A-Z](?![a-z]))*/', '_$0', $suffix)), '_');
+		$suffix = \ltrim(\strtolower(\preg_replace('/[A-Z]([A-Z](?![a-z]))*/', '_$0', $suffix)), '_');
+        return "fastendpoints_{$suffix}";
 	}
 
 	/**

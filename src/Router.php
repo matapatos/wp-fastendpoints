@@ -18,17 +18,15 @@ use Wp\FastEndpoints\Helpers\Arr;
 
 /**
  * A Router can help developers in creating groups of endpoints. This way developers can aggregate
- * closely related endpoints in the same router. Example:
+ * closely related endpoints in the same router. Example usage:
  *
- * ```php
- * $usersRouter = new Router('users');
- * $usersRouter->get(...); // Retrieve a user
- * $usersRouter->put(...); // Update a user
+ *      $usersRouter = new Router('users');
+ *      $usersRouter->get(...); // Retrieve a user
+ *      $usersRouter->put(...); // Update a user
  *
- * $postsRouter = new Router('posts');
- * $postsRouter->get(...); // Retrieve a post
- * $postsRouter->put(...); // Update a post
- * ```
+ *      $postsRouter = new Router('posts');
+ *      $postsRouter->get(...); // Retrieve a post
+ *      $postsRouter->put(...); // Update a post
  *
  * @since 0.9.0
  * @author André Gil <andre_gil22@hotmail.com>
@@ -239,7 +237,7 @@ class Router implements RouterContract
 	 */
 	public function register(): void
 	{
-		if (!\apply_filters('wp_fastendpoints_is_to_register', true, $this)) {
+		if (!\apply_filters('fastendpoints_is_to_register', true, $this)) {
 			return;
 		}
 
@@ -257,7 +255,7 @@ class Router implements RouterContract
 				\wp_die(\esc_html__('No api version specified in the parent router'));
 			}
 
-			\do_action('wp_fastendpoints_before_register', $this);
+			\do_action('fastendpoints_before_register', $this);
 		}
 
 		// Build current router endpoints.
@@ -272,7 +270,7 @@ class Router implements RouterContract
 		}
 
 		if (!$this->parent) {
-			\do_action('wp_fastendpoints_after_register', $this);
+			\do_action('fastendpoints_after_register', $this);
 		}
 	}
 
@@ -295,7 +293,7 @@ class Router implements RouterContract
 	/**
 	 * Retrieves the base router namespace for each endpoint
 	 *
-	 * @param bool $isToApplyFilters Flag used to ignore wp_fastendpoints filters
+	 * @param bool $isToApplyFilters Flag used to ignore fastendpoints filters
 	 * (i.e. this is needed to disable multiple calls to the filter given that it's a
 	 * recursive function). Default value: true.
 	 * @return string
@@ -317,7 +315,7 @@ class Router implements RouterContract
 			return $namespace;
 		}
 
-		return \apply_filters('wp_fastendpoints_router_namespace', $namespace, $this);
+		return \apply_filters('fastendpoints_router_namespace', $namespace, $this);
 	}
 
 	/**
@@ -338,7 +336,7 @@ class Router implements RouterContract
 			$restBase .= '/' . \trim($this->version, '/');
 		}
 
-		return \apply_filters('wp_fastendpoints_router_rest_base', $restBase, $this);
+		return \apply_filters('fastendpoints_router_rest_base', $restBase, $this);
 	}
 
 	/**

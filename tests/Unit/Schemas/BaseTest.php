@@ -43,7 +43,6 @@ beforeEach(function () {
 
 afterEach(function () {
     Monkey\tearDown();
-    Mockery::close();
     vfsStream::setup();
 });
 
@@ -84,7 +83,7 @@ test('Creating Response instance with an invalid $schema type', function (string
 test('Checking correct Response suffix', function (string $class) {
     $schema = new $class([]);
     $suffix = Helpers::invokeNonPublicClassMethod($schema, 'getSuffix');
-    $expectedSuffix = Helpers::getClassNameInSnakeCase($schema);
+    $expectedSuffix = Helpers::getHooksSuffixFromClass($schema);
     expect($suffix)->toBe($expectedSuffix);
 })->with('base_classes')->group('base', 'getSuffix');
 
@@ -102,7 +101,7 @@ test('Getting error', function (string $class) {
         ->with(Mockery::type(ValidationError::class))
         ->andReturn(['My error message'])
         ->getMock();
-    $className = Helpers::getClassNameInSnakeCase($schema);
+    $className = Helpers::getHooksSuffixFromClass($schema);
     Helpers::setNonPublicClassProperty($schema, 'errorFormatter', $mockedErrorFormatter);
     Filters\expectApplied($className . '_error')
         ->once()
@@ -113,7 +112,7 @@ test('Getting error', function (string $class) {
 
 // appendSchemaDir()
 
-test('Passing invalid schema directories to appendSchemaDir()', function (string $class, $invalidDirectories, string $expectedErrorMessage) {
+test('Passing invalid schema directories to appendSchemaDir', function (string $class, $invalidDirectories, string $expectedErrorMessage) {
     Functions\when('esc_html__')->returnArg();
     Functions\when('esc_html')->returnArg();
     $schema = new $class([]);
@@ -134,7 +133,7 @@ test('Passing invalid schema directories to appendSchemaDir()', function (string
     [['fake', '/fake/ups'], 'Schema directory not found: fake'],
 ])->group('base', 'appendSchemaDir');
 
-test('Passing both valid and invalid schema directories to appendSchemaDir()', function (string $class, ...$invalidDirectories) {
+test('Passing both valid and invalid schema directories to appendSchemaDir', function (string $class, ...$invalidDirectories) {
     Functions\when('esc_html__')->returnArg();
     Functions\when('esc_html')->returnArg();
     $schema = new $class([]);
@@ -148,7 +147,7 @@ test('Passing both valid and invalid schema directories to appendSchemaDir()', f
     ['valid', 'invalid'], ['fake', 'fake/ups'], ['yup', 'true', 'yes'],
 ])->group('base', 'appendSchemaDir');
 
-test('Passing a valid schema directories to appendSchemaDir()', function (string $class, ...$validDirectories) {
+test('Passing a valid schema directories to appendSchemaDir', function (string $class, ...$validDirectories) {
     $cache = new FileSystemCache();
     $validDirectories = $cache->touchDirectories($validDirectories);
 
@@ -215,7 +214,7 @@ test('getContents retrieves correct schema', function (string $class, $schema, $
         $schema = $expectedContents;
     }
     $schema = new $class($schema);
-    $suffix = Helpers::getClassNameInSnakeCase($schema);
+    $suffix = Helpers::getHooksSuffixFromClass($schema);
     Filters\expectApplied($suffix . '_contents')
         ->once()
         ->with($expectedContents, $schema);
@@ -237,7 +236,7 @@ test('getContents retrieves correct schema', function (string $class, $schema, $
 test('Getting schema that has been already loaded', function (string $class, $schema) {
     $expectedContents = Helpers::loadSchema(\SCHEMAS_DIR . $schema);
     $schema = new $class([]);
-    $suffix = Helpers::getClassNameInSnakeCase($schema);
+    $suffix = Helpers::getHooksSuffixFromClass($schema);
     Helpers::setNonPublicClassProperty($schema, 'contents', $expectedContents);
     Filters\expectApplied($suffix . '_contents')
         ->once()
@@ -257,7 +256,7 @@ test('Trying to load invalid json', function (string $class, $schemaFilepath) {
         return $path1 . '/' . $path2;
     });
     $schema = new $class($schemaFilepath);
-    $suffix = Helpers::getClassNameInSnakeCase($schema);
+    $suffix = Helpers::getHooksSuffixFromClass($schema);
     $schema->appendSchemaDir(\SCHEMAS_DIR);
     expect(function () use ($schema) {
         $schema->getContents();
@@ -282,7 +281,7 @@ test('Failed to load file contents', function (string $class) {
         ->shouldReceive('getFileContents')
         ->andReturn(false)
         ->getMock();
-    $suffix = Helpers::getClassNameInSnakeCase($class);
+    $suffix = Helpers::getHooksSuffixFromClass($class);
 
     expect(function () use ($mockedSchema) {
         $mockedSchema->getContents();

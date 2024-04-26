@@ -45,7 +45,7 @@ class RemoveAdditionalPropertiesKeywordParser extends AdditionalPropertiesKeywor
 		$value = $this->keywordValue($schema);
 
 		if (!\is_bool($value) && !\is_object($value)) {
-			throw $this->keywordException(\esc_html__("{keyword} must be a json schema (object or boolean)"), $info);
+			throw $this->keywordException(sprintf(\esc_html__("{keyword} must be either an object or boolean but '%s' given"), gettype($value)), $info);
 		}
 
 		return new RemoveAdditionalPropertiesKeyword($value);
