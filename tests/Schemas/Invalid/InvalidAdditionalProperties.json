@@ -1,0 +1,17 @@
+{
+  "type": "object",
+  "properties": {
+    "data": {
+      "type": "object",
+      "properties": {
+        "user_email": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "additionalProperties": "invalid",
+  "required": [
+    "data"
+  ]
+}
