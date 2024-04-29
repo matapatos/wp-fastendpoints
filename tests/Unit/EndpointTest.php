@@ -5,7 +5,6 @@
  *
  * @since 1.0.0
  *
- * @package wp-fastendpoints
  * @license MIT
  */
 
@@ -13,23 +12,17 @@ declare(strict_types=1);
 
 namespace Tests\Wp\FastEndpoints\Unit\Schemas;
 
+use Brain\Monkey;
+use Brain\Monkey\Filters;
+use Brain\Monkey\Functions;
 use Exception;
-use Illuminate\Support\Facades\Route;
 use Mockery;
 use org\bovigo\vfs\vfsStream;
-use PHPUnit\Util\Filter;
 use Tests\Wp\FastEndpoints\Helpers\Helpers;
-use TypeError;
 use Wp\FastEndpoints\Endpoint;
 use Wp\FastEndpoints\Helpers\WpError;
-use Wp\FastEndpoints\Router;
-use Brain\Monkey;
-use Brain\Monkey\Functions;
-use Brain\Monkey\Actions;
-use Brain\Monkey\Filters;
 use Wp\FastEndpoints\Schemas\Response;
 use Wp\FastEndpoints\Schemas\Schema;
-use function PHPUnit\Framework\assertFalse;
 
 beforeEach(function () {
     Monkey\setUp();
@@ -39,7 +32,6 @@ afterEach(function () {
     Monkey\tearDown();
     vfsStream::setup();
 });
-
 
 // Constructor
 
@@ -59,10 +51,10 @@ test('Creating Endpoint instance', function () {
 test('Registering an endpoint', function (bool $withSchema, bool $withResponseSchema, $permissionCallback) {
     $endpoint = new Endpoint('GET', '/my-endpoint', '__return_false', ['my-custom-arg' => true], false);
     $expectedArgs = [
-        'methods'               => 'GET',
-        'callback'              => [$endpoint, 'callback'],
-        'permission_callback'   => '__return_true',
-        'my-custom-arg'         => true
+        'methods' => 'GET',
+        'callback' => [$endpoint, 'callback'],
+        'permission_callback' => '__return_true',
+        'my-custom-arg' => true,
     ];
     expect($endpoint->schema)->toBeNull()
         ->and($endpoint->responseSchema)->toBeNull();
@@ -81,7 +73,7 @@ test('Registering an endpoint', function (bool $withSchema, bool $withResponseSc
             ->getMock();
         Helpers::setNonPublicClassProperty($endpoint, 'responseSchema', $mockedResponseSchema);
     }
-    if (!is_null($permissionCallback)) {
+    if (! is_null($permissionCallback)) {
         $endpoint->permission($permissionCallback);
         $expectedArgs['permission_callback'] = [$endpoint, 'permissionCallback'];
     }
@@ -90,6 +82,7 @@ test('Registering an endpoint', function (bool $withSchema, bool $withResponseSc
         ->with(Mockery::any(), 'my-namespace', 'v1/users', $endpoint)
         ->andReturnUsing(function ($givenArgs, $givenNamespace, $givenBase, $givenEndpoint) use ($expectedArgs) {
             expect($givenArgs)->toMatchArray($expectedArgs);
+
             return $givenArgs;
         });
     Functions\expect('register_rest_route')
@@ -97,6 +90,7 @@ test('Registering an endpoint', function (bool $withSchema, bool $withResponseSc
         ->with('my-namespace', 'v1/users/my-endpoint', Mockery::any(), false)
         ->andReturnUsing(function ($givenNamespace, $givenBase, $givenArgs, $givenOverride) use ($expectedArgs) {
             expect($givenArgs)->toMatchArray($expectedArgs);
+
             return true;
         });
     expect($endpoint->register('my-namespace', 'v1/users', ['my-schema-dir']))->toBeTrue();
@@ -125,8 +119,9 @@ test('User with valid permissions', function ($capability) {
     $mockedRequest = Mockery::mock(\WP_REST_Request::class);
     $expectedParams = [];
     foreach ($allCaps as $cap) {
-        if (!is_string($cap) || !str_starts_with($cap, '{')) {
+        if (! is_string($cap) || ! str_starts_with($cap, '{')) {
             $expectedParams[] = $cap;
+
             continue;
         }
 
@@ -136,9 +131,10 @@ test('User with valid permissions', function ($capability) {
             ->shouldReceive('has_param')
             ->once()
             ->with($paramName)
-            ->andReturn(!$isArgumentMissing);
+            ->andReturn(! $isArgumentMissing);
         if ($isArgumentMissing) {
             $expectedParams[] = $cap;
+
             continue;
         }
         $mockedRequest
@@ -146,9 +142,9 @@ test('User with valid permissions', function ($capability) {
             ->once()
             ->with($paramName)
             ->andReturnUsing(function ($paramName) {
-                return 'req_' . $paramName;
+                return 'req_'.$paramName;
             });
-        $expectedParams[] = 'req_' . $paramName;
+        $expectedParams[] = 'req_'.$paramName;
     }
     Functions\expect('current_user_can')
         ->once()
@@ -158,7 +154,7 @@ test('User with valid permissions', function ($capability) {
 })->with([
     'create_users', [['edit_plugins', 'delete_plugins', 98]],
     '{custom_capability}', [['create_users', '{post_id}', '{another_var}', false]],
-    '{argument-missing}'
+    '{argument-missing}',
 ])->group('endpoint', 'hasCap');
 
 test('User not having enough permissions', function ($capability) {
@@ -172,8 +168,9 @@ test('User not having enough permissions', function ($capability) {
     $mockedRequest = Mockery::mock(\WP_REST_Request::class);
     $expectedParams = [];
     foreach ($allCaps as $cap) {
-        if (!str_starts_with($cap, '{')) {
+        if (! str_starts_with($cap, '{')) {
             $expectedParams[] = $cap;
+
             continue;
         }
 
@@ -183,9 +180,10 @@ test('User not having enough permissions', function ($capability) {
             ->shouldReceive('has_param')
             ->once()
             ->with($paramName)
-            ->andReturn(!$isArgumentMissing);
+            ->andReturn(! $isArgumentMissing);
         if ($isArgumentMissing) {
             $expectedParams[] = $cap;
+
             continue;
         }
 
@@ -194,9 +192,9 @@ test('User not having enough permissions', function ($capability) {
             ->once()
             ->with($paramName)
             ->andReturnUsing(function ($paramName) {
-                return 'req_' . $paramName;
+                return 'req_'.$paramName;
             });
-        $expectedParams[] = 'req_' . $paramName;
+        $expectedParams[] = 'req_'.$paramName;
     }
     Functions\expect('current_user_can')
         ->once()
@@ -210,7 +208,7 @@ test('User not having enough permissions', function ($capability) {
 })->with([
     'create_users', [['edit_plugins', 'delete_plugins']],
     '{custom_capability}', [['create_users', '{post_id}', '{another_var}']],
-    [['create_users', '{post_id}', '{argument-missing}']]
+    [['create_users', '{post_id}', '{argument-missing}']],
 ])->group('endpoint', 'hasCap');
 
 test('Missing capability', function ($capability) {
@@ -219,7 +217,7 @@ test('Missing capability', function ($capability) {
         throw new \Exception($msg);
     });
     $endpoint = new Endpoint('GET', '/my-endpoint', '__return_false', ['my-custom-arg' => true], false);
-    expect(function() use ($endpoint, $capability) {
+    expect(function () use ($endpoint, $capability) {
         $endpoint->hasCap($capability);
     })->toThrow(Exception::class, 'Invalid capability. Empty capability given')
         ->and(Helpers::getNonPublicClassProperty($endpoint, 'permissionHandlers'))->toBeEmpty();
@@ -239,7 +237,7 @@ test('Adding request validation schema', function ($schema) {
     expect($validationHandlers)
         ->toHaveCount(1)
         ->and($validationHandlers[13])->toHaveCount(1)
-            ->and($validationHandlers[13][0])->toMatchArray([$endpoint->schema, 'validate']);
+        ->and($validationHandlers[13][0])->toMatchArray([$endpoint->schema, 'validate']);
 })->with([[['my-schema']], 'Basics/Array.json'])->group('endpoint', 'schema');
 
 // returns
@@ -262,7 +260,9 @@ test('Adding response validation schema', function ($schema) {
 // middleware
 
 test('Adding middleware before handling request', function () {
-    $middleware = function() {return true;};
+    $middleware = function () {
+        return true;
+    };
     $endpoint = new Endpoint('GET', '/my-endpoint', '__return_false', ['my-custom-arg' => true], false);
     expect(Helpers::getNonPublicClassProperty($endpoint, 'middlewareHandlers'))->toBeEmpty();
     $endpoint->middleware($middleware, 16);
@@ -275,7 +275,9 @@ test('Adding middleware before handling request', function () {
 // permission
 
 test('Adding permission callable', function () {
-    $permissionCallable = function() {return true;};
+    $permissionCallable = function () {
+        return true;
+    };
     $endpoint = new Endpoint('GET', '/my-endpoint', '__return_false', ['my-custom-arg' => true], false);
     expect(Helpers::getNonPublicClassProperty($endpoint, 'permissionHandlers'))->toBeEmpty();
     $endpoint->permission($permissionCallable, 5);
@@ -312,18 +314,26 @@ test('Endpoint request handler', function (bool $hasValidationCb, bool $hasMiddl
         ->once()
         ->with('my-response')
         ->andReturnFirstArg();
-    $endpoint = new Endpoint('GET', '/my-endpoint', function () {return 'my-response';}, ['my-custom-arg' => true], true);
+    $endpoint = new Endpoint('GET', '/my-endpoint', function () {
+        return 'my-response';
+    }, ['my-custom-arg' => true], true);
     $req = Mockery::mock(\WP_REST_Request::class);
     if ($hasValidationCb) {
-        $validationCallers = [10 => [function($req) {return false;}]];
+        $validationCallers = [10 => [function ($req) {
+            return false;
+        }]];
         Helpers::setNonPublicClassProperty($endpoint, 'validationHandlers', $validationCallers);
     }
     if ($hasMiddlewareCb) {
-        $middlewareCallers = [10 => [function($req) {return 123;}]];
+        $middlewareCallers = [10 => [function ($req) {
+            return 123;
+        }]];
         Helpers::setNonPublicClassProperty($endpoint, 'middlewareHandlers', $middlewareCallers);
     }
     if ($hasOnResponseCb) {
-        $onResponseCallers = [10 => [function($req, $result) {return $result;}]];
+        $onResponseCallers = [10 => [function ($req, $result) {
+            return $result;
+        }]];
         Helpers::setNonPublicClassProperty($endpoint, 'postHandlers', $onResponseCallers);
     }
     expect($endpoint->callback($req))->toBe('my-response');
@@ -336,15 +346,15 @@ test('Handling request and a WpError is returned', function ($validationReturnVa
         return is_string($handlerReturnVal) ? new $handlerReturnVal(123, 'my-error-msg') : $handlerReturnVal;
     }, ['my-custom-arg' => true], true);
     $req = Mockery::mock(\WP_REST_Request::class);
-    $validationCallers = [10 => [function($req) use ($validationReturnVal) {
+    $validationCallers = [10 => [function ($req) use ($validationReturnVal) {
         return is_string($validationReturnVal) ? new $validationReturnVal(123, 'my-error-msg') : $validationReturnVal;
     }]];
     Helpers::setNonPublicClassProperty($endpoint, 'validationHandlers', $validationCallers);
-    $middlewareCallers = [10 => [function($req) use ($middlewareReturnVal) {
+    $middlewareCallers = [10 => [function ($req) use ($middlewareReturnVal) {
         return is_string($middlewareReturnVal) ? new $middlewareReturnVal(123, 'my-error-msg') : $middlewareReturnVal;
     }]];
     Helpers::setNonPublicClassProperty($endpoint, 'middlewareHandlers', $middlewareCallers);
-    $onResponseCallers = [10 => [function($req, $result) use ($responseReturnVal) {
+    $onResponseCallers = [10 => [function ($req, $result) use ($responseReturnVal) {
         return is_string($responseReturnVal) ? new $responseReturnVal(123, 'my-error-msg') : $responseReturnVal;
     }]];
     Helpers::setNonPublicClassProperty($endpoint, 'postHandlers', $onResponseCallers);
@@ -352,12 +362,12 @@ test('Handling request and a WpError is returned', function ($validationReturnVa
         ->toBeInstanceOf(WpError::class)
         ->toHaveProperty('code', 123)
         ->toHaveProperty('message', 'my-error-msg')
-        ->toHaveProperty('data', ['status' => 123]);;
+        ->toHaveProperty('data', ['status' => 123]);
 })->with([
     [WpError::class, true, true, true],
     [true, WpError::class, true, true],
     [true, true, WpError::class, true],
-    [true, true, true, WpError::class]
+    [true, true, true, WpError::class],
 ])->group('endpoint', 'callback');
 
 // getRoute
@@ -376,5 +386,3 @@ test('Getting endpoint route', function (string $route, string $expectedRoute) {
     ['hello', '/my-base/hello'],
     ['hello/another', '/my-base/hello/another'],
 ])->group('endpoint', 'getRoute');
-
-

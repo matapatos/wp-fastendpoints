@@ -4,7 +4,7 @@
  * Holds array helper functions
  *
  * @since 0.9.0
- * @package wp-fastendpoints
+ *
  * @license MIT
  */
 
@@ -16,63 +16,67 @@ namespace Wp\FastEndpoints\Helpers;
  * Class that holds array helper functions
  *
  * @since 0.9.0
+ *
  * @author André Gil <andre_gil22@hotmail.com>
  */
 class Arr
 {
-	/**
-	 * Checks if the given array is an associative array.
-	 *
-	 * @version 0.9.0
-	 * @param array $array Array to be checked.
-	 * @return bool true if it seems an associative array or false otherwise.
-	 */
-	public static function isAssoc(array $array): bool
-	{
-		$keys = \array_keys($array);
-		return $keys !== \array_keys($keys);
-	}
+    /**
+     * Checks if the given array is an associative array.
+     *
+     * @version 0.9.0
+     *
+     * @param  array  $array  Array to be checked.
+     * @return bool true if it seems an associative array or false otherwise.
+     */
+    public static function isAssoc(array $array): bool
+    {
+        $keys = \array_keys($array);
 
-	/**
-	 * Wraps a variable as an array
-	 *
-	 * @since 0.9.0
-	 * @param mixed $value The variable to be wrapped as an array.
-	 * @return array
-	 */
-	public static function wrap($value): array
-	{
-		if (!\is_array($value)) {
-			$value = [$value];
-		}
-		return $value;
-	}
+        return $keys !== \array_keys($keys);
+    }
 
-	/**
-	 * Recursively search for a key and value in an array
-	 *
-	 * @param array $haystack Array to be searched for.
-	 * @param string|int $searchKey The key to search for.
-	 * @param mixed $searchValue The value to search for.
-	 * @param mixed $path The paths to each index found.
-	 * @param mixed $currentIndex The current index.
-	 * @return array<array<string|int>> An array of found indexes.
-	 */
-	public static function recursiveKeyValueSearch(array $haystack, $searchKey, $searchValue, array $path = [], array $currentIndex = []): array
-	{
-	    foreach ($haystack as $key => $item) {
-	        if ($key == $searchKey && $item == $searchValue) {
-	            $path[] = $currentIndex;
-	        }
+    /**
+     * Wraps a variable as an array
+     *
+     * @since 0.9.0
+     *
+     * @param  mixed  $value  The variable to be wrapped as an array.
+     */
+    public static function wrap($value): array
+    {
+        if (! \is_array($value)) {
+            $value = [$value];
+        }
 
-	        if (!is_array($item)) {
-	            continue;
-	        }
+        return $value;
+    }
 
-	        $currentIndex[] = $key;
-	        $path = self::recursiveKeyValueSearch($item, $searchKey, $searchValue, $path, $currentIndex);
-	    }
+    /**
+     * Recursively search for a key and value in an array
+     *
+     * @param  array  $haystack  Array to be searched for.
+     * @param  string|int  $searchKey  The key to search for.
+     * @param  mixed  $searchValue  The value to search for.
+     * @param  mixed  $path  The paths to each index found.
+     * @param  mixed  $currentIndex  The current index.
+     * @return array<array<string|int>> An array of found indexes.
+     */
+    public static function recursiveKeyValueSearch(array $haystack, $searchKey, $searchValue, array $path = [], array $currentIndex = []): array
+    {
+        foreach ($haystack as $key => $item) {
+            if ($key == $searchKey && $item == $searchValue) {
+                $path[] = $currentIndex;
+            }
 
-	    return $path;
-	}
+            if (! is_array($item)) {
+                continue;
+            }
+
+            $currentIndex[] = $key;
+            $path = self::recursiveKeyValueSearch($item, $searchKey, $searchValue, $path, $currentIndex);
+        }
+
+        return $path;
+    }
 }

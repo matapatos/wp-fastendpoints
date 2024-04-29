@@ -5,7 +5,6 @@
  *
  * @since 0.9.0
  *
- * @package wp-fastendpoints
  * @license MIT
  */
 
@@ -13,22 +12,14 @@ declare(strict_types=1);
 
 namespace Tests\Wp\FastEndpoints\Unit\Schemas;
 
-use Exception;
-use Opis\JsonSchema\Errors\ErrorFormatter;
-use Opis\JsonSchema\Errors\ValidationError;
+use Brain\Monkey;
+use Brain\Monkey\Filters;
+use Brain\Monkey\Functions;
+use Mockery;
 use Opis\JsonSchema\ValidationResult;
 use Opis\JsonSchema\Validator;
-use TypeError;
-use Mockery;
 use org\bovigo\vfs\vfsStream;
-use Illuminate\Support\Str;
-use Brain\Monkey;
-use Brain\Monkey\Functions;
-use Brain\Monkey\Actions;
-use Brain\Monkey\Filters;
-
 use Tests\Wp\FastEndpoints\Helpers\Helpers;
-use Tests\Wp\FastEndpoints\Helpers\FileSystemCache;
 use Tests\Wp\FastEndpoints\Helpers\LoadSchema;
 use Wp\FastEndpoints\Helpers\WpError;
 use Wp\FastEndpoints\Schemas\Schema;
@@ -47,9 +38,9 @@ afterEach(function () {
 test('validate valid parameters', function ($loadSchemaFrom) {
     $schema = 'Users/Get';
     Functions\when('path_join')->alias(function ($path1, $path2) {
-        return $path1 . '/' . $path2;
+        return $path1.'/'.$path2;
     });
-    $expectedContents = Helpers::loadSchema(\SCHEMAS_DIR . $schema);
+    $expectedContents = Helpers::loadSchema(\SCHEMAS_DIR.$schema);
     if ($loadSchemaFrom == LoadSchema::FromArray) {
         $schema = $expectedContents;
     }
@@ -58,8 +49,8 @@ test('validate valid parameters', function ($loadSchemaFrom) {
     $user = [
         'data' => [
             'user_email' => 'fake@wp-fastendpoints.com',
-            "user_url" => "https://www.wpfastendpoints.com/wp",
-            "display_name" => "André Gil",
+            'user_url' => 'https://www.wpfastendpoints.com/wp',
+            'display_name' => 'André Gil',
         ],
     ];
     $req = Mockery::mock('WP_REST_Request');
@@ -88,9 +79,9 @@ test('validate invalid parameters', function ($loadSchemaFrom) {
     $schema = 'Users/Get';
     Functions\when('esc_html__')->returnArg();
     Functions\when('path_join')->alias(function ($path1, $path2) {
-        return $path1 . '/' . $path2;
+        return $path1.'/'.$path2;
     });
-    $expectedContents = Helpers::loadSchema(\SCHEMAS_DIR . $schema);
+    $expectedContents = Helpers::loadSchema(\SCHEMAS_DIR.$schema);
     if ($loadSchemaFrom == LoadSchema::FromArray) {
         $schema = $expectedContents;
     }
@@ -130,7 +121,7 @@ test('validate invalid parameters', function ($loadSchemaFrom) {
 
 test('validate invalid schema', function () {
     Functions\when('esc_html__')->returnArg();
-    $schema = new Schema(["type" => "invalid"]);
+    $schema = new Schema(['type' => 'invalid']);
     $schema->appendSchemaDir(\SCHEMAS_DIR);
     $user = [
         'data' => [

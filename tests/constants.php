@@ -1,3 +1,3 @@
 <?php
 
-define('SCHEMAS_DIR', __DIR__ . '/Schemas/');
+define('SCHEMAS_DIR', __DIR__.'/Schemas/');

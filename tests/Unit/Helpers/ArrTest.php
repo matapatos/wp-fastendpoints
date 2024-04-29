@@ -5,7 +5,6 @@
  *
  * @since 0.9.0
  *
- * @package wp-fastendpoints
  * @license MIT
  */
 
@@ -13,21 +12,11 @@ declare(strict_types=1);
 
 namespace Tests\Wp\FastEndpoints\Unit\Schemas;
 
-use Exception;
-use Illuminate\Support\Facades\Route;
+use Brain\Monkey;
 use Mockery;
 use org\bovigo\vfs\vfsStream;
-use PHPUnit\Util\Filter;
 use Tests\Wp\FastEndpoints\Helpers\Helpers;
-use TypeError;
-use Wp\FastEndpoints\Endpoint;
 use Wp\FastEndpoints\Helpers\Arr;
-use Wp\FastEndpoints\Router;
-use Brain\Monkey;
-use Brain\Monkey\Functions;
-use Brain\Monkey\Actions;
-use Brain\Monkey\Filters;
-use function PHPUnit\Framework\assertFalse;
 
 beforeEach(function () {
     Monkey\setUp();
@@ -56,13 +45,13 @@ test('Wrapping values', function ($value) {
     null,
     'hello',
     ['test', 'nope'],
-    ['first' => 1, 'second' => 2]
+    ['first' => 1, 'second' => 2],
 ])->group('helpers', 'arr', 'wrap');
 
 // Recursive key value search
 
 test('Recursive search of key and value', function ($schema, $key, $value, $expectedResult) {
-    $schema = Helpers::loadSchema(\SCHEMAS_DIR . $schema);
+    $schema = Helpers::loadSchema(\SCHEMAS_DIR.$schema);
     expect(Arr::recursiveKeyValueSearch($schema, $key, $value))
         ->toBe($expectedResult);
 })->with([
@@ -86,13 +75,13 @@ test('Valid associative arrays', function ($value) {
 })->with([
     [['first' => 1, 'second' => 2]],
     [[1 => 'a', 2 => 'b']],
-    [['ok' => 'ok']]
+    [['ok' => 'ok']],
 ])->group('helpers', 'arr', 'isAssoc');
 
 test('Non associative arrays', function ($value) {
     expect(Arr::isAssoc($value))->toBeFalse();
 })->with([
-    [[1,2,3,4]],
+    [[1, 2, 3, 4]],
     [['ao']],
-    [[]]
+    [[]],
 ])->group('helpers', 'arr', 'isAssoc');

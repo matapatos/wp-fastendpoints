@@ -25,7 +25,7 @@
 			<directory suffix=".php">./src</directory>
 		</include>
 		<report>
-			<clover outputFile="tests/coverage/clover.xml"/>
+			<clover outputFile="tests/coverage/fastendpoints.xml"/>
 			<html outputDirectory="tests/coverage/html" lowUpperBound="50" highLowerBound="90"/>
 		</report>
 	</coverage>

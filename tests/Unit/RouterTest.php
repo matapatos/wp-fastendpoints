@@ -5,7 +5,6 @@
  *
  * @since 0.9.0
  *
- * @package wp-fastendpoints
  * @license MIT
  */
 
@@ -13,20 +12,17 @@ declare(strict_types=1);
 
 namespace Tests\Wp\FastEndpoints\Unit\Schemas;
 
+use Brain\Monkey;
+use Brain\Monkey\Actions;
+use Brain\Monkey\Filters;
+use Brain\Monkey\Functions;
 use Exception;
-use Illuminate\Support\Facades\Route;
 use Mockery;
 use org\bovigo\vfs\vfsStream;
-use PHPUnit\Util\Filter;
 use Tests\Wp\FastEndpoints\Helpers\Helpers;
 use TypeError;
 use Wp\FastEndpoints\Endpoint;
 use Wp\FastEndpoints\Router;
-use Brain\Monkey;
-use Brain\Monkey\Functions;
-use Brain\Monkey\Actions;
-use Brain\Monkey\Filters;
-use function PHPUnit\Framework\assertFalse;
 
 beforeEach(function () {
     Monkey\setUp();
@@ -70,12 +66,12 @@ test('Creating a Router instance with invalid parameters', function ($api, $vers
 test('Create a REST endpoint', function (string $method, string $api, string $version, string $route, ?array $args = [], $override = false) {
     $router = new Router($api, $version);
     $endpoint = $router->{strtolower($method)}($route, function ($request) {
-        return "endpoint-success";
+        return 'endpoint-success';
     }, $args, $override);
     expect($endpoint)->toBeInstanceOf(Endpoint::class)
         ->and(Helpers::getNonPublicClassProperty($endpoint, 'method'))->toBe($method)
         ->and(Helpers::getNonPublicClassProperty($endpoint, 'route'))->toBe($route)
-        ->and(Helpers::getNonPublicClassProperty($endpoint, 'handler')(null))->toBe("endpoint-success")
+        ->and(Helpers::getNonPublicClassProperty($endpoint, 'handler')(null))->toBe('endpoint-success')
         ->and(Helpers::getNonPublicClassProperty($endpoint, 'args'))->toBe($args)
         ->and(Helpers::getNonPublicClassProperty($endpoint, 'override'))->toBe($override)
         ->and(Helpers::getNonPublicClassProperty($router, 'endpoints'))->toMatchArray([$endpoint]);
@@ -91,14 +87,14 @@ test('Create a REST endpoint', function (string $method, string $api, string $ve
 test('Include sub-routers', function () {
     $mainRouter = new Router('my-api', 'v1');
     $readyzEndpoint = $mainRouter->get('readyz', function ($request) {
-        return "I am ready";
+        return 'I am ready';
     });
     $usersRouter = new Router('users');
     $user123Endpoint = $usersRouter->get('123', function ($request) {
-        return "User id: 123";
+        return 'User id: 123';
     });
     $currentUserEndpoint = $usersRouter->get('current-user', function ($request) {
-        return "Current user";
+        return 'Current user';
     });
     $mainRouter->includeRouter($usersRouter);
     expect(Helpers::getNonPublicClassProperty($mainRouter, 'endpoints'))->toMatchArray([$readyzEndpoint])
@@ -178,7 +174,7 @@ test('Append invalid schema directories', function ($invalidDir, $errorMessage) 
     ['', 'Invalid schema directory'],
     [[true], 'Expected a directory as a string but got: boolean'],
     ['/invalid', 'Schema directory not found: /invalid'],
-    [__FILE__, 'Expected a directory with schemas but got a file: ' . __FILE__],
+    [__FILE__, 'Expected a directory with schemas but got a file: '.__FILE__],
 ])->group('router', 'appendSchemaDir');
 
 test('Append schema directories', function ($dir) {
@@ -186,7 +182,7 @@ test('Append schema directories', function ($dir) {
     expect(Helpers::getNonPublicClassProperty($router, 'schemaDirs'))->toBe([]);
     $router->appendSchemaDir($dir);
     expect(Helpers::getNonPublicClassProperty($router, 'schemaDirs'))->toBe([$dir]);
-})->with([dirname(__FILE__), dirname(__FILE__) . '/../Schemas'])->group('router', 'appendSchemaDir');
+})->with([dirname(__FILE__), dirname(__FILE__).'/../Schemas'])->group('router', 'appendSchemaDir');
 
 // Register endpoints
 
@@ -230,7 +226,7 @@ test('Register router with invalid base namespace', function () {
         throw new Exception($msg);
     });
     $router = new Router('');
-    expect(function() use ($router) {
+    expect(function () use ($router) {
         $router->register();
     })->toThrow(Exception::class, 'No api namespace specified in the parent router');
 
@@ -246,7 +242,7 @@ test('Register router with invalid version', function () {
         throw new Exception($msg);
     });
     $router = new Router();
-    expect(function() use ($router) {
+    expect(function () use ($router) {
         $router->register();
     })->toThrow(Exception::class, 'No api version specified in the parent router');
 
@@ -262,9 +258,9 @@ test('Trying to register a sub-router first', function () {
         throw new Exception($msg);
     });
     $router = new Router('api', 'v1');
-    $subRouter = new Router('sub-api' );
+    $subRouter = new Router('sub-api');
     $router->includeRouter($subRouter);
-    expect(function() use ($subRouter) {
+    expect(function () use ($subRouter) {
         $subRouter->register();
     })->toThrow(Exception::class, 'You are trying to build a sub-router before building the parent router. \
 					Call the build() function on the parent router only!');

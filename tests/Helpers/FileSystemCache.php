@@ -18,11 +18,12 @@ class FileSystemCache
      */
     private string $dir;
 
-    public function __construct() {
+    public function __construct()
+    {
         $name = uniqid('tests-');
-        $this->dir = sys_get_temp_dir() . \DIRECTORY_SEPARATOR . $name;
+        $this->dir = sys_get_temp_dir().\DIRECTORY_SEPARATOR.$name;
 
-        if (!file_exists($this->dir)) {
+        if (! file_exists($this->dir)) {
             mkdir($this->dir, 0700, true);
         }
     }
@@ -30,15 +31,16 @@ class FileSystemCache
     /**
      * Retrieves all fullpaths of the given files/directories regarding the caching directory
      *
-     * @param array<string> $filepaths - The files/directories in question.
+     * @param  array<string>  $filepaths  - The files/directories in question.
      * @return array<string>
-     */ 
+     */
     public function getFilepaths(array $filepaths): array
     {
         $fullpaths = [];
         foreach ($filepaths as $filepath) {
             $fullpaths[] = $this->getFullpath($filepath);
         }
+
         return $fullpaths;
     }
 
@@ -46,20 +48,22 @@ class FileSystemCache
      * Retrieves the fullpath of a given file/directory regarding the caching directory
      *
      * @since 0.9.0
-     * @param string $filename - The filename in question.
-     * @return string
+     *
+     * @param  string  $filename  - The filename in question.
      */
     public function getFullpath(string $filename): string
     {
-        return $this->dir . \DIRECTORY_SEPARATOR . $filename;
+        return $this->dir.\DIRECTORY_SEPARATOR.$filename;
     }
 
     /**
      * Creates a multiple directories inside the root caching directory.
      *
      * @since 0.9.0
+     *
      * @uses touchDirectory
-     * @param array<string> $directories - An array of directories to be created.
+     *
+     * @param  array<string>  $directories  - An array of directories to be created.
      * @return array<string>
      */
     public function touchDirectories(array $directories): array
@@ -68,6 +72,7 @@ class FileSystemCache
         foreach ($directories as $dir) {
             $fullpathDirectories[] = $this->touchDirectory($dir);
         }
+
         return $fullpathDirectories;
     }
 
@@ -75,8 +80,8 @@ class FileSystemCache
      * Creates a recusive directory inside the root caching directory.
      *
      * @since 0.9.0
-     * @param string $directoryName - The name of the directory to be created.
-     * @return string
+     *
+     * @param  string  $directoryName  - The name of the directory to be created.
      */
     public function touchDirectory(string $directoryName): string
     {
@@ -86,6 +91,7 @@ class FileSystemCache
         }
 
         mkdir($fullpath, 0700, true);
+
         return $fullpath;
     }
 
@@ -93,8 +99,9 @@ class FileSystemCache
      * Saves data to a file inside the caching directory
      *
      * @since 0.9.0
-     * @param string $filename - The filename of the file to be stored.
-     * @param mixed $data - Serializable data to be put into the file.
+     *
+     * @param  string  $filename  - The filename of the file to be stored.
+     * @param  mixed  $data  - Serializable data to be put into the file.
      */
     public function store(string $filename, $data)
     {
@@ -105,6 +112,7 @@ class FileSystemCache
 
         $fullpath = $this->getFullpath($filename);
         file_put_contents($fullpath, serialize($data));
+
         return $fullpath;
     }
 
@@ -112,8 +120,7 @@ class FileSystemCache
      * Retrieves the caching root directory
      *
      * @since 0.9.0
-     * @return string
-     */ 
+     */
     public function getRootDir(): string
     {
         return $this->dir;

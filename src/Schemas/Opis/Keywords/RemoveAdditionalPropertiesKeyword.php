@@ -4,14 +4,14 @@
  * Parser that adds the custom RemoveAdditionalPropertiesKeyword.
  *
  * @since 0.9.0
- * @package wp-fastendpoints
+ *
  * @license MIT
  */
 
 namespace Wp\FastEndpoints\Schemas\Opis\Keywords;
 
-use Opis\JsonSchema\Keywords\AdditionalPropertiesKeyword;
 use Opis\JsonSchema\Errors\ValidationError;
+use Opis\JsonSchema\Keywords\AdditionalPropertiesKeyword;
 use Opis\JsonSchema\Schema;
 use Opis\JsonSchema\ValidationContext;
 use Wp\FastEndpoints\Schemas\Response;
@@ -20,94 +20,99 @@ use Wp\FastEndpoints\Schemas\Response;
  * Keyword parser that adds the custom RemoveAdditionalPropertiesKeyword
  *
  * @since 0.9.0
+ *
  * @author André Gil <andre_gil22@hotmail.com>
  */
 class RemoveAdditionalPropertiesKeyword extends AdditionalPropertiesKeyword
 {
-	/**
-	 * Removes "additionalProperties" from the data, if specified.
-	 *
-	 * @see AdditionalPropertiesKeyword->validate()
-	 * @param ValidationContext $context Current validation context.
-	 * @param Schema $schema Schema currently being used.
-	 * @return ?ValidationError ValidationError if an error occurs or null otherwise.
-	 */
-	public function validate(ValidationContext $context, Schema $schema): ?ValidationError
-	{
-		if ($this->value === true) {
-			$context->markAllAsEvaluatedProperties();
-			return null;
-		}
+    /**
+     * Removes "additionalProperties" from the data, if specified.
+     *
+     * @see AdditionalPropertiesKeyword->validate()
+     *
+     * @param  ValidationContext  $context  Current validation context.
+     * @param  Schema  $schema  Schema currently being used.
+     * @return ?ValidationError ValidationError if an error occurs or null otherwise.
+     */
+    public function validate(ValidationContext $context, Schema $schema): ?ValidationError
+    {
+        if ($this->value === true) {
+            $context->markAllAsEvaluatedProperties();
 
-		$props = $context->getUncheckedProperties();
+            return null;
+        }
 
-		if (!$props) {
-			return null;
-		}
+        $props = $context->getUncheckedProperties();
 
-		if ($this->value === false) {
-			$this->removeAdditionalProperties($context, $props);
-			return null;
-		}
+        if (! $props) {
+            return null;
+        }
 
-		if (\is_object($this->value) && !($this->value instanceof Schema)) {
-			$this->value = $context->loader()->loadObjectSchema($this->value);
-		}
+        if ($this->value === false) {
+            $this->removeAdditionalProperties($context, $props);
 
-		$object = $this->createArrayObject($context);
+            return null;
+        }
 
-		$error = $this->validateIterableData(
-			$schema,
-			$this->value,
-			$context,
-			$props,
-			'additionalProperties',
-			esc_html__('All additional object properties must match schema: {properties}'),
-			['properties' => $props],
-			$object,
-		);
+        if (\is_object($this->value) && ! ($this->value instanceof Schema)) {
+            $this->value = $context->loader()->loadObjectSchema($this->value);
+        }
 
-		if ($object && $object->count()) {
-			$context->addEvaluatedProperties($object->getArrayCopy());
-			$props = $context->getUnevaluatedProperties();
-			if (!$props) {
-				return null;
-			}
-		}
+        $object = $this->createArrayObject($context);
 
-		if ($error) {
-			foreach ($error->subErrors() as $subError) {
-				$data = $subError->data();
-				$this->removeAdditionalProperties($context, $data->path());
-			}
-		}
+        $error = $this->validateIterableData(
+            $schema,
+            $this->value,
+            $context,
+            $props,
+            'additionalProperties',
+            esc_html__('All additional object properties must match schema: {properties}'),
+            ['properties' => $props],
+            $object,
+        );
 
-		$this->removeAdditionalProperties($context, $props);
-		return null;
-	}
+        if ($object && $object->count()) {
+            $context->addEvaluatedProperties($object->getArrayCopy());
+            $props = $context->getUnevaluatedProperties();
+            if (! $props) {
+                return null;
+            }
+        }
 
-	/**
-	 * Removes the Response::$data "additionalProperties" fields from the data it self.
-	 *
-	 * @since 0.9.0
-	 *
-	 * @param ValidationContext $context Current validation context.
-	 * @param array $properties Additional properties to be removed.
-	 */
-	protected function removeAdditionalProperties(ValidationContext $context, array $properties)
-	{
-		$data = Response::getData();
-		// Get full path object.
-		$path = &$data;
-		foreach ($context->fullDataPath() as $dataPath) {
-			$path = &$path->{$dataPath};
-		}
+        if ($error) {
+            foreach ($error->subErrors() as $subError) {
+                $data = $subError->data();
+                $this->removeAdditionalProperties($context, $data->path());
+            }
+        }
 
-		// Remove additional properties.
-		foreach ($properties as $prop) {
-			unset($path->{$prop});
-		}
+        $this->removeAdditionalProperties($context, $props);
 
-		Response::setData($data);
-	}
+        return null;
+    }
+
+    /**
+     * Removes the Response::$data "additionalProperties" fields from the data it self.
+     *
+     * @since 0.9.0
+     *
+     * @param  ValidationContext  $context  Current validation context.
+     * @param  array  $properties  Additional properties to be removed.
+     */
+    protected function removeAdditionalProperties(ValidationContext $context, array $properties)
+    {
+        $data = Response::getData();
+        // Get full path object.
+        $path = &$data;
+        foreach ($context->fullDataPath() as $dataPath) {
+            $path = &$path->{$dataPath};
+        }
+
+        // Remove additional properties.
+        foreach ($properties as $prop) {
+            unset($path->{$prop});
+        }
+
+        Response::setData($data);
+    }
 }
