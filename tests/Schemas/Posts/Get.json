@@ -1,0 +1,22 @@
+{
+  "type": "object",
+  "properties": {
+    "ID": {
+      "type": "integer",
+      "min": 1
+    },
+    "post_author": {
+      "type": "integer",
+      "min": 1
+    },
+    "post_title": {
+      "type": "string"
+    },
+    "post_status": {
+      "enum": ["publish", "draft", "private"]
+    }
+  },
+  "required": [
+    "ID", "post_author", "post_title", "post_status"
+  ]
+}

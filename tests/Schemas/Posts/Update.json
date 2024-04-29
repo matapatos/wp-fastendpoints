@@ -1,0 +1,28 @@
+{
+  "type": "object",
+  "properties": {
+    "post_author": {
+      "type": "integer",
+      "min": 1
+    },
+    "post_title": {
+      "type": "string"
+    },
+    "post_status": {
+      "enum": ["publish", "draft", "private"]
+    },
+    "post_name": {
+      "type": "string"
+    },
+    "post_parent": {
+      "type": "integer",
+      "min": 0
+    },
+    "guid": {
+      "type": "string"
+    },
+    "post_type": {
+      "enum": ["post", "page"]
+    }
+  }
+}

@@ -17,7 +17,7 @@
 		<env name="WP_TESTS_DIR" value="wp/tests/phpunit"/>
 		<server name="DB_NAME" value="wp_pest_test_db"/>
 		<server name="DB_USER" value="root"/>
-		<server name="DB_PASSWORD" value=""/>
+		<server name="DB_PASSWORD" value="mypassword"/>
 		<server name="DB_HOST" value="localhost"/>
 	</php>
 	<coverage processUncoveredFiles="true">
@@ -25,7 +25,7 @@
 			<directory suffix=".php">./src</directory>
 		</include>
 		<report>
-			<clover outputFile="tests/coverage/fastendpoints.xml"/>
+			<clover outputFile="tests/coverage/clover.xml"/>
 			<html outputDirectory="tests/coverage/html" lowUpperBound="50" highLowerBound="90"/>
 		</report>
 	</coverage>

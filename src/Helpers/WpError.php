@@ -21,14 +21,15 @@ class WpError extends WP_Error
      *
      * @param  string|array  $message  The error message.
      */
-    public function __construct(int $statusCode, $message, array $data = [])
+    public function __construct(int $statusCode, $message, array $data = [], bool $escape = true)
     {
         if (is_array($message)) {
             $data['all_messages'] = $message;
         }
         $firstMessage = $this->getFirstErrorMessage($message);
         $data = array_merge(['status' => $statusCode], $data);
-        parent::__construct($statusCode, esc_html__($firstMessage), $data);
+        $firstMessage = $escape ? esc_html__($firstMessage) : $firstMessage;
+        parent::__construct($statusCode, $firstMessage, $data);
     }
 
     /**

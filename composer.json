@@ -29,7 +29,6 @@
 		"dingo-d/wp-pest": "^1.6",
 		"mikey179/vfsstream": "^1.6",
 		"roots/acorn": "^2.1",
-		"roots/wordpress": "6.3",
 		"brain/monkey": "2.*",
 		"laravel/pint": "*"
 	},
@@ -47,8 +46,7 @@
 	"config": {
 		"allow-plugins": {
 			"composer/installers": true,
-			"pestphp/pest-plugin": true,
-			"roots/wordpress-core-installer": true
+			"pestphp/pest-plugin": true
 		}
 	}
 }

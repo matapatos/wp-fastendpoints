@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Tests\Wp\FastEndpoints\Helpers;
 
 use Exception;
+use Illuminate\Support\Str;
+use Wp\FastEndpoints\Router;
 
 class Helpers
 {
@@ -132,5 +134,29 @@ class Helpers
         $suffix = self::getClassNameInSnakeCase($instance);
 
         return "fastendpoints_{$suffix}";
+    }
+
+    /**
+     * Checks if weather we want to run integration tests or not
+     */
+    public static function isIntegrationTest(): bool
+    {
+        return isset($GLOBALS['argv']) && in_array('--group=integration', $GLOBALS['argv'], true);
+    }
+
+    /**
+     * Retrieves a router from a file
+     *
+     * @param  string  $filename  The router filename to be included
+     */
+    public static function getRouter(string $filename): Router
+    {
+        $filename = Str::finish($filename, '.php');
+        require \ROUTERS_DIR.$filename;
+        if (! isset($router)) {
+            wp_die("Missing \$router variable in {$filename}");
+        }
+
+        return $router;
     }
 }
