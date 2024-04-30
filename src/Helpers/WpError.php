@@ -17,11 +17,14 @@ use WP_Error;
 class WpError extends WP_Error
 {
     /**
-     * @since 0.9.0
+     * @param  int  $statusCode  HTTP error code
+     * @param  string|array  $message  The error message
+     * @param  array  $data  Additional data to be sent
+     * @param  bool  $escap  If we desire to escape the error message. Default: true
      *
-     * @param  string|array  $message  The error message.
+     * @since 0.9.0
      */
-    public function __construct(int $statusCode, $message, array $data = [], bool $escape = true)
+    public function __construct(int $statusCode, string|array $message, array $data = [], bool $escape = true)
     {
         if (is_array($message)) {
             $data['all_messages'] = $message;
@@ -34,10 +37,8 @@ class WpError extends WP_Error
 
     /**
      * Gets the first message from an array
-     *
-     * @param  string|array  $message
      */
-    protected function getFirstErrorMessage($message): string
+    protected function getFirstErrorMessage(string|array $message): string
     {
         if (! is_array($message)) {
             return $message;

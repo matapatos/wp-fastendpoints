@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace Wp\FastEndpoints\Contracts\Schemas;
 
+use Wp\FastEndpoints\Helpers\WpError;
 use WP_REST_Request;
 
 /**
@@ -30,9 +31,9 @@ interface Response
      *
      * @param  WP_REST_Request  $req  Current REST Request.
      * @param  mixed  $res  Current REST response.
-     * @return mixed|WP_Error Mixed on parsed response or WP_Error on error.
+     * @return mixed The parsed response on success or WpError on error.
      */
-    public function returns(WP_REST_Request $req, $res);
+    public function returns(WP_REST_Request $req, mixed $res): mixed;
 
     /**
      * Appends an additional directory where to look for the schema
@@ -42,5 +43,5 @@ interface Response
      * @param  string|array<string>  $schemaDir  Directory path or an array of directories where to
      *                                           look for JSON schemas.
      */
-    public function appendSchemaDir($schemaDir): void;
+    public function appendSchemaDir(string|array $schemaDir): void;
 }

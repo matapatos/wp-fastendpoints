@@ -51,7 +51,7 @@ test('Passing invalid options to removeAdditionalProperties', function ($loadSch
     })->toThrow(\ValueError::class, sprintf("Invalid removeAdditionalProperties property (%s) '%s'",
         gettype($removeAdditionalProperties), $removeAdditionalProperties));
 })->with([LoadSchema::FromFile, LoadSchema::FromArray])->with([
-    'true', 'false', 'StRing', 'ntege', 'fake', 255, 232.123,
+    'true', 'false', 'StRing', 'ntege', 'fake',
 ])->group('response', 'getContents');
 
 // getContents() and updateSchemaToAcceptOrDiscardAdditionalProperties()

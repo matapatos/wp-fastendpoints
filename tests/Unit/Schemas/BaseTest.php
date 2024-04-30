@@ -112,13 +112,9 @@ test('Passing invalid schema directories to appendSchemaDir', function (string $
         Helpers::invokeNonPublicClassMethod($schema, 'appendSchemaDir', $invalidDirectories);
     })->toThrow(TypeError::class, $expectedErrorMessage);
 })->with('base_classes')->with([
-    [125, 'Expected a directory as a string but got: integer'],
-    [62.5, 'Expected a directory as a string but got: double'],
-    [true, 'Expected a directory as a string but got: boolean'],
-    [[1, 2], 'Expected a directory as a string but got: integer'],
-    [null, 'Expected a directory as a string but got: NULL'],
     ['', 'Invalid schema directory'],
     [['', ''], 'Invalid schema directory'],
+    [[true], 'Expected a directory as a string but got: boolean'],
     [__FILE__, 'Expected a directory with schemas but got a file: '.__FILE__],
     [[__FILE__], 'Expected a directory with schemas but got a file: '.__FILE__],
     ['fakedirectory', 'Schema directory not found: fakedirectory'],

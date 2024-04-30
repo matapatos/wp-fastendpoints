@@ -221,7 +221,7 @@ test('Missing capability', function ($capability) {
         $endpoint->hasCap($capability);
     })->toThrow(Exception::class, 'Invalid capability. Empty capability given')
         ->and(Helpers::getNonPublicClassProperty($endpoint, 'permissionHandlers'))->toBeEmpty();
-})->with(['', [[]], null])->group('endpoint', 'hasCap');
+})->with(['', [[]]])->group('endpoint', 'hasCap');
 
 // schema
 
@@ -313,7 +313,7 @@ test('Endpoint request handler', function (bool $hasValidationCb, bool $hasMiddl
     Functions\expect('rest_ensure_response')
         ->once()
         ->with('my-response')
-        ->andReturnFirstArg();
+        ->andReturn(new \WP_REST_Response('my-response'));
     $endpoint = new Endpoint('GET', '/my-endpoint', function () {
         return 'my-response';
     }, ['my-custom-arg' => true], true);
@@ -336,7 +336,9 @@ test('Endpoint request handler', function (bool $hasValidationCb, bool $hasMiddl
         }]];
         Helpers::setNonPublicClassProperty($endpoint, 'postHandlers', $onResponseCallers);
     }
-    expect($endpoint->callback($req))->toBe('my-response');
+    expect($endpoint->callback($req))
+        ->toBeInstanceOf(\WP_REST_Response::class)
+        ->toHaveProperty('data', 'my-response');
 })->with([true, false])->with([true, false])->with([true, false])->group('endpoint', 'callback');
 
 test('Handling request and a WpError is returned', function ($validationReturnVal, $middlewareReturnVal, $handlerReturnVal, $responseReturnVal) {

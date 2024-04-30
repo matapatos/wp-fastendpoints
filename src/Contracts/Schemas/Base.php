@@ -82,28 +82,20 @@ abstract class Base
      * @since 0.9.0
      *
      * @param  string|array  $schema  File name or path to the JSON schema or a JSON schema as an array.
-     *
-     * @throws TypeError if $schema is neither a string or an array.
      */
-    public function __construct($schema)
+    public function __construct(string|array $schema)
     {
         $this->errorFormatter = new ErrorFormatter();
         $this->suffix = $this->getSuffix();
-        if (\is_string($schema)) {
-            $this->filepath = $schema;
-            if (! \str_ends_with($schema, '.json')) {
-                $this->filepath .= '.json';
-            }
-        } elseif (\is_array($schema)) {
+        if (is_array($schema)) {
             $this->contents = $schema;
-        } else {
-            $type = \gettype($schema);
-            throw new TypeError(\sprintf(
-                /* translators: 1: JSON Schema, 2: JSON Schema type */
-                \esc_html__('Schema expected an array or a string in %1$s but %2$s given'),
-                \esc_html($schema),
-                \esc_html($type),
-            ));
+
+            return;
+        }
+
+        $this->filepath = $schema;
+        if (! \str_ends_with($schema, '.json')) {
+            $this->filepath .= '.json';
         }
     }
 
@@ -142,8 +134,10 @@ abstract class Base
      *
      * @param  string|array<string>  $schemaDir  Directory path or an array of directories where to
      *                                           look for JSON schemas.
+     *
+     * @throws TypeError if the provided schemas are a valid directory
      */
-    public function appendSchemaDir($schemaDir): void
+    public function appendSchemaDir(string|array $schemaDir): void
     {
         $schemaDir = Arr::wrap($schemaDir);
         foreach ($schemaDir as $dir) {
@@ -203,9 +197,8 @@ abstract class Base
      * @since 0.9.0
      *
      * @param  ValidationResult  $result  JSON Opis validation error result.
-     * @return mixed
      */
-    protected function getError(ValidationResult $result)
+    protected function getError(ValidationResult $result): mixed
     {
         return \apply_filters($this->suffix.'_error', $this->errorFormatter->formatKeyed($result->error()), $result, $this);
     }
@@ -216,9 +209,9 @@ abstract class Base
      * @since 0.9.0
      *
      * @param  string  $filePath  the file to be loaded
-     * @return mixed
+     * @return bool|string A string with the file content or false on error
      */
-    protected function getFileContents(string $filePath)
+    protected function getFileContents(string $filePath): bool|string
     {
         return \file_get_contents($filePath);
     }
@@ -227,10 +220,8 @@ abstract class Base
      * Retrieves the JSON contents of the schema
      *
      * @since 0.9.0
-     *
-     * @return mixed
      */
-    public function getContents()
+    public function getContents(): mixed
     {
         if ($this->contents || is_array($this->contents)) {
             $this->contents = \apply_filters($this->suffix.'_contents', $this->contents, $this);

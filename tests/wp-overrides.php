@@ -42,3 +42,21 @@ if (! class_exists('WP_Error')) {
         }
     }
 }
+
+if (! class_exists('WP_REST_Response')) {
+    class WP_REST_Response
+    {
+        public $data;
+
+        public $status;
+
+        public $headers;
+
+        public function __construct($data = null, $status = 200, $headers = [])
+        {
+            $this->data = $data;
+            $this->status = $status;
+            $this->headers = $headers;
+        }
+    }
+}

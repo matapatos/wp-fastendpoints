@@ -17,7 +17,6 @@ use Opis\JsonSchema\Helper;
 use Wp\FastEndpoints\Contracts\Schemas\Base;
 use Wp\FastEndpoints\Contracts\Schemas\Schema as SchemaInterface;
 use Wp\FastEndpoints\Helpers\WpError;
-use WP_Error;
 use WP_Http;
 use WP_REST_Request;
 
@@ -37,9 +36,9 @@ class Schema extends Base implements SchemaInterface
      * @see $this->parse()
      *
      * @param  WP_REST_Request  $req  Current REST Request.
-     * @return true|WP_Error true on success and WP_Error on error.
+     * @return bool|WpError true on success or WpError on error.
      */
-    public function validate(WP_REST_Request $req)
+    public function validate(WP_REST_Request $req): bool|WpError
     {
         $this->contents = $this->getContents();
 
@@ -53,9 +52,9 @@ class Schema extends Base implements SchemaInterface
      * @see https://opis.io/json-schema
      *
      * @param  WP_REST_Request  $req  Current REST Request.
-     * @return true|WP_Error true on success and WP_Error on error.
+     * @return bool|WpError true on success or WpError on error.
      */
-    protected function parse(WP_REST_Request $req)
+    protected function parse(WP_REST_Request $req): bool|WpError
     {
         if (! \apply_filters($this->suffix.'_is_to_parse', true, $this)) {
             return true;

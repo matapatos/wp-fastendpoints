@@ -207,7 +207,7 @@ class Router implements RouterContract
      * @param  string|array<string>  $dir  Directory path or an array of directories where to
      *                                     look for JSON schemas.
      */
-    public function appendSchemaDir($dir): void
+    public function appendSchemaDir(string|array $dir): void
     {
         if (! $dir) {
             \wp_die(\esc_html__('Invalid schema directory'));

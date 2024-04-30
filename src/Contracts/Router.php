@@ -54,7 +54,7 @@ interface Router
      *                       WP FastEndpoints arguments. Default value: [].
      * @param  bool  $override  Same as the WordPress register_rest_route $override parameter. Defaul value: false.
      */
-    public function post(string $route, callable $handler, array $args = [], $override = false): Endpoint;
+    public function post(string $route, callable $handler, array $args = [], bool $override = false): Endpoint;
 
     /**
      * Adds a new PUT endpoint
@@ -98,7 +98,7 @@ interface Router
      *
      * @param  string|array<string>  $dir  Directory path where to look for JSON schemas.
      */
-    public function appendSchemaDir($dir): void;
+    public function appendSchemaDir(string|array $dir): void;
 
     /**
      * Adds all actions required to register the defined endpoints

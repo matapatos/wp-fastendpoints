@@ -12,7 +12,6 @@ declare(strict_types=1);
 
 namespace Wp\FastEndpoints;
 
-use TypeError;
 use Wp\FastEndpoints\Contracts\Endpoint as EndpointInterface;
 use Wp\FastEndpoints\Contracts\Schemas\Response as ResponseInterface;
 use Wp\FastEndpoints\Contracts\Schemas\Schema as SchemaInterface;
@@ -23,6 +22,7 @@ use Wp\FastEndpoints\Schemas\Schema;
 use WP_Error;
 use WP_Http;
 use WP_REST_Request;
+use WP_REST_Response;
 
 /**
  * REST Endpoint that registers custom WordPress REST endpoint using register_rest_route
@@ -202,13 +202,13 @@ class Endpoint implements EndpointInterface
      *
      * @since 0.9.0
      */
-    public function hasCap($capability, int $priority = 10): Endpoint
+    public function hasCap(string|array $capability, int $priority = 10): Endpoint
     {
         if (! $capability) {
             \wp_die(\esc_html__('Invalid capability. Empty capability given'));
         }
 
-        return $this->permission(function (WP_REST_Request $req) use ($capability) {
+        return $this->permission(function (WP_REST_Request $req) use ($capability): bool|WpError {
             $allCaps = Arr::wrap($capability);
             foreach ($allCaps as &$cap) {
                 if (! \is_string($cap)) {
@@ -237,7 +237,7 @@ class Endpoint implements EndpointInterface
      *                         Lower numbers correspond with earlier execution, and functions with the same priority
      *                         are executed in the order in which they were added. Default value: 10.
      */
-    public function schema($schema, int $priority = 10): Endpoint
+    public function schema(string|array $schema, int $priority = 10): Endpoint
     {
         $this->schema = new Schema($schema);
         $this->append($this->validationHandlers, [$this->schema, 'validate'], $priority);
@@ -260,10 +260,8 @@ class Endpoint implements EndpointInterface
      * @param  string|bool|null  $removeAdditionalProperties  Option which defines if we want to remove additional properties.
      *                                                        If true removes all additional properties from the response. If false allows additional properties to be retrieved.
      *                                                        If null it will use the JSON schema additionalProperties value. If a string allows only those variable types (e.g. integer)
-     *
-     * @throws TypeError If $schema is neither a string|array.
      */
-    public function returns($schema, int $priority = 10, $removeAdditionalProperties = true): Endpoint
+    public function returns(string|array $schema, int $priority = 10, string|bool|null $removeAdditionalProperties = true): Endpoint
     {
         $this->responseSchema = new Response($schema, $removeAdditionalProperties);
         $this->append($this->postHandlers, [$this->responseSchema, 'returns'], $priority);
@@ -315,10 +313,8 @@ class Endpoint implements EndpointInterface
      * @param  WP_REST_Request  $req  Current REST Request.
      *
      * @see rest_ensure_response
-     *
-     * @return WP_REST_Response|WP_Error
      */
-    public function callback(WP_REST_Request $req)
+    public function callback(WP_REST_Request $req): WP_REST_Response|WP_Error
     {
         // Run pre validation methods.
         $result = $this->runHandlers($this->validationHandlers, $req);
@@ -352,9 +348,9 @@ class Endpoint implements EndpointInterface
      * @internal
      *
      * @param  WP_REST_Request  $req  Current REST request.
-     * @return mixed
+     * @return bool|WP_Error true on success or WP_Error on error
      */
-    public function permissionCallback(WP_REST_Request $req)
+    public function permissionCallback(WP_REST_Request $req): bool|WP_Error
     {
         $result = $this->runHandlers($this->permissionHandlers, $req);
         if (\is_wp_error($result)) {
@@ -391,7 +387,7 @@ class Endpoint implements EndpointInterface
      * @param  string  $value  Value to be checked.
      * @return mixed The $value variable with all special parameters replaced.
      */
-    protected function replaceSpecialValue(WP_REST_Request $req, string $value)
+    protected function replaceSpecialValue(WP_REST_Request $req, string $value): mixed
     {
         // Checks if value matches a special value.
         // If so, replaces with request variable.
@@ -415,10 +411,10 @@ class Endpoint implements EndpointInterface
      *
      * @param  array<int,array<callable>>  $allHandlers  Associative array of callables indexed by priority.
      * @param  mixed  ...$args  Arguments to be passed in handlers.
-     * @return mixed|WP_Error Returns the result of the last callable or if no handlers are set the
-     *                        last result passed as argument if any. If an error occurs a WP_Error instance is returned.
+     * @return mixed Returns the result of the last callable or if no handlers are set the
+     *               last result passed as argument if any. If an error occurs a WP_Error instance is returned.
      */
-    protected function runHandlers(array &$allHandlers, ...$args)
+    protected function runHandlers(array &$allHandlers, ...$args): mixed
     {
         // If no handlers are set we have to make sure to return the previous result if set.
         $result = (\count($args) >= 2) ? $args[1] : null;

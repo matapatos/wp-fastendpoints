@@ -62,7 +62,7 @@ class Arr
      * @param  mixed  $currentIndex  The current index.
      * @return array<array<string|int>> An array of found indexes.
      */
-    public static function recursiveKeyValueSearch(array $haystack, $searchKey, $searchValue, array $path = [], array $currentIndex = []): array
+    public static function recursiveKeyValueSearch(array $haystack, string|int $searchKey, mixed $searchValue, array $path = [], array $currentIndex = []): array
     {
         foreach ($haystack as $key => $item) {
             if ($key == $searchKey && $item == $searchValue) {

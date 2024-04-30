@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace Wp\FastEndpoints\Contracts\Schemas;
 
+use Wp\FastEndpoints\Helpers\WpError;
 use WP_REST_Request;
 
 /**
@@ -29,9 +30,9 @@ interface Schema
      * @since 0.9.0
      *
      * @param  WP_REST_Request  $req  Current REST Request.
-     * @return true|WP_Error true on success and WP_Error on error.
+     * @return bool|WpError true on success or WpError on error.
      */
-    public function validate(WP_REST_Request $req);
+    public function validate(WP_REST_Request $req): bool|WpError;
 
     /**
      * Appends an additional directory where to look for the schema
@@ -41,5 +42,5 @@ interface Schema
      * @param  string|array<string>  $schemaDir  Directory path or an array of directories where to
      *                                           look for JSON schemas.
      */
-    public function appendSchemaDir($schemaDir): void;
+    public function appendSchemaDir(string|array $schemaDir): void;
 }

@@ -52,7 +52,7 @@ interface Endpoint
      *
      * @since 0.9.0
      */
-    public function hasCap($capability, int $priority = 10): Endpoint;
+    public function hasCap(string|array $capability, int $priority = 10): Endpoint;
 
     /**
      * Adds a schema validation to the validationHandlers, which will be later called in advance to
@@ -65,7 +65,7 @@ interface Endpoint
      *                         Lower numbers correspond with earlier execution, and functions with the same priority
      *                         are executed in the order in which they were added. Default value: 10.
      */
-    public function schema($schema, int $priority = 10): Endpoint;
+    public function schema(string|array $schema, int $priority = 10): Endpoint;
 
     /**
      * Adds a resource function to the postHandlers, which will be later called to filter the REST response
@@ -81,11 +81,9 @@ interface Endpoint
      *                                                        If true removes all additional properties from the response. If false allows additional properties to be retrieved.
      *                                                        If null it will use the JSON schema additionalProperties value. If a string allows only those variable types (e.g. integer)
      *
-     * @throws TypeError If $schema is neither a string|array.
-     *
      * @since 0.9.0
      */
-    public function returns($schema, int $priority = 10, $removeAdditionalProperties = true): Endpoint;
+    public function returns(string|array $schema, int $priority = 10, string|bool|null $removeAdditionalProperties = true): Endpoint;
 
     /**
      * Registers a middleware with a given priority

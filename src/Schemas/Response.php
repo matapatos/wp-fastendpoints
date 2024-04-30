@@ -20,7 +20,6 @@ use Wp\FastEndpoints\Contracts\Schemas\Base;
 use Wp\FastEndpoints\Contracts\Schemas\Response as ResponseContract;
 use Wp\FastEndpoints\Helpers\Arr;
 use Wp\FastEndpoints\Helpers\WpError;
-use WP_Error;
 use WP_Http;
 use WP_REST_Request;
 
@@ -87,7 +86,7 @@ class Response extends Base implements ResponseContract
      *
      * @throws TypeError if $schema is neither a string or an array.
      */
-    public function __construct($schema, $removeAdditionalProperties = null)
+    public function __construct(string|array $schema, $removeAdditionalProperties = null)
     {
         parent::__construct($schema);
         $this->removeAdditionalProperties = $this->parseRemoveAdditionalProperties($removeAdditionalProperties);
@@ -102,7 +101,7 @@ class Response extends Base implements ResponseContract
      *
      * @throws \ValueError if an invalid option is found
      */
-    protected function parseRemoveAdditionalProperties($removeAdditionalProperties)
+    protected function parseRemoveAdditionalProperties(bool|string|null $removeAdditionalProperties): bool|string|null
     {
         if (is_bool($removeAdditionalProperties) || is_null($removeAdditionalProperties)) {
             return $removeAdditionalProperties;
@@ -166,9 +165,9 @@ class Response extends Base implements ResponseContract
      *
      * @param  WP_REST_Request  $req  Current REST Request.
      * @param  mixed  $res  Current REST response.
-     * @return mixed|WP_Error Mixed on parsed response or WP_Error on error.
+     * @return mixed The parsed response on success or WpError on error.
      */
-    public function returns(WP_REST_Request $req, $res)
+    public function returns(WP_REST_Request $req, mixed $res): mixed
     {
         if (! \apply_filters($this->suffix.'_is_to_validate', true, $this)) {
             return $res;
@@ -209,10 +208,8 @@ class Response extends Base implements ResponseContract
      * Retrieves the JSON contents of the schema
      *
      * @since 0.9.0
-     *
-     * @return mixed
      */
-    public function getContents()
+    public function getContents(): mixed
     {
         $this->contents = parent::getContents();
         $this->updateSchemaToAcceptOrDiscardAdditionalProperties();
@@ -227,7 +224,7 @@ class Response extends Base implements ResponseContract
      *
      * @param  mixed  $data  The data to be sent in the response.
      */
-    public static function setData($data): void
+    public static function setData(mixed $data): void
     {
         self::$data = $data;
     }
@@ -239,7 +236,7 @@ class Response extends Base implements ResponseContract
      *
      * @return mixed $data The data to be sent in the response.
      */
-    public static function getData()
+    public static function getData(): mixed
     {
         return self::$data;
     }

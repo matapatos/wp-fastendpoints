@@ -168,9 +168,6 @@ test('Append invalid schema directories', function ($invalidDir, $errorMessage) 
         })->toThrow(Exception::class, $errorMessage)
         ->and(Helpers::getNonPublicClassProperty($router, 'schemaDirs'))->toBe([]);
 })->with([
-    [true, 'Expected a directory as a string but got: boolean'],
-    [false, 'Invalid schema directory'],
-    [null, 'Invalid schema directory'],
     ['', 'Invalid schema directory'],
     [[true], 'Expected a directory as a string but got: boolean'],
     ['/invalid', 'Schema directory not found: /invalid'],
