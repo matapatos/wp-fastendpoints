@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Holds tests
+ * Holds tests for registering a single FastEndpoints router
  *
  * @since 1.0.0
  *
@@ -66,6 +66,7 @@ test('Retrieving a post by id', function () {
     $response = $this->server->dispatch(
         new \WP_REST_Request('GET', "/my-posts/v1/{$postId}")
     );
+    expect($response->get_status())->toBe(200);
     $data = $response->get_data();
     expect($data)
         ->toHaveProperty('ID', $postId)
@@ -78,7 +79,8 @@ test('Trying to retrieve a post without permissions', function () {
         new \WP_REST_Request('GET', "/my-posts/v1/{$postId}")
     );
     $data = (object) $response->get_data();
-    expect($data)
+    expect($response->get_status())->toBe(403)
+        ->and($data)
         ->toHaveProperty('code', 403)
         ->toHaveProperty('message', 'Not enough permissions')
         ->toHaveProperty('data', ['status' => 403]);
@@ -92,6 +94,7 @@ test('Updating a post', function () {
     $request->set_header('content-type', 'application/json');
     $request->set_param('post_title', 'My testing message');
     $response = $this->server->dispatch($request);
+    expect($response->get_status())->toBe(200);
     $data = $response->get_data();
     expect($data)
         ->toHaveProperty('ID', $postId)
@@ -104,6 +107,7 @@ test('Deleting a post', function () {
     wp_set_current_user($userId);
     $request = new \WP_REST_Request('DELETE', "/my-posts/v1/{$postId}");
     $response = $this->server->dispatch($request);
+    expect($response->get_status())->toBe(200);
     $data = $response->get_data();
     expect($data)->toBe('Post deleted with success');
 })->group('single');

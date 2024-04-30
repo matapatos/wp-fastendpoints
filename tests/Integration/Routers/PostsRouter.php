@@ -16,7 +16,7 @@ use Wp\FastEndpoints\Router;
 $router = new Router('my-posts', 'v1');
 $router->appendSchemaDir(\SCHEMAS_DIR);
 
-// Fetch post a single post
+// Fetchs a single post
 $router->get('(?P<post_id>[\d]+)', function (\WP_REST_Request $request) {
     $postId = $request->get_param('post_id');
 
@@ -38,6 +38,7 @@ $router->post('(?P<post_id>[\d]+)', function (\WP_REST_Request $request) {
     return get_post($postId);
 })
     ->schema('Posts/Update')
+    ->returns('Posts/Get')
     ->hasCap('read');
 
 // Deleting a post
