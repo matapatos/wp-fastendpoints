@@ -50,7 +50,6 @@
 			"@test:integration"
 		]
 	},
-	"minimum-stability": "dev",
 	"prefer-stable": true,
 	"config": {
 		"allow-plugins": {
