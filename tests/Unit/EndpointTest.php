@@ -109,31 +109,30 @@ test('Skipping registering endpoint if no args specified', function () {
 
 // hasCap
 
-test('User with valid permissions', function ($capability) {
+test('User with valid permissions', function (string $capability, ...$args) {
     $endpoint = new Endpoint('GET', '/my-endpoint', '__return_false', ['my-custom-arg' => true], false);
     expect(Helpers::getNonPublicClassProperty($endpoint, 'permissionHandlers'))->toBeEmpty();
-    $endpoint->hasCap($capability);
+    $endpoint->hasCap($capability, ...$args);
     $permissionHandlers = Helpers::getNonPublicClassProperty($endpoint, 'permissionHandlers');
     expect($permissionHandlers)->toHaveCount(1);
-    $allCaps = is_array($capability) ? $capability : [$capability];
     $mockedRequest = Mockery::mock(\WP_REST_Request::class);
     $expectedParams = [];
-    foreach ($allCaps as $cap) {
-        if (! is_string($cap) || ! str_starts_with($cap, '{')) {
-            $expectedParams[] = $cap;
+    foreach ($args as $arg) {
+        if (! is_string($arg) || ! str_starts_with($arg, '{')) {
+            $expectedParams[] = $arg;
 
             continue;
         }
 
-        $paramName = substr($cap, 1, -1);
-        $isArgumentMissing = $cap === '{argument-missing}';
+        $paramName = substr($arg, 1, -1);
+        $isArgumentMissing = $arg === '{argument-missing}';
         $mockedRequest
             ->shouldReceive('has_param')
             ->once()
             ->with($paramName)
             ->andReturn(! $isArgumentMissing);
         if ($isArgumentMissing) {
-            $expectedParams[] = $cap;
+            $expectedParams[] = $arg;
 
             continue;
         }
@@ -148,41 +147,40 @@ test('User with valid permissions', function ($capability) {
     }
     Functions\expect('current_user_can')
         ->once()
-        ->with(...$expectedParams)
+        ->with($capability, ...$expectedParams)
         ->andReturn(true);
-    expect($permissionHandlers[10][0]($mockedRequest))->toBeTrue();
+    expect($permissionHandlers[0]($mockedRequest))->toBeTrue();
 })->with([
-    'create_users', [['edit_plugins', 'delete_plugins', 98]],
-    '{custom_capability}', [['create_users', '{post_id}', '{another_var}', false]],
-    '{argument-missing}',
+    'create_users', ['edit_plugins', 'delete_plugins', 98],
+    ['create_users', '{post_id}', '{another_var}', false],
+    ['edit_posts', '{argument-missing}'], '{custom-cap}',
 ])->group('endpoint', 'hasCap');
 
-test('User not having enough permissions', function ($capability) {
+test('User not having enough permissions', function (string $capability, ...$args) {
     Functions\when('esc_html__')->returnArg();
     $endpoint = new Endpoint('GET', '/my-endpoint', '__return_false', ['my-custom-arg' => true], false);
     expect(Helpers::getNonPublicClassProperty($endpoint, 'permissionHandlers'))->toBeEmpty();
-    $endpoint->hasCap($capability);
+    $endpoint->hasCap($capability, ...$args);
     $permissionHandlers = Helpers::getNonPublicClassProperty($endpoint, 'permissionHandlers');
     expect($permissionHandlers)->toHaveCount(1);
-    $allCaps = is_array($capability) ? $capability : [$capability];
     $mockedRequest = Mockery::mock(\WP_REST_Request::class);
     $expectedParams = [];
-    foreach ($allCaps as $cap) {
-        if (! str_starts_with($cap, '{')) {
-            $expectedParams[] = $cap;
+    foreach ($args as $arg) {
+        if (! str_starts_with($arg, '{')) {
+            $expectedParams[] = $arg;
 
             continue;
         }
 
-        $paramName = substr($cap, 1, -1);
-        $isArgumentMissing = $cap === '{argument-missing}';
+        $paramName = substr($arg, 1, -1);
+        $isArgumentMissing = $arg === '{argument-missing}';
         $mockedRequest
             ->shouldReceive('has_param')
             ->once()
             ->with($paramName)
             ->andReturn(! $isArgumentMissing);
         if ($isArgumentMissing) {
-            $expectedParams[] = $cap;
+            $expectedParams[] = $arg;
 
             continue;
         }
@@ -198,37 +196,37 @@ test('User not having enough permissions', function ($capability) {
     }
     Functions\expect('current_user_can')
         ->once()
-        ->with(...$expectedParams)
+        ->with($capability, ...$expectedParams)
         ->andReturn(false);
-    expect($permissionHandlers[10][0]($mockedRequest))
+    expect($permissionHandlers[0]($mockedRequest))
         ->toBeInstanceOf(WpError::class)
         ->toHaveProperty('code', 403)
         ->toHaveProperty('message', 'Not enough permissions')
         ->toHaveProperty('data', ['status' => 403]);
 })->with([
-    'create_users', [['edit_plugins', 'delete_plugins']],
-    '{custom_capability}', [['create_users', '{post_id}', '{another_var}']],
-    [['create_users', '{post_id}', '{argument-missing}']],
+    'create_users', ['edit_plugins', 'delete_plugins'],
+    '{custom_capability}', ['create_users', '{post_id}', '{another_var}'],
+    ['create_users', '{post_id}', '{argument-missing}'],
 ])->group('endpoint', 'hasCap');
 
-test('Missing capability', function ($capability) {
+test('Missing capability', function () {
     Functions\when('esc_html__')->returnArg();
     Functions\when('wp_die')->alias(function ($msg) {
         throw new \Exception($msg);
     });
     $endpoint = new Endpoint('GET', '/my-endpoint', '__return_false', ['my-custom-arg' => true], false);
-    expect(function () use ($endpoint, $capability) {
-        $endpoint->hasCap($capability);
+    expect(function () use ($endpoint) {
+        $endpoint->hasCap('');
     })->toThrow(Exception::class, 'Invalid capability. Empty capability given')
         ->and(Helpers::getNonPublicClassProperty($endpoint, 'permissionHandlers'))->toBeEmpty();
-})->with(['', [[]]])->group('endpoint', 'hasCap');
+})->group('endpoint', 'hasCap');
 
 // schema
 
 test('Adding request validation schema', function ($schema) {
     $endpoint = new Endpoint('GET', '/my-endpoint', '__return_false', ['my-custom-arg' => true], false);
     expect($endpoint->schema)->toBeNull()
-        ->and($endpoint->schema($schema, 13))->toBe($endpoint)
+        ->and($endpoint->schema($schema))->toBe($endpoint)
         ->and($endpoint->schema)->toBeInstanceOf(Schema::class);
     $expectedVarName = is_string($schema) ? 'filepath' : 'contents';
     $expectedVar = Helpers::getNonPublicClassProperty($endpoint->schema, $expectedVarName);
@@ -236,8 +234,7 @@ test('Adding request validation schema', function ($schema) {
     $validationHandlers = Helpers::getNonPublicClassProperty($endpoint, 'validationHandlers');
     expect($validationHandlers)
         ->toHaveCount(1)
-        ->and($validationHandlers[13])->toHaveCount(1)
-        ->and($validationHandlers[13][0])->toMatchArray([$endpoint->schema, 'validate']);
+        ->and($validationHandlers[0])->toMatchArray([$endpoint->schema, 'validate']);
 })->with([[['my-schema']], 'Basics/Array.json'])->group('endpoint', 'schema');
 
 // returns
@@ -245,7 +242,7 @@ test('Adding request validation schema', function ($schema) {
 test('Adding response validation schema', function ($schema) {
     $endpoint = new Endpoint('GET', '/my-endpoint', '__return_false', ['my-custom-arg' => true], false);
     expect($endpoint->responseSchema)->toBeNull()
-        ->and($endpoint->returns($schema, 15))->toBe($endpoint)
+        ->and($endpoint->returns($schema))->toBe($endpoint)
         ->and($endpoint->responseSchema)->toBeInstanceOf(Response::class);
     $expectedVarName = is_string($schema) ? 'filepath' : 'contents';
     $expectedVar = Helpers::getNonPublicClassProperty($endpoint->responseSchema, $expectedVarName);
@@ -253,8 +250,7 @@ test('Adding response validation schema', function ($schema) {
     $postHandlers = Helpers::getNonPublicClassProperty($endpoint, 'postHandlers');
     expect($postHandlers)
         ->toHaveCount(1)
-        ->and($postHandlers[15])->toHaveCount(1)
-        ->and($postHandlers[15][0])->toMatchArray([$endpoint->responseSchema, 'returns']);
+        ->and($postHandlers[0])->toMatchArray([$endpoint->responseSchema, 'returns']);
 })->with([[['response-schema']], 'Basics/Boolean.json'])->group('endpoint', 'returns');
 
 // middleware
@@ -265,11 +261,10 @@ test('Adding middleware before handling request', function () {
     };
     $endpoint = new Endpoint('GET', '/my-endpoint', '__return_false', ['my-custom-arg' => true], false);
     expect(Helpers::getNonPublicClassProperty($endpoint, 'middlewareHandlers'))->toBeEmpty();
-    $endpoint->middleware($middleware, 16);
+    $endpoint->middleware($middleware);
     $middlewareHandlers = Helpers::getNonPublicClassProperty($endpoint, 'middlewareHandlers');
     expect($middlewareHandlers)->toHaveCount(1)
-        ->and($middlewareHandlers[16])->toHaveCount(1)
-        ->and($middlewareHandlers[16][0])->toBe($middleware);
+        ->and($middlewareHandlers[0])->toBe($middleware);
 })->group('endpoint', 'middleware');
 
 // permission
@@ -280,11 +275,10 @@ test('Adding permission callable', function () {
     };
     $endpoint = new Endpoint('GET', '/my-endpoint', '__return_false', ['my-custom-arg' => true], false);
     expect(Helpers::getNonPublicClassProperty($endpoint, 'permissionHandlers'))->toBeEmpty();
-    $endpoint->permission($permissionCallable, 5);
+    $endpoint->permission($permissionCallable);
     $permissionHandlers = Helpers::getNonPublicClassProperty($endpoint, 'permissionHandlers');
     expect($permissionHandlers)->toHaveCount(1)
-        ->and($permissionHandlers[5])->toHaveCount(1)
-        ->and($permissionHandlers[5][0])->toBe($permissionCallable);
+        ->and($permissionHandlers[0])->toBe($permissionCallable);
 })->group('endpoint', 'permission');
 
 // permissionCallback
@@ -319,21 +313,21 @@ test('Endpoint request handler', function (bool $hasValidationCb, bool $hasMiddl
     }, ['my-custom-arg' => true], true);
     $req = Mockery::mock(\WP_REST_Request::class);
     if ($hasValidationCb) {
-        $validationCallers = [10 => [function ($req) {
+        $validationCallers = [function ($req) {
             return false;
-        }]];
+        }];
         Helpers::setNonPublicClassProperty($endpoint, 'validationHandlers', $validationCallers);
     }
     if ($hasMiddlewareCb) {
-        $middlewareCallers = [10 => [function ($req) {
+        $middlewareCallers = [function ($req) {
             return 123;
-        }]];
+        }];
         Helpers::setNonPublicClassProperty($endpoint, 'middlewareHandlers', $middlewareCallers);
     }
     if ($hasOnResponseCb) {
-        $onResponseCallers = [10 => [function ($req, $result) {
+        $onResponseCallers = [function ($req, $result) {
             return $result;
-        }]];
+        }];
         Helpers::setNonPublicClassProperty($endpoint, 'postHandlers', $onResponseCallers);
     }
     expect($endpoint->callback($req))
@@ -348,17 +342,17 @@ test('Handling request and a WpError is returned', function ($validationReturnVa
         return is_string($handlerReturnVal) ? new $handlerReturnVal(123, 'my-error-msg') : $handlerReturnVal;
     }, ['my-custom-arg' => true], true);
     $req = Mockery::mock(\WP_REST_Request::class);
-    $validationCallers = [10 => [function ($req) use ($validationReturnVal) {
+    $validationCallers = [function ($req) use ($validationReturnVal) {
         return is_string($validationReturnVal) ? new $validationReturnVal(123, 'my-error-msg') : $validationReturnVal;
-    }]];
+    }];
     Helpers::setNonPublicClassProperty($endpoint, 'validationHandlers', $validationCallers);
-    $middlewareCallers = [10 => [function ($req) use ($middlewareReturnVal) {
+    $middlewareCallers = [function ($req) use ($middlewareReturnVal) {
         return is_string($middlewareReturnVal) ? new $middlewareReturnVal(123, 'my-error-msg') : $middlewareReturnVal;
-    }]];
+    }];
     Helpers::setNonPublicClassProperty($endpoint, 'middlewareHandlers', $middlewareCallers);
-    $onResponseCallers = [10 => [function ($req, $result) use ($responseReturnVal) {
+    $onResponseCallers = [function ($req, $result) use ($responseReturnVal) {
         return is_string($responseReturnVal) ? new $responseReturnVal(123, 'my-error-msg') : $responseReturnVal;
-    }]];
+    }];
     Helpers::setNonPublicClassProperty($endpoint, 'postHandlers', $onResponseCallers);
     expect($endpoint->callback($req))
         ->toBeInstanceOf(WpError::class)

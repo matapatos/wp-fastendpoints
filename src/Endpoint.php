@@ -15,7 +15,6 @@ namespace Wp\FastEndpoints;
 use Wp\FastEndpoints\Contracts\Endpoint as EndpointInterface;
 use Wp\FastEndpoints\Contracts\Schemas\Response as ResponseInterface;
 use Wp\FastEndpoints\Contracts\Schemas\Schema as SchemaInterface;
-use Wp\FastEndpoints\Helpers\Arr;
 use Wp\FastEndpoints\Helpers\WpError;
 use Wp\FastEndpoints\Schemas\Response;
 use Wp\FastEndpoints\Schemas\Schema;
@@ -93,7 +92,7 @@ class Endpoint implements EndpointInterface
      *
      * @since 0.9.0
      *
-     * @var array<int,array<callable>>
+     * @var array<callable>
      */
     protected array $permissionHandlers = [];
 
@@ -102,7 +101,7 @@ class Endpoint implements EndpointInterface
      *
      * @since 0.9.0
      *
-     * @var array<int,array<callable>>
+     * @var array<callable>
      */
     protected array $validationHandlers = [];
 
@@ -111,7 +110,7 @@ class Endpoint implements EndpointInterface
      *
      * @since 0.9.0
      *
-     * @var array<int,array<callable>>
+     * @var array<callable>
      */
     protected array $middlewareHandlers = [];
 
@@ -120,7 +119,7 @@ class Endpoint implements EndpointInterface
      *
      * @since 0.9.0
      *
-     * @var array<int,array<callable>>
+     * @var array<callable>
      */
     protected array $postHandlers = [];
 
@@ -189,41 +188,37 @@ class Endpoint implements EndpointInterface
      * Checks if the current user has the given WP capabilities. Example usage:
      *
      *      hasCap('edit_posts');
-     *      hasCap(['edit_post', $post->ID]);
-     *      hasCap(['edit_post_meta', $post->ID, $meta_key]);
-     *      hasCap(['edit_post', '{post_id}']);  // Replaces {post_id} with request parameter named post_id
+     *      hasCap('edit_post', $post->ID);
+     *      hasCap('edit_post', '{post_id}');  // Replaces {post_id} with request parameter named post_id
+     *      hasCap('edit_post_meta', $post->ID, $meta_key);
      *
-     * @param  string|array  $capability  WordPress user capability. If string should be the capability to check against.
-     *                                    If array it should consist of the capability to be checked followed by optional parameters, typically the object ID.
-     *                                    You can also replace with a given request parameter via curly braces e.g. {post_id}
-     * @param  int  $priority  Specifies the order in which the function is executed.
-     *                         Lower numbers correspond with earlier execution, and functions with the same priority
-     *                         are executed in the order in which they were added. Default value: 10.
+     * @param  string  $capability  WordPress user capability to be checked against
+     * @param array Optional parameters, typically the object ID. You can also pass a future request parameter via
+     *              curly braces e.g. {post_id}
      *
      * @since 0.9.0
      */
-    public function hasCap(string|array $capability, int $priority = 10): Endpoint
+    public function hasCap(string $capability, ...$args): Endpoint
     {
         if (! $capability) {
             \wp_die(\esc_html__('Invalid capability. Empty capability given'));
         }
 
-        return $this->permission(function (WP_REST_Request $req) use ($capability): bool|WpError {
-            $allCaps = Arr::wrap($capability);
-            foreach ($allCaps as &$cap) {
-                if (! \is_string($cap)) {
+        return $this->permission(function (WP_REST_Request $req) use ($capability, $args): bool|WpError {
+            foreach ($args as &$arg) {
+                if (! \is_string($arg)) {
                     continue;
                 }
 
-                $cap = $this->replaceSpecialValue($req, $cap);
+                $arg = $this->replaceSpecialValue($req, $arg);
             }
 
-            if (! \current_user_can(...$allCaps)) {
+            if (! \current_user_can($capability, ...$args)) {
                 return new WpError(WP_Http::FORBIDDEN, 'Not enough permissions');
             }
 
             return true;
-        }, $priority);
+        });
     }
 
     /**
@@ -233,14 +228,11 @@ class Endpoint implements EndpointInterface
      * @since 0.9.0
      *
      * @param  string|array  $schema  Filepath to the JSON schema or a JSON schema as an array.
-     * @param  int  $priority  Specifies the order in which the function is executed.
-     *                         Lower numbers correspond with earlier execution, and functions with the same priority
-     *                         are executed in the order in which they were added. Default value: 10.
      */
-    public function schema(string|array $schema, int $priority = 10): Endpoint
+    public function schema(string|array $schema): Endpoint
     {
         $this->schema = new Schema($schema);
-        $this->append($this->validationHandlers, [$this->schema, 'validate'], $priority);
+        $this->validationHandlers[] = [$this->schema, 'validate'];
 
         return $this;
     }
@@ -254,34 +246,28 @@ class Endpoint implements EndpointInterface
      * @since 0.9.0
      *
      * @param  string|array  $schema  Filepath to the JSON schema or a JSON schema as an array.
-     * @param  int  $priority  Specifies the order in which the function is executed.
-     *                         Lower numbers correspond with earlier execution, and functions with the same priority
-     *                         are executed in the order in which they were added. Default value: 10.
      * @param  string|bool|null  $removeAdditionalProperties  Option which defines if we want to remove additional properties.
      *                                                        If true removes all additional properties from the response. If false allows additional properties to be retrieved.
      *                                                        If null it will use the JSON schema additionalProperties value. If a string allows only those variable types (e.g. integer)
      */
-    public function returns(string|array $schema, int $priority = 10, string|bool|null $removeAdditionalProperties = true): Endpoint
+    public function returns(string|array $schema, string|bool|null $removeAdditionalProperties = true): Endpoint
     {
         $this->responseSchema = new Response($schema, $removeAdditionalProperties);
-        $this->append($this->postHandlers, [$this->responseSchema, 'returns'], $priority);
+        $this->postHandlers[] = [$this->responseSchema, 'returns'];
 
         return $this;
     }
 
     /**
-     * Registers a middleware with a given priority
+     * Registers a middleware
      *
      * @since 0.9.0
      *
      * @param  callable  $middleware  Function to be used as a middleware.
-     * @param  int  $priority  Specifies the order in which the function is executed.
-     *                         Lower numbers correspond with earlier execution, and functions with the same priority
-     *                         are executed in the order in which they were added. Default value: 10.
      */
-    public function middleware(callable $middleware, int $priority = 10): Endpoint
+    public function middleware(callable $middleware): Endpoint
     {
-        $this->append($this->middlewareHandlers, $middleware, $priority);
+        $this->middlewareHandlers[] = $middleware;
 
         return $this;
     }
@@ -292,13 +278,10 @@ class Endpoint implements EndpointInterface
      * @since 0.9.0
      *
      * @param  callable  $permissionCb  Method to be called to check current user permissions.
-     * @param  int  $priority  Specifies the order in which the function is executed.
-     *                         Lower numbers correspond with earlier execution, and functions with the same priority
-     *                         are executed in the order in which they were added. Default value: 10.
      */
-    public function permission(callable $permissionCb, int $priority = 10): Endpoint
+    public function permission(callable $permissionCb): Endpoint
     {
-        $this->append($this->permissionHandlers, $permissionCb, $priority);
+        $this->permissionHandlers[] = $permissionCb;
 
         return $this;
     }
@@ -405,11 +388,11 @@ class Endpoint implements EndpointInterface
     }
 
     /**
-     * Calls each handler ordered by priority.
+     * Calls each handler.
      *
      * @since 0.9.0
      *
-     * @param  array<int,array<callable>>  $allHandlers  Associative array of callables indexed by priority.
+     * @param  array<callable>  $allHandlers  Holds all callables that we wish to run.
      * @param  mixed  ...$args  Arguments to be passed in handlers.
      * @return mixed Returns the result of the last callable or if no handlers are set the
      *               last result passed as argument if any. If an error occurs a WP_Error instance is returned.
@@ -419,36 +402,13 @@ class Endpoint implements EndpointInterface
         // If no handlers are set we have to make sure to return the previous result if set.
         $result = (\count($args) >= 2) ? $args[1] : null;
         // Sort dictionary by keys.
-        \ksort($allHandlers);
-        foreach ($allHandlers as $priority => $handlers) {
-            foreach ($handlers as $h) {
-                $result = \call_user_func_array($h, $args);
-                if (\is_wp_error($result)) {
-                    return $result;
-                }
+        foreach ($allHandlers as $h) {
+            $result = \call_user_func_array($h, $args);
+            if (\is_wp_error($result)) {
+                return $result;
             }
         }
 
         return $result;
-    }
-
-    /**
-     * Saves a callable into an array, which can later on be called in order of priority
-     * (works the same as the WordPress actions/filters priority argument)
-     *
-     * @since 0.9.0
-     *
-     * @param  array<int,array<callable>>  $arrVar  Variable used to store the priority of the function.
-     * @param  callable  $cb  Function to be called.
-     * @param  int  $priority  Specifies the order in which the function is executed.
-     *                         Lower numbers correspond with earlier execution, and functions with the same priority
-     *                         are executed in the order in which they were added.
-     */
-    protected function append(array &$arrVar, callable $cb, int $priority): void
-    {
-        if (! isset($arrVar[$priority])) {
-            $arrVar[$priority] = [];
-        }
-        $arrVar[$priority][] = $cb;
     }
 }
