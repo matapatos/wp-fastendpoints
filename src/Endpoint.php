@@ -13,11 +13,12 @@ declare(strict_types=1);
 namespace Wp\FastEndpoints;
 
 use Wp\FastEndpoints\Contracts\Endpoint as EndpointInterface;
-use Wp\FastEndpoints\Contracts\Schemas\Response as ResponseInterface;
-use Wp\FastEndpoints\Contracts\Schemas\Schema as SchemaInterface;
+use Wp\FastEndpoints\Contracts\Middlewares\Middleware;
+use Wp\FastEndpoints\Contracts\Middlewares\OnRequestMiddleware;
+use Wp\FastEndpoints\Contracts\Middlewares\OnResponseMiddleware;
 use Wp\FastEndpoints\Helpers\WpError;
-use Wp\FastEndpoints\Schemas\Response;
-use Wp\FastEndpoints\Schemas\Schema;
+use Wp\FastEndpoints\Schemas\ResponseMiddleware;
+use Wp\FastEndpoints\Schemas\SchemaMiddleware;
 use WP_Error;
 use WP_Http;
 use WP_REST_Request;
@@ -70,22 +71,22 @@ class Endpoint implements EndpointInterface
     protected bool $override;
 
     /**
-     * JSON Schema used to validate request params
+     * JSON SchemaMiddleware used to validate request params
      *
      * @since 0.9.0
      *
-     * @var ?SchemaInterface
+     * @var ?SchemaMiddleware
      */
-    public ?SchemaInterface $schema = null;
+    public ?SchemaMiddleware $schema = null;
 
     /**
-     * JSON Schema used to retrieve data to client - ignores additional properties
+     * JSON SchemaMiddleware used to retrieve data to client - ignores additional properties
      *
      * @since 0.9.0
      *
-     * @var ?ResponseInterface
+     * @var ?ResponseMiddleware
      */
-    public ?ResponseInterface $responseSchema = null;
+    public ?ResponseMiddleware $responseSchema = null;
 
     /**
      * Set of functions used inside the permissionCallback endpoint
@@ -97,31 +98,22 @@ class Endpoint implements EndpointInterface
     protected array $permissionHandlers = [];
 
     /**
-     * Set of functions used to validate request before being handled
+     * Set of functions used to be called before handling a request e.g. schema validation
      *
      * @since 0.9.0
      *
      * @var array<callable>
      */
-    protected array $validationHandlers = [];
+    protected array $onRequestHandlers = [];
 
     /**
-     * Set of middlewares to run before the main handler
+     * Set of functions used to be called before sending a response to the client
      *
      * @since 0.9.0
      *
      * @var array<callable>
      */
-    protected array $middlewareHandlers = [];
-
-    /**
-     * Set of functions to be run after processing the request - usually to handle response
-     *
-     * @since 0.9.0
-     *
-     * @var array<callable>
-     */
-    protected array $postHandlers = [];
+    protected array $onResponseHandlers = [];
 
     /**
      * Creates a new instance of Endpoint
@@ -167,9 +159,7 @@ class Endpoint implements EndpointInterface
             $this->schema->appendSchemaDir($schemaDirs);
             $args['schema'] = [$this->schema, 'getContents'];
         }
-        if ($this->responseSchema) {
-            $this->responseSchema->appendSchemaDir($schemaDirs);
-        }
+        $this->responseSchema?->appendSchemaDir($schemaDirs);
         // Override default arguments.
         $args = \array_merge($args, $this->args);
         $args = \apply_filters('fastendpoints_endpoint_args', $args, $namespace, $restBase, $this);
@@ -193,8 +183,8 @@ class Endpoint implements EndpointInterface
      *      hasCap('edit_post_meta', $post->ID, $meta_key);
      *
      * @param  string  $capability  WordPress user capability to be checked against
-     * @param array Optional parameters, typically the object ID. You can also pass a future request parameter via
-     *              curly braces e.g. {post_id}
+     * @param  array  $args  Optional parameters, typically the object ID. You can also pass a future request parameter
+     *                       via curly braces e.g. {post_id}
      *
      * @since 0.9.0
      */
@@ -231,16 +221,16 @@ class Endpoint implements EndpointInterface
      */
     public function schema(string|array $schema): Endpoint
     {
-        $this->schema = new Schema($schema);
-        $this->validationHandlers[] = [$this->schema, 'validate'];
+        $this->schema = new SchemaMiddleware($schema);
+        $this->onRequestHandlers[] = [$this->schema, 'onRequest'];
 
         return $this;
     }
 
     /**
-     * Adds a resource function to the postHandlers, which will be later called to filter the REST response
-     * according to the JSON schema specified. In other words, it will:
-     * 1) Ignore additional properties in WP_REST_Response, avoiding the leakage of unnecessary data and
+     * Adds a response schema to the endpoint. This JSON schema will later on filter the response before sending
+     * it to the client. This can be great to:
+     * 1) Discard unnecessary properties in the response to avoid the leakage of sensitive data and
      * 2) Making sure that the required data is retrieved.
      *
      * @since 0.9.0
@@ -252,8 +242,8 @@ class Endpoint implements EndpointInterface
      */
     public function returns(string|array $schema, string|bool|null $removeAdditionalProperties = true): Endpoint
     {
-        $this->responseSchema = new Response($schema, $removeAdditionalProperties);
-        $this->postHandlers[] = [$this->responseSchema, 'returns'];
+        $this->responseSchema = new ResponseMiddleware($schema, $removeAdditionalProperties);
+        $this->onResponseHandlers[] = [$this->responseSchema, 'onResponse'];
 
         return $this;
     }
@@ -263,11 +253,16 @@ class Endpoint implements EndpointInterface
      *
      * @since 0.9.0
      *
-     * @param  callable  $middleware  Function to be used as a middleware.
+     * @param  OnRequestMiddleware|OnResponseMiddleware  $middleware  Middleware to be plugged.
      */
-    public function middleware(callable $middleware): Endpoint
+    public function middleware(OnRequestMiddleware|OnResponseMiddleware $middleware): Endpoint
     {
-        $this->middlewareHandlers[] = $middleware;
+        if ($middleware instanceof OnRequestMiddleware) {
+            $this->onRequestHandlers[] = [$middleware, 'onRequest'];
+        }
+        if ($middleware instanceof OnResponseMiddleware) {
+            $this->onResponseHandlers[] = [$middleware, 'onResponse'];
+        }
 
         return $this;
     }
@@ -295,18 +290,12 @@ class Endpoint implements EndpointInterface
      *
      * @param  WP_REST_Request  $req  Current REST Request.
      *
-     * @see rest_ensure_response
+     * @uses rest_ensure_response
      */
     public function callback(WP_REST_Request $req): WP_REST_Response|WP_Error
     {
-        // Run pre validation methods.
-        $result = $this->runHandlers($this->validationHandlers, $req);
-        if (\is_wp_error($result)) {
-            return $result;
-        }
-
-        // Middleware methods.
-        $result = $this->runHandlers($this->middlewareHandlers, $req);
+        // Request handlers.
+        $result = $this->runHandlers($this->onRequestHandlers, $req);
         if (\is_wp_error($result)) {
             return $result;
         }
@@ -317,8 +306,8 @@ class Endpoint implements EndpointInterface
             return $result;
         }
 
-        // Post handlers.
-        $result = $this->runHandlers($this->postHandlers, $req, $result);
+        // ResponseMiddleware handlers.
+        $result = $this->runHandlers($this->onResponseHandlers, $req, $result);
 
         return \rest_ensure_response($result);
     }

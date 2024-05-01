@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Holds tests for the Response class.
+ * Holds tests for the ResponseMiddleware class.
  *
  * @since 0.9.0
  *
@@ -26,7 +26,7 @@ use Tests\Wp\FastEndpoints\Helpers\Faker;
 use Tests\Wp\FastEndpoints\Helpers\Helpers;
 use Tests\Wp\FastEndpoints\Helpers\LoadSchema;
 use Wp\FastEndpoints\Helpers\WpError;
-use Wp\FastEndpoints\Schemas\Response;
+use Wp\FastEndpoints\Schemas\ResponseMiddleware;
 
 beforeEach(function () {
     Monkey\setUp();
@@ -47,7 +47,7 @@ test('Passing invalid options to removeAdditionalProperties', function ($loadSch
         $schema = Helpers::loadSchema(\SCHEMAS_DIR.$schema);
     }
     expect(function () use ($schema, $removeAdditionalProperties) {
-        new Response($schema, $removeAdditionalProperties);
+        new ResponseMiddleware($schema, $removeAdditionalProperties);
     })->toThrow(\ValueError::class, sprintf("Invalid removeAdditionalProperties property (%s) '%s'",
         gettype($removeAdditionalProperties), $removeAdditionalProperties));
 })->with([LoadSchema::FromFile, LoadSchema::FromArray])->with([
@@ -65,7 +65,7 @@ test('getContents retrieves correct schema', function ($loadSchemaFrom, $removeA
     if ($loadSchemaFrom == LoadSchema::FromArray) {
         $schema = $expectedContents;
     }
-    $response = new Response($schema, $removeAdditionalProperties);
+    $response = new ResponseMiddleware($schema, $removeAdditionalProperties);
     $response->appendSchemaDir(\SCHEMAS_DIR);
     Filters\expectApplied('fastendpoints_response_contents')
         ->once()
@@ -90,7 +90,7 @@ test('getContents retrieves correct schema', function ($loadSchemaFrom, $removeA
 // updateSchemaToAcceptOrDiscardAdditionalProperties
 
 test('Avoids re-updating schema', function () {
-    $response = new Response(['hello'], true);
+    $response = new ResponseMiddleware(['hello'], true);
     expect(Helpers::getNonPublicClassProperty($response, 'hasUpdatedSchema'))->toBeFalse();
     Helpers::setNonPublicClassProperty($response, 'hasUpdatedSchema', true);
     Helpers::invokeNonPublicClassMethod($response, 'updateSchemaToAcceptOrDiscardAdditionalProperties');
@@ -99,7 +99,7 @@ test('Avoids re-updating schema', function () {
 })->group('response', 'updateSchemaToAcceptOrDiscardAdditionalProperties');
 
 test('Ignore removing properties if schema is empty or doesnt have a type object', function ($schema) {
-    $response = new Response($schema, true);
+    $response = new ResponseMiddleware($schema, true);
     Filters\expectApplied('fastendpoints_response_remove_additional_properties')
         ->once()
         ->with(true, $response);
@@ -143,7 +143,7 @@ test('returns matches expected return value - Basic', function ($loadSchemaFrom,
     if ($loadSchemaFrom == LoadSchema::FromArray) {
         $schema = Helpers::loadSchema(\SCHEMAS_DIR.$schema);
     }
-    $response = new Response($schema, true);
+    $response = new ResponseMiddleware($schema, true);
     $response->appendSchemaDir(\SCHEMAS_DIR);
     // Create WP_REST_Request mock
     $req = Mockery::mock('WP_REST_Request');
@@ -182,7 +182,7 @@ test('returns matches expected return value - Basic', function ($loadSchemaFrom,
             return $givenValue;
         });
     // Validate response
-    $data = $response->returns($req, $value);
+    $data = $response->onResponse($req, $value);
     expect($data)->toEqual($value);
     $this->assertEquals(Filters\applied('fastendpoints_response_on_validation_error'), 0);
 })->with([LoadSchema::FromArray, LoadSchema::FromFile])->with([
@@ -204,7 +204,7 @@ test('Ignoring additional properties in returns', function ($loadSchemaFrom) {
     if ($loadSchemaFrom == LoadSchema::FromArray) {
         $schema = Helpers::loadSchema(\SCHEMAS_DIR.$schema);
     }
-    $response = new Response($schema, true);
+    $response = new ResponseMiddleware($schema, true);
     $response->appendSchemaDir(\SCHEMAS_DIR);
     $user = Faker::getWpUser();
     // Create WP_REST_Request mock
@@ -213,7 +213,7 @@ test('Ignoring additional properties in returns', function ($loadSchemaFrom) {
         ->andReturn('user');
     // Expected hooks to be applied
     looseExpectAllReturnHooks($req, $response);
-    $data = $response->returns($req, $user);
+    $data = $response->onResponse($req, $user);
     expect($data)->toEqual(Helper::toJSON([
         'data' => [
             'user_email' => 'fake@wpfastendpoints.com',
@@ -234,7 +234,7 @@ test('Keeps additional properties in returns', function ($loadSchemaFrom) {
     if ($loadSchemaFrom == LoadSchema::FromArray) {
         $schema = Helpers::loadSchema(\SCHEMAS_DIR.$schema);
     }
-    $response = new Response($schema, false);
+    $response = new ResponseMiddleware($schema, false);
     $response->appendSchemaDir(\SCHEMAS_DIR);
     $user = Faker::getWpUser();
     // Create WP_REST_Request mock
@@ -244,7 +244,7 @@ test('Keeps additional properties in returns', function ($loadSchemaFrom) {
     // Expected hooks to be applied
     looseExpectAllReturnHooks($req, $response);
     // Validate response
-    $data = $response->returns($req, $user);
+    $data = $response->onResponse($req, $user);
     expect($data)->toEqual(Helper::toJSON($user));
 })->with([
     LoadSchema::FromFile,
@@ -260,7 +260,7 @@ test('Ignores additional properties expect a given type in returns', function ($
     if ($loadSchemaFrom == LoadSchema::FromArray) {
         $schema = Helpers::loadSchema(\SCHEMAS_DIR.$schema);
     }
-    $response = new Response($schema, $type);
+    $response = new ResponseMiddleware($schema, $type);
     $response->appendSchemaDir(\SCHEMAS_DIR);
     $user = Faker::getWpUser();
     $user['is_admin'] = true;
@@ -271,7 +271,7 @@ test('Ignores additional properties expect a given type in returns', function ($
     // Expected hooks to be applied
     looseExpectAllReturnHooks($req, $response);
     // Validate response
-    $data = $response->returns($req, $user);
+    $data = $response->onResponse($req, $user);
     $expectedData = array_merge(['data' => [
         'user_email' => 'fake@wpfastendpoints.com',
         'user_url' => 'https://www.wpfastendpoints.com/wp',
@@ -300,7 +300,7 @@ test('Ignores additional properties specified by the schema', function ($loadSch
     if ($loadSchemaFrom == LoadSchema::FromArray) {
         $schema = Helpers::loadSchema(\SCHEMAS_DIR.$schema);
     }
-    $response = new Response($schema, null);
+    $response = new ResponseMiddleware($schema, null);
     $response->appendSchemaDir(\SCHEMAS_DIR);
     $user = Faker::getWpUser();
     // Create WP_REST_Request mock
@@ -310,7 +310,7 @@ test('Ignores additional properties specified by the schema', function ($loadSch
     // Expected hooks to be applied
     looseExpectAllReturnHooks($req, $response);
     // Validate response
-    $data = $response->returns($req, $user);
+    $data = $response->onResponse($req, $user);
     expect($data)->toEqual(Helper::toJSON([
         'data' => [
             'user_email' => 'fake@wpfastendpoints.com',
@@ -329,13 +329,13 @@ test('Invalid additionalProperties field', function () {
     Functions\when('path_join')->alias(function ($path1, $path2) {
         return $path1.'/'.$path2;
     });
-    $response = new Response('Invalid/InvalidAdditionalProperties', null);
+    $response = new ResponseMiddleware('Invalid/InvalidAdditionalProperties', null);
     $response->appendSchemaDir(\SCHEMAS_DIR);
     // Create WP_REST_Request mock
     $req = Mockery::mock('WP_REST_Request');
     $req->shouldReceive('get_route')
         ->andReturn('user');
-    $data = $response->returns($req, 'my-response');
+    $data = $response->onResponse($req, 'my-response');
     expect($data)
         ->toBeInstanceOf(WpError::class)
         ->toHaveProperty('code', 500)
@@ -344,7 +344,7 @@ test('Invalid additionalProperties field', function () {
 })->group('response', 'returns');
 
 test('Skipping response validation via hook', function () {
-    $response = new Response(['my-schema']);
+    $response = new ResponseMiddleware(['my-schema']);
     // Create WP_REST_Request mock
     $req = Mockery::mock('WP_REST_Request');
     $req->shouldReceive('get_route')
@@ -352,12 +352,12 @@ test('Skipping response validation via hook', function () {
     Filters\expectApplied('fastendpoints_response_is_to_validate')
         ->once()
         ->andReturn(false);
-    $data = $response->returns($req, 'my-response');
+    $data = $response->onResponse($req, 'my-response');
     expect($data)->toEqual('my-response');
 })->group('response', 'returns');
 
 test('Skipping response validation when empty schema given', function () {
-    $response = new Response([]);
+    $response = new ResponseMiddleware([]);
     // Create WP_REST_Request mock
     $req = Mockery::mock('WP_REST_Request');
     $req->shouldReceive('get_route')
@@ -365,7 +365,7 @@ test('Skipping response validation when empty schema given', function () {
     Filters\expectApplied('fastendpoints_response_is_to_validate')
         ->once()
         ->with(true, $response);
-    $data = $response->returns($req, 'my-response');
+    $data = $response->onResponse($req, 'my-response');
     expect($data)->toEqual('my-response');
 })->group('response', 'returns');
 
@@ -376,7 +376,7 @@ test('SchemaException raised during validation', function () {
         ->shouldReceive('validate')
         ->andThrow(new ParseException('my-test-error'))
         ->getMock();
-    $mockedResponse = Mockery::mock(Response::class)
+    $mockedResponse = Mockery::mock(ResponseMiddleware::class)
         ->makePartial()
         ->shouldAllowMockingProtectedMethods()
         ->shouldReceive('getContents')
@@ -395,7 +395,7 @@ test('SchemaException raised during validation', function () {
         ->with(Mockery::type(Validator::class), Mockery::any(), $req, $mockedResponse)
         ->andReturn($mockedValidator);
     Helpers::setNonPublicClassProperty($mockedResponse, 'suffix', 'fastendpoints_response');
-    $data = $mockedResponse->returns($req, [1, 2, 3, 4, 5]);
+    $data = $mockedResponse->onResponse($req, [1, 2, 3, 4, 5]);
     expect($data)->toBeInstanceOf(WpError::class)
         ->toHaveProperty('code', 500)
         ->toHaveProperty('message', 'Invalid response schema: my-test-error')
@@ -409,7 +409,7 @@ test('Validation always failing via hook', function () {
         return $path1.'/'.$path2;
     });
     Functions\when('esc_html__')->returnArg();
-    $response = new Response('Basics/Double', true);
+    $response = new ResponseMiddleware('Basics/Double', true);
     $response->appendSchemaDir(\SCHEMAS_DIR);
     // Create WP_REST_Request mock
     $req = Mockery::mock('WP_REST_Request');
@@ -433,7 +433,7 @@ test('Validation always failing via hook', function () {
         ->once()
         ->with(Mockery::type(WpError::class), $req, $response);
     // Validate response
-    $data = $response->returns($req, 257.89);
+    $data = $response->onResponse($req, 257.89);
     expect($data)->toBeInstanceOf(WpError::class)
         ->toHaveProperty('code', 422)
         ->toHaveProperty('message', 'Number must be lower than or equal to 1')

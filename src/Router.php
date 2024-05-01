@@ -78,7 +78,7 @@ class Router implements RouterContract
     protected array $endpoints = [];
 
     /**
-     * Schema directory path
+     * SchemaMiddleware directory path
      *
      * @since 0.9.0
      *
@@ -216,18 +216,18 @@ class Router implements RouterContract
         $dir = Arr::wrap($dir);
         foreach ($dir as $d) {
             if (! \is_string($d)) {
-                /* translators: 1: Schema directory */
+                /* translators: 1: SchemaMiddleware directory */
                 \wp_die(\sprintf(\esc_html__('Expected a directory as a string but got: %s'), \esc_html(gettype($d))));
             }
 
             if (\is_file($d)) {
-                /* translators: 1: Schema directory */
+                /* translators: 1: SchemaMiddleware directory */
                 \wp_die(\sprintf(\esc_html__('Expected a directory with schemas but got a file: %s'), \esc_html($d)));
             }
 
             if (! \is_dir($d)) {
-                /* translators: 1: Schema directory */
-                \wp_die(\sprintf(\esc_html__('Schema directory not found: %s'), \esc_html($d)));
+                /* translators: 1: SchemaMiddleware directory */
+                \wp_die(\sprintf(\esc_html__('SchemaMiddleware directory not found: %s'), \esc_html($d)));
             }
         }
 

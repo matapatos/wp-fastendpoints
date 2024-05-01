@@ -58,13 +58,17 @@ test('REST API endpoints registered', function () {
         ->toHaveKeys([
             '/my-api/v1',
             '/my-api/v1/my-posts/v1/(?P<post_id>[\\d]+)',
-            '/my-api/v1/my-actions/v2/middleware/(?P<action>\w+)',
+            '/my-api/v1/my-actions/v2/middleware/on-request/(?P<action>\w+)',
+            '/my-api/v1/my-actions/v2/middleware/on-response/(?P<action>\w+)',
             '/my-api/v1/my-actions/v2/permission/(?P<action>\w+)',
         ])
         ->and($routes['/my-api/v1/my-posts/v1/(?P<post_id>[\\d]+)'])
         ->toBeArray()
         ->toHaveCount(3)
-        ->and($routes['/my-api/v1/my-actions/v2/middleware/(?P<action>\w+)'])
+        ->and($routes['/my-api/v1/my-actions/v2/middleware/on-request/(?P<action>\w+)'])
+        ->toBeArray()
+        ->toHaveCount(1)
+        ->and($routes['/my-api/v1/my-actions/v2/middleware/on-response/(?P<action>\w+)'])
         ->toBeArray()
         ->toHaveCount(1)
         ->and($routes['/my-api/v1/my-actions/v2/permission/(?P<action>\w+)'])
@@ -102,21 +106,23 @@ test('Deleting a post', function () {
     expect($response->get_status())->toBe(200);
 })->group('multiple');
 
-test('Trigger error in a middleware', function () {
-    $request = new \WP_REST_Request('GET', '/my-api/v1/my-actions/v2/middleware/error');
+test('Trigger error in a middleware', function (string $middlewareType, string $errorMessage) {
+    $request = new \WP_REST_Request('GET', "/my-api/v1/my-actions/v2/middleware/{$middlewareType}/error");
     $response = $this->server->dispatch($request);
     expect($response->get_status())->toBe(469)
         ->and((object) $response->get_data())
         ->toHaveProperty('code', 469)
-        ->toHaveProperty('message', 'Triggered error action')
+        ->toHaveProperty('message', $errorMessage)
         ->toHaveProperty('data', ['status' => 469]);
-})->group('multiple');
+})->with([
+    ['on-request', 'Triggered error action before handling request'],
+    ['on-response', 'Triggered error action before sending response']])->group('multiple');
 
-test('Trigger success in a middleware', function () {
-    $request = new \WP_REST_Request('GET', '/my-api/v1/my-actions/v2/middleware/success');
+test('Trigger success in a middleware', function (string $middlewareType) {
+    $request = new \WP_REST_Request('GET', "/my-api/v1/my-actions/v2/middleware/{$middlewareType}/success");
     $response = $this->server->dispatch($request);
     expect($response->get_status())->toBe(200);
-})->group('multiple');
+})->with(['on-request', 'on-response'])->group('multiple');
 
 test('Trigger no permissions in permission callback', function () {
     $request = new \WP_REST_Request('GET', '/my-api/v1/my-actions/v2/permission/notAllowed');

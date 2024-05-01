@@ -14,35 +14,36 @@ namespace Wp\FastEndpoints\Schemas;
 
 use Opis\JsonSchema\Exceptions\SchemaException;
 use Opis\JsonSchema\Helper;
-use Wp\FastEndpoints\Contracts\Schemas\Base;
-use Wp\FastEndpoints\Contracts\Schemas\Schema as SchemaInterface;
+use Wp\FastEndpoints\Contracts\JsonSchema;
+use Wp\FastEndpoints\Contracts\Middlewares\OnRequestMiddleware;
 use Wp\FastEndpoints\Helpers\WpError;
+use WP_Error;
 use WP_Http;
 use WP_REST_Request;
 
 /**
- * Schema class that validates a WP_REST_Request using Opis/json-schema
+ * SchemaMiddleware class that validates a WP_REST_Request using Opis/json-schema
  *
  * @since 0.9.0
  *
  * @author André Gil <andre_gil22@hotmail.com>
  */
-class Schema extends Base implements SchemaInterface
+class SchemaMiddleware extends JsonSchema implements OnRequestMiddleware
 {
     /**
      * Validates the JSON schema
      *
+     * @param  WP_REST_Request  $request  Current REST Request.
+     * @return ?WP_Error null on success or WP_Error on error.
+     *
      * @since 0.9.0
      * @see $this->parse()
-     *
-     * @param  WP_REST_Request  $req  Current REST Request.
-     * @return bool|WpError true on success or WpError on error.
      */
-    public function validate(WP_REST_Request $req): bool|WpError
+    public function onRequest(WP_REST_Request $request): ?WP_Error
     {
         $this->contents = $this->getContents();
 
-        return $this->parse($req);
+        return $this->parse($request);
     }
 
     /**
@@ -52,12 +53,12 @@ class Schema extends Base implements SchemaInterface
      * @see https://opis.io/json-schema
      *
      * @param  WP_REST_Request  $req  Current REST Request.
-     * @return bool|WpError true on success or WpError on error.
+     * @return ?WpError null on success or WpError on error.
      */
-    protected function parse(WP_REST_Request $req): bool|WpError
+    protected function parse(WP_REST_Request $req): ?WpError
     {
         if (! \apply_filters($this->suffix.'_is_to_parse', true, $this)) {
-            return true;
+            return null;
         }
 
         if (! $this->contents) {
@@ -92,6 +93,6 @@ class Schema extends Base implements SchemaInterface
             );
         }
 
-        return true;
+        return null;
     }
 }

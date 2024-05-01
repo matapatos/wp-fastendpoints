@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Holds tests for the Response class.
+ * Holds tests for the ResponseMiddleware class.
  *
  * @since 0.9.0
  *
@@ -153,7 +153,7 @@ test('Get router REST path', function (string $api, string $version) {
     ['/my-api/', '/v3/'],
 ])->group('router', 'getRestBase');
 
-// Schema dirs
+// SchemaMiddleware dirs
 
 test('Append invalid schema directories', function ($invalidDir, $errorMessage) {
     Functions\when('esc_html__')->returnArg();
@@ -170,7 +170,7 @@ test('Append invalid schema directories', function ($invalidDir, $errorMessage) 
 })->with([
     ['', 'Invalid schema directory'],
     [[true], 'Expected a directory as a string but got: boolean'],
-    ['/invalid', 'Schema directory not found: /invalid'],
+    ['/invalid', 'SchemaMiddleware directory not found: /invalid'],
     [__FILE__, 'Expected a directory with schemas but got a file: '.__FILE__],
 ])->group('router', 'appendSchemaDir');
 

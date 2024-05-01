@@ -15,22 +15,21 @@ namespace Wp\FastEndpoints\Schemas;
 
 use Opis\JsonSchema\Exceptions\SchemaException;
 use Opis\JsonSchema\Helper;
-use Opis\JsonSchema\Validator;
-use Wp\FastEndpoints\Contracts\Schemas\Base;
-use Wp\FastEndpoints\Contracts\Schemas\Response as ResponseContract;
+use Wp\FastEndpoints\Contracts\JsonSchema;
+use Wp\FastEndpoints\Contracts\Middlewares\OnResponseMiddleware;
 use Wp\FastEndpoints\Helpers\Arr;
 use Wp\FastEndpoints\Helpers\WpError;
 use WP_Http;
 use WP_REST_Request;
 
 /**
- * Response class that checks/parses the REST response of an endpoint before sending it to the client.
+ * ResponseMiddleware class that checks/parses the REST response of an endpoint before sending it to the client.
  *
  * @since 0.9.0
  *
  * @author André Gil <andre_gil22@hotmail.com>
  */
-class Response extends Base implements ResponseContract
+class ResponseMiddleware extends JsonSchema implements OnResponseMiddleware
 {
     /**
      * Data to be sent in the response to the client
@@ -75,7 +74,7 @@ class Response extends Base implements ResponseContract
     ];
 
     /**
-     * Creates a new instance of Base
+     * Creates a new instance of JsonSchema
      *
      * @since 0.9.0
      *
@@ -161,26 +160,26 @@ class Response extends Base implements ResponseContract
      * Makes sure that the data to be sent back to the client corresponds to the given JSON schema.
      * It removes additional properties if the schema has 'additionalProperties' set to false (i.e. default value).
      *
-     * @since 0.9.0
-     *
-     * @param  WP_REST_Request  $req  Current REST Request.
-     * @param  mixed  $res  Current REST response.
+     * @param  WP_REST_Request  $request  Current REST Request.
+     * @param  mixed  $response  Current REST response.
      * @return mixed The parsed response on success or WpError on error.
+     *
+     *@since 0.9.0
      */
-    public function returns(WP_REST_Request $req, mixed $res): mixed
+    public function onResponse(WP_REST_Request $request, mixed $response): mixed
     {
         if (! \apply_filters($this->suffix.'_is_to_validate', true, $this)) {
-            return $res;
+            return $response;
         }
 
         $this->contents = $this->getContents();
         if (! $this->contents) {
-            return $res;
+            return $response;
         }
 
         // Create Validator and enable it to return all errors.
-        self::$data = \apply_filters($this->suffix.'_validation_data', $res, $req, $this);
-        $validator = \apply_filters($this->suffix.'_validator', self::getDefaultValidator(), self::$data, $req, $this);
+        self::$data = \apply_filters($this->suffix.'_validation_data', $response, $request, $this);
+        $validator = \apply_filters($this->suffix.'_validator', self::getDefaultValidator(), self::$data, $request, $this);
         $schema = Helper::toJSON($this->contents);
         self::$data = Helper::toJSON(self::$data);
         try {
@@ -191,17 +190,17 @@ class Response extends Base implements ResponseContract
                 sprintf(esc_html__('Invalid response schema: %s'), esc_html__($e->getMessage())),
             );
 
-            return \apply_filters($this->suffix.'_on_validation_error', $wpError, $req, $this);
+            return \apply_filters($this->suffix.'_on_validation_error', $wpError, $request, $this);
         }
 
-        $isValid = \apply_filters($this->suffix.'_is_valid', $result->isValid(), self::$data, $result, $req, $this);
+        $isValid = \apply_filters($this->suffix.'_is_valid', $result->isValid(), self::$data, $result, $request, $this);
         if (! $isValid) {
             $wpError = new WpError(WP_Http::UNPROCESSABLE_ENTITY, $this->getError($result));
 
-            return \apply_filters($this->suffix.'_on_validation_error', $wpError, $req, $this);
+            return \apply_filters($this->suffix.'_on_validation_error', $wpError, $request, $this);
         }
 
-        return \apply_filters($this->suffix.'_on_validation_success', self::$data, $req, $this);
+        return \apply_filters($this->suffix.'_on_validation_success', self::$data, $request, $this);
     }
 
     /**

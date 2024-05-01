@@ -12,6 +12,9 @@ declare(strict_types=1);
 
 namespace Wp\FastEndpoints\Contracts;
 
+use Wp\FastEndpoints\Contracts\Middlewares\OnRequestMiddleware;
+use Wp\FastEndpoints\Contracts\Middlewares\OnResponseMiddleware;
+
 /**
  * REST Endpoint interface that registers custom WordPress REST endpoints
  *
@@ -62,9 +65,9 @@ interface Endpoint
     public function schema(string|array $schema): Endpoint;
 
     /**
-     * Adds a resource function to the postHandlers, which will be later called to filter the REST response
-     * according to the JSON schema specified. In other words, it will:
-     * 1) Ignore additional properties in WP_REST_Response, avoiding the leakage of unnecessary data and
+     * Adds a response schema to the endpoint. This JSON schema will later on filter the response before sending
+     * it to the client. This can be great to:
+     * 1) Discard unnecessary properties in the response to avoid the leakage of sensitive data and
      * 2) Making sure that the required data is retrieved.
      *
      * @param  string|array  $schema  Filepath to the JSON schema or a JSON schema as an array.
@@ -77,13 +80,13 @@ interface Endpoint
     public function returns(string|array $schema, string|bool|null $removeAdditionalProperties = true): Endpoint;
 
     /**
-     * Registers a middleware with a given priority
+     * Registers a middleware
      *
      * @since 0.9.0
      *
-     * @param  callable  $middleware  Function to be used as a middleware.
+     * @param  OnRequestMiddleware|OnResponseMiddleware  $middleware  Function to be used as a middleware.
      */
-    public function middleware(callable $middleware): Endpoint;
+    public function middleware(OnRequestMiddleware|OnResponseMiddleware $middleware): Endpoint;
 
     /**
      * Registers a permission callback

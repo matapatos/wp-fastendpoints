@@ -30,7 +30,7 @@ class RemoveAdditionalPropertiesKeywordParser extends AdditionalPropertiesKeywor
      *
      * @see AdditionalPropertiesKeywordParser->parse()
      *
-     * @param  SchemaInfo  $info  Schema information.
+     * @param  SchemaInfo  $info  SchemaMiddleware information.
      * @param  SchemaParser  $parser  Parser to be used.
      * @param  object  $shared  Data shared accross.
      * @return ?Keyword null if nothing to be parsed or RemoveAdditionalPropertiesKeyword otherwise.

@@ -14,7 +14,7 @@ use Opis\JsonSchema\Errors\ValidationError;
 use Opis\JsonSchema\Keywords\AdditionalPropertiesKeyword;
 use Opis\JsonSchema\Schema;
 use Opis\JsonSchema\ValidationContext;
-use Wp\FastEndpoints\Schemas\Response;
+use Wp\FastEndpoints\Schemas\ResponseMiddleware;
 
 /**
  * Keyword parser that adds the custom RemoveAdditionalPropertiesKeyword
@@ -31,7 +31,7 @@ class RemoveAdditionalPropertiesKeyword extends AdditionalPropertiesKeyword
      * @see AdditionalPropertiesKeyword->validate()
      *
      * @param  ValidationContext  $context  Current validation context.
-     * @param  Schema  $schema  Schema currently being used.
+     * @param  Schema  $schema  SchemaMiddleware currently being used.
      * @return ?ValidationError ValidationError if an error occurs or null otherwise.
      */
     public function validate(ValidationContext $context, Schema $schema): ?ValidationError
@@ -92,7 +92,7 @@ class RemoveAdditionalPropertiesKeyword extends AdditionalPropertiesKeyword
     }
 
     /**
-     * Removes the Response::$data "additionalProperties" fields from the data it self.
+     * Removes the ResponseMiddleware::$data "additionalProperties" fields from the data it self.
      *
      * @since 0.9.0
      *
@@ -101,7 +101,7 @@ class RemoveAdditionalPropertiesKeyword extends AdditionalPropertiesKeyword
      */
     protected function removeAdditionalProperties(ValidationContext $context, array $properties)
     {
-        $data = Response::getData();
+        $data = ResponseMiddleware::getData();
         // Get full path object.
         $path = &$data;
         foreach ($context->fullDataPath() as $dataPath) {
@@ -113,6 +113,6 @@ class RemoveAdditionalPropertiesKeyword extends AdditionalPropertiesKeyword
             unset($path->{$prop});
         }
 
-        Response::setData($data);
+        ResponseMiddleware::setData($data);
     }
 }

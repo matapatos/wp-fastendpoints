@@ -43,7 +43,7 @@ class Arr
      *
      * @param  mixed  $value  The variable to be wrapped as an array.
      */
-    public static function wrap($value): array
+    public static function wrap(mixed $value): array
     {
         if (! \is_array($value)) {
             $value = [$value];

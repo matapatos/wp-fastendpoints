@@ -10,7 +10,7 @@
 
 declare(strict_types=1);
 
-namespace Wp\FastEndpoints\Contracts\Schemas;
+namespace Wp\FastEndpoints\Contracts;
 
 use Exception;
 use Opis\JsonSchema\Errors\ErrorFormatter;
@@ -30,7 +30,7 @@ use Wp\FastEndpoints\Schemas\Opis\Parsers\ResponseSchemaParser;
  *
  * @author André Gil <andre_gil22@hotmail.com>
  */
-abstract class Base
+abstract class JsonSchema
 {
     /**
      * Filter suffix used in this class
@@ -40,14 +40,14 @@ abstract class Base
     protected string $suffix;
 
     /**
-     * The filepath of the JSON Schema: absolute or relative path
+     * The filepath of the JSON SchemaMiddleware: absolute or relative path
      *
      * @since 0.9.0
      */
     protected ?string $filepath = null;
 
     /**
-     * The JSON Schema
+     * The JSON SchemaMiddleware
      *
      * @since 0.9.0
      *
@@ -77,7 +77,7 @@ abstract class Base
     protected static Validator $validator;
 
     /**
-     * Creates a new instance of Base
+     * Creates a new instance of JsonSchema
      *
      * @since 0.9.0
      *
@@ -123,6 +123,7 @@ abstract class Base
     {
         $suffix = \basename(\str_replace('\\', '/', \get_class($this)));
         $suffix = \ltrim(\strtolower(\preg_replace('/[A-Z]([A-Z](?![a-z]))*/', '_$0', $suffix)), '_');
+        $suffix = \str_replace('_middleware', '', $suffix);
 
         return "fastendpoints_{$suffix}";
     }
@@ -156,7 +157,7 @@ abstract class Base
 
             if (! \is_dir($dir)) {
                 /* translators: 1: Directory */
-                throw new TypeError(\sprintf(\esc_html__('Schema directory not found: %s'), \esc_html($dir)));
+                throw new TypeError(\sprintf(\esc_html__('SchemaMiddleware directory not found: %s'), \esc_html($dir)));
             }
         }
 
@@ -188,7 +189,7 @@ abstract class Base
             }
         }
 
-        throw new Exception("Schema filepath not found {$this->filepath}");
+        throw new Exception("SchemaMiddleware filepath not found {$this->filepath}");
     }
 
     /**
@@ -234,13 +235,13 @@ abstract class Base
         // Read JSON file and retrieve it's content.
         $result = $this->getFileContents($filepath);
         if ($result === false) {
-            /* translators: 1: Schema filepath */
+            /* translators: 1: SchemaMiddleware filepath */
             \wp_die(\sprintf(\esc_html__('Unable to read file: %s'), \esc_html($this->filepath)));
         }
 
         $this->contents = \json_decode($result, true);
         if ($this->contents === null && \json_last_error() !== \JSON_ERROR_NONE) {
-            /* translators: 1: Schema filepath, 2: JSON error message */
+            /* translators: 1: SchemaMiddleware filepath, 2: JSON error message */
             \wp_die(\sprintf(
                 \esc_html__('Invalid json file: %1$s %2$s'),
                 \esc_html($this->filepath),

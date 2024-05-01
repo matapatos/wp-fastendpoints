@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Holds tests for the Base class.
+ * Holds tests for the JsonSchema class.
  *
  * @since 0.9.0
  *
@@ -26,8 +26,8 @@ use Tests\Wp\FastEndpoints\Helpers\FileSystemCache;
 use Tests\Wp\FastEndpoints\Helpers\Helpers;
 use Tests\Wp\FastEndpoints\Helpers\LoadSchema;
 use TypeError;
-use Wp\FastEndpoints\Schemas\Response;
-use Wp\FastEndpoints\Schemas\Schema;
+use Wp\FastEndpoints\Schemas\ResponseMiddleware;
+use Wp\FastEndpoints\Schemas\SchemaMiddleware;
 
 beforeEach(function () {
     Monkey\setUp();
@@ -38,7 +38,7 @@ afterEach(function () {
     vfsStream::setup();
 });
 
-dataset('base_classes', [Response::class, Schema::class]);
+dataset('base_classes', [ResponseMiddleware::class, SchemaMiddleware::class]);
 dataset('schemas', [
     'Basics/Array',
     'Basics/Boolean',
@@ -54,15 +54,15 @@ dataset('schemas', [
 
 // Constructor
 
-test('Creating Response instance with $schema as a string', function (string $class) {
+test('Creating ResponseMiddleware instance with $schema as a string', function (string $class) {
     expect(new $class('User/Get'))->toBeInstanceOf($class);
 })->with('base_classes')->group('base', 'constructor');
 
-test('Creating Response instance with $schema as an array', function (string $class) {
+test('Creating ResponseMiddleware instance with $schema as an array', function (string $class) {
     expect(new $class([]))->toBeInstanceOf($class);
 })->with('base_classes')->group('base', 'constructor');
 
-test('Creating Response instance with an invalid $schema type', function (string $class, $value) {
+test('Creating ResponseMiddleware instance with an invalid $schema type', function (string $class, $value) {
     Functions\when('esc_html__')->returnArg();
     Functions\when('esc_html')->returnArg();
     expect(function () use ($class, $value) {
@@ -72,7 +72,7 @@ test('Creating Response instance with an invalid $schema type', function (string
 
 // getSuffix()
 
-test('Checking correct Response suffix', function (string $class) {
+test('Checking correct ResponseMiddleware suffix', function (string $class) {
     $schema = new $class([]);
     $suffix = Helpers::invokeNonPublicClassMethod($schema, 'getSuffix');
     $expectedSuffix = Helpers::getHooksSuffixFromClass($schema);
@@ -117,8 +117,8 @@ test('Passing invalid schema directories to appendSchemaDir', function (string $
     [[true], 'Expected a directory as a string but got: boolean'],
     [__FILE__, 'Expected a directory with schemas but got a file: '.__FILE__],
     [[__FILE__], 'Expected a directory with schemas but got a file: '.__FILE__],
-    ['fakedirectory', 'Schema directory not found: fakedirectory'],
-    [['fake', '/fake/ups'], 'Schema directory not found: fake'],
+    ['fakedirectory', 'SchemaMiddleware directory not found: fakedirectory'],
+    [['fake', '/fake/ups'], 'SchemaMiddleware directory not found: fake'],
 ])->group('base', 'appendSchemaDir');
 
 test('Passing both valid and invalid schema directories to appendSchemaDir', function (string $class, ...$invalidDirectories) {

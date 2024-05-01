@@ -82,7 +82,7 @@ class Helpers
      *
      * @since 0.9.0
      *
-     * @param  string  $filepath  - Schema filepath to be loaded.
+     * @param  string  $filepath  - SchemaMiddleware filepath to be loaded.
      * @return mixed - Loaded schema.
      *
      * @throws Exception if unable to read or invalid schema
@@ -114,7 +114,7 @@ class Helpers
      *
      * @param  mixed  $instance  class instance to get the name
      */
-    public static function getClassNameInSnakeCase($instance): string
+    protected static function getClassNameInSnakeCase($instance): string
     {
         $className = is_string($instance) ? $instance : \get_class($instance);
         $suffix = \basename(\str_replace('\\', '/', $className));
@@ -132,6 +132,7 @@ class Helpers
     public static function getHooksSuffixFromClass($instance): string
     {
         $suffix = self::getClassNameInSnakeCase($instance);
+        $suffix = str_replace('_middleware', '', $suffix);
 
         return "fastendpoints_{$suffix}";
     }

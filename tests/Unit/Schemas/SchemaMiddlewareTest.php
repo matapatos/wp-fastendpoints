@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Holds tests for the Schema class.
+ * Holds tests for the SchemaMiddleware class.
  *
  * @since 0.9.0
  *
@@ -22,7 +22,7 @@ use org\bovigo\vfs\vfsStream;
 use Tests\Wp\FastEndpoints\Helpers\Helpers;
 use Tests\Wp\FastEndpoints\Helpers\LoadSchema;
 use Wp\FastEndpoints\Helpers\WpError;
-use Wp\FastEndpoints\Schemas\Schema;
+use Wp\FastEndpoints\Schemas\SchemaMiddleware;
 
 beforeEach(function () {
     Monkey\setUp();
@@ -33,7 +33,7 @@ afterEach(function () {
     vfsStream::setup();
 });
 
-// validate()
+// onRequest()
 
 test('validate valid parameters', function ($loadSchemaFrom) {
     $schema = 'Users/Get';
@@ -44,7 +44,7 @@ test('validate valid parameters', function ($loadSchemaFrom) {
     if ($loadSchemaFrom == LoadSchema::FromArray) {
         $schema = $expectedContents;
     }
-    $schema = new Schema($schema);
+    $schema = new SchemaMiddleware($schema);
     $schema->appendSchemaDir(\SCHEMAS_DIR);
     $user = [
         'data' => [
@@ -68,12 +68,12 @@ test('validate valid parameters', function ($loadSchemaFrom) {
     Filters\expectApplied('fastendpoints_schema_is_valid')
         ->once()
         ->with(true, Mockery::type(ValidationResult::class), Mockery::type(\WP_REST_Request::class), $schema);
-    $result = $schema->validate($req);
-    expect($result)->toBeTrue();
+    $result = $schema->onRequest($req);
+    expect($result)->toBeNull();
 })->with([
     LoadSchema::FromFile,
     LoadSchema::FromArray,
-])->group('schema', 'validate');
+])->group('schema', 'onRequest');
 
 test('validate invalid parameters', function ($loadSchemaFrom) {
     $schema = 'Users/Get';
@@ -85,7 +85,7 @@ test('validate invalid parameters', function ($loadSchemaFrom) {
     if ($loadSchemaFrom == LoadSchema::FromArray) {
         $schema = $expectedContents;
     }
-    $schema = new Schema($schema);
+    $schema = new SchemaMiddleware($schema);
     $schema->appendSchemaDir(\SCHEMAS_DIR);
     $user = [
         'data' => [
@@ -108,7 +108,7 @@ test('validate invalid parameters', function ($loadSchemaFrom) {
     Filters\expectApplied('fastendpoints_schema_is_valid')
         ->once()
         ->with(false, Mockery::type(ValidationResult::class), Mockery::type(\WP_REST_Request::class), $schema);
-    $result = $schema->validate($req);
+    $result = $schema->onRequest($req);
     expect($result)
         ->toBeInstanceOf(WpError::class)
         ->toHaveProperty('code', 422)
@@ -117,11 +117,11 @@ test('validate invalid parameters', function ($loadSchemaFrom) {
 })->with([
     LoadSchema::FromFile,
     LoadSchema::FromArray,
-])->group('schema', 'validate');
+])->group('schema', 'onRequest');
 
 test('validate invalid schema', function () {
     Functions\when('esc_html__')->returnArg();
-    $schema = new Schema(['type' => 'invalid']);
+    $schema = new SchemaMiddleware(['type' => 'invalid']);
     $schema->appendSchemaDir(\SCHEMAS_DIR);
     $user = [
         'data' => [
@@ -140,24 +140,24 @@ test('validate invalid schema', function () {
     Filters\expectApplied('fastendpoints_schema_validator')
         ->once()
         ->with(Mockery::type(Validator::class), Mockery::type(\WP_REST_Request::class), $schema);
-    $result = $schema->validate($req);
+    $result = $schema->onRequest($req);
     expect($result)
         ->toBeInstanceOf(WpError::class)
         ->toHaveProperty('code', 500)
         ->toHaveProperty('message', 'Invalid request route schema type contains invalid json type: invalid')
         ->toHaveProperty('data', ['status' => 500]);
     $this->assertEquals(Filters\applied('schema_is_valid'), 0);
-})->group('schema', 'validate');
+})->group('schema', 'onRequest');
 
 test('Skip parsing schema', function () {
-    $schema = new Schema(['test']);
+    $schema = new SchemaMiddleware(['test']);
     $req = Mockery::mock('WP_REST_Request');
     Filters\expectApplied('fastendpoints_schema_is_to_parse')
         ->once()
         ->with(true, $schema)
         ->andReturn(false);
-    $result = $schema->validate($req);
-    expect($result)->toBeTrue();
+    $result = $schema->onRequest($req);
+    expect($result)->toBeNull();
     $this->assertEquals(Filters\applied('fastendpoints_schema_params'), 0);
     $this->assertEquals(Filters\applied('fastendpoints_schema_validator'), 0);
     $this->assertEquals(Filters\applied('fastendpoints_schema_is_valid'), 0);
@@ -165,7 +165,7 @@ test('Skip parsing schema', function () {
 
 test('Always rejects requests when no schema content is defined', function ($value) {
     Functions\when('esc_html__')->returnArg();
-    $mockedSchema = Mockery::mock(Schema::class)
+    $mockedSchema = Mockery::mock(SchemaMiddleware::class)
         ->makePartial()
         ->shouldAllowMockingProtectedMethods()
         ->shouldReceive('getContents')
@@ -177,7 +177,7 @@ test('Always rejects requests when no schema content is defined', function ($val
     Filters\expectApplied('fastendpoints_schema_is_to_parse')
         ->once()
         ->with(true, $mockedSchema);
-    $result = $mockedSchema->validate($req);
+    $result = $mockedSchema->onRequest($req);
     expect($result)
         ->toBeInstanceOf(WpError::class)
         ->toHaveProperty('code', 422)
@@ -186,4 +186,4 @@ test('Always rejects requests when no schema content is defined', function ($val
     $this->assertEquals(Filters\applied('schema_params'), 0);
     $this->assertEquals(Filters\applied('schema_validator'), 0);
     $this->assertEquals(Filters\applied('schema_is_valid'), 0);
-})->with([false, null, [[]]])->group('schema', 'validate');
+})->with([false, null, [[]]])->group('schema', 'onRequest');
