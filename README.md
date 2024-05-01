@@ -20,7 +20,8 @@
 - Removes unwanted fields from Responses 
 - Middlewares support
 - IDE auto completion support
-- Support for newer JSON schema drafts via [json/opis](https://opis.io/json-schema/2.x/)
+- No magic router. It uses WordPress [`register_rest_route`](https://developer.wordpress.org/reference/functions/register_rest_route/)
+- Support for newer JSON schema drafts thanks to [json/opis](https://opis.io/json-schema/2.x/)
 
 ## Requirements
 
