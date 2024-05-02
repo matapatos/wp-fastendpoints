@@ -88,6 +88,8 @@ test('Retrieving a post by id', function () {
 
 test('Updating a post', function () {
     $userId = $this::factory()->user->create();
+    $user = get_user_by('id', $userId);
+    $user->add_cap('edit_published_posts');
     $postId = $this::factory()->post->create(['post_author' => $userId]);
     wp_set_current_user($userId);
     $request = new \WP_REST_Request('POST', "/my-api/v1/my-posts/v1/{$postId}");
@@ -99,6 +101,8 @@ test('Updating a post', function () {
 
 test('Deleting a post', function () {
     $userId = $this::factory()->user->create();
+    $user = get_user_by('id', $userId);
+    $user->add_cap('delete_published_posts');
     $postId = $this::factory()->post->create(['post_author' => $userId]);
     wp_set_current_user($userId);
     $request = new \WP_REST_Request('DELETE', "/my-api/v1/my-posts/v1/{$postId}");

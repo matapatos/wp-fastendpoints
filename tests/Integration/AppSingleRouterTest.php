@@ -88,6 +88,8 @@ test('Trying to retrieve a post without permissions', function () {
 
 test('Updating a post', function () {
     $userId = $this::factory()->user->create();
+    $user = get_user_by('id', $userId);
+    $user->add_cap('edit_published_posts');
     $postId = $this::factory()->post->create(['post_author' => $userId]);
     wp_set_current_user($userId);
     $request = new \WP_REST_Request('POST', "/my-posts/v1/{$postId}");
@@ -101,8 +103,26 @@ test('Updating a post', function () {
         ->toHaveProperty('post_title', 'My testing message');
 })->group('single');
 
+test('Trying to update a post without permissions', function () {
+    $allUserIds = $this::factory()->user->create_many(2);
+    $firstUser = get_user_by('id', $allUserIds[0]);
+    $firstUser->add_cap('edit_published_posts');
+    $postId = $this::factory()->post->create(['post_author' => $allUserIds[1]]);
+    wp_set_current_user($allUserIds[1]);
+    $request = new \WP_REST_Request('POST', "/my-posts/v1/{$postId}");
+    $response = $this->server->dispatch($request);
+    expect($response->get_status())->toBe(403);
+    $data = (object) $response->get_data();
+    expect($data)
+        ->toHaveProperty('code', 403)
+        ->toHaveProperty('message', 'Not enough permissions')
+        ->toHaveProperty('data', ['status' => 403]);
+})->group('single');
+
 test('Deleting a post', function () {
     $userId = $this::factory()->user->create();
+    $user = get_user_by('id', $userId);
+    $user->add_cap('delete_published_posts');
     $postId = $this::factory()->post->create(['post_author' => $userId]);
     wp_set_current_user($userId);
     $request = new \WP_REST_Request('DELETE', "/my-posts/v1/{$postId}");
@@ -110,4 +130,20 @@ test('Deleting a post', function () {
     expect($response->get_status())->toBe(200);
     $data = $response->get_data();
     expect($data)->toBe('Post deleted with success');
+})->group('single');
+
+test('Trying to delete a post without permissions', function () {
+    $allUserIds = $this::factory()->user->create_many(2);
+    $user = get_user_by('id', $allUserIds[0]);
+    $user->add_cap('delete_published_posts');
+    $postId = $this::factory()->post->create(['post_author' => $allUserIds[1]]);
+    wp_set_current_user($allUserIds[0]);
+    $request = new \WP_REST_Request('DELETE', "/my-posts/v1/{$postId}");
+    $response = $this->server->dispatch($request);
+    expect($response->get_status())->toBe(403);
+    $data = (object) $response->get_data();
+    expect($data)
+        ->toHaveProperty('code', 403)
+        ->toHaveProperty('message', 'Not enough permissions')
+        ->toHaveProperty('data', ['status' => 403]);
 })->group('single');

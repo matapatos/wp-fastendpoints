@@ -13,7 +13,6 @@ declare(strict_types=1);
 namespace Wp\FastEndpoints;
 
 use Wp\FastEndpoints\Contracts\Endpoint as EndpointInterface;
-use Wp\FastEndpoints\Contracts\Middlewares\Middleware;
 use Wp\FastEndpoints\Contracts\Middlewares\OnRequestMiddleware;
 use Wp\FastEndpoints\Contracts\Middlewares\OnResponseMiddleware;
 use Wp\FastEndpoints\Helpers\WpError;

@@ -39,7 +39,7 @@ $router->post('(?P<post_id>[\d]+)', function (\WP_REST_Request $request) {
 })
     ->schema('Posts/Update')
     ->returns('Posts/Get')
-    ->hasCap('read');
+    ->hasCap('edit_post', '{post_id}');
 
 // Deleting a post
 $router->delete('(?P<post_id>[\d]+)', function (\WP_REST_Request $request) {
@@ -50,4 +50,4 @@ $router->delete('(?P<post_id>[\d]+)', function (\WP_REST_Request $request) {
 
     return esc_html__('Post deleted with success');
 })
-    ->hasCap('read');
+    ->hasCap('delete_post', '{post_id}');
