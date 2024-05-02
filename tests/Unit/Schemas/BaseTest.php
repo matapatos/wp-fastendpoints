@@ -10,7 +10,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Wp\FastEndpoints\Unit\Schemas;
+namespace Wp\FastEndpoints\Tests\Unit\Schemas;
 
 use Brain\Monkey;
 use Brain\Monkey\Filters;
@@ -22,12 +22,12 @@ use Opis\JsonSchema\Errors\ErrorFormatter;
 use Opis\JsonSchema\Errors\ValidationError;
 use Opis\JsonSchema\ValidationResult;
 use org\bovigo\vfs\vfsStream;
-use Tests\Wp\FastEndpoints\Helpers\FileSystemCache;
-use Tests\Wp\FastEndpoints\Helpers\Helpers;
-use Tests\Wp\FastEndpoints\Helpers\LoadSchema;
 use TypeError;
 use Wp\FastEndpoints\Schemas\ResponseMiddleware;
 use Wp\FastEndpoints\Schemas\SchemaMiddleware;
+use Wp\FastEndpoints\Tests\Helpers\FileSystemCache;
+use Wp\FastEndpoints\Tests\Helpers\Helpers;
+use Wp\FastEndpoints\Tests\Helpers\LoadSchema;
 
 beforeEach(function () {
     Monkey\setUp();

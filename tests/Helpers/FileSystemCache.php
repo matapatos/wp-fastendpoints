@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Wp\FastEndpoints\Helpers;
+namespace Wp\FastEndpoints\Tests\Helpers;
 
 /**
  * Class used to emulate a file system.
@@ -26,22 +26,6 @@ class FileSystemCache
         if (! file_exists($this->dir)) {
             mkdir($this->dir, 0700, true);
         }
-    }
-
-    /**
-     * Retrieves all fullpaths of the given files/directories regarding the caching directory
-     *
-     * @param  array<string>  $filepaths  - The files/directories in question.
-     * @return array<string>
-     */
-    public function getFilepaths(array $filepaths): array
-    {
-        $fullpaths = [];
-        foreach ($filepaths as $filepath) {
-            $fullpaths[] = $this->getFullpath($filepath);
-        }
-
-        return $fullpaths;
     }
 
     /**

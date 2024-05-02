@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Wp\FastEndpoints\Integration\Routers\Middlewares;
+namespace Wp\FastEndpoints\Tests\Integration\Routers\Middlewares;
 
 use Wp\FastEndpoints\Contracts\Middlewares\OnResponseMiddleware;
 use Wp\FastEndpoints\Helpers\WpError;

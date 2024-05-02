@@ -10,14 +10,14 @@
 
 declare(strict_types=1);
 
-namespace Tests\Wp\FastEndpoints\Unit\Schemas;
+namespace Wp\FastEndpoints\Tests\Unit\Schemas;
 
 use Brain\Monkey;
 use Brain\Monkey\Functions;
 use Mockery;
 use org\bovigo\vfs\vfsStream;
-use Tests\Wp\FastEndpoints\Helpers\Helpers;
 use Wp\FastEndpoints\Helpers\WpError;
+use Wp\FastEndpoints\Tests\Helpers\Helpers;
 
 beforeEach(function () {
     Monkey\setUp();

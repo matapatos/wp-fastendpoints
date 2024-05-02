@@ -10,10 +10,10 @@
 
 declare(strict_types=1);
 
-use Tests\Wp\FastEndpoints\Integration\Routers\Middlewares\OnRequestErrorActionMiddleware;
-use Tests\Wp\FastEndpoints\Integration\Routers\Middlewares\OnResponseErrorActionMiddleware;
 use Wp\FastEndpoints\Helpers\WpError;
 use Wp\FastEndpoints\Router;
+use Wp\FastEndpoints\Tests\Integration\Routers\Middlewares\OnRequestErrorActionMiddleware;
+use Wp\FastEndpoints\Tests\Integration\Routers\Middlewares\OnResponseErrorActionMiddleware;
 
 $router = new Router('my-actions', 'v2');
 $router->appendSchemaDir(\SCHEMAS_DIR);

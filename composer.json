@@ -1,5 +1,5 @@
 {
-	"name": "myspanishnow/wp-fastendpoints",
+	"name": "matapatos/wp-fastendpoints",
 	"type": "library",
 	"description": "Fast to type. Fast to run WordPress REST endpoints",
 	"keywords": [
@@ -20,9 +20,12 @@
 	},
 	"autoload-dev": {
 		"psr-4": {
-			"Wp\\FastEndpoints\\": "src/",
-			"Tests\\Wp\\FastEndpoints\\": "tests/"
-		}
+			"Wp\\FastEndpoints\\Tests\\": "tests/"
+		},
+		"files": [
+			"tests/constants.php",
+			"tests/wp-overrides.php"
+		]
 	},
 	"require-dev": {
 		"mockery/mockery": "^1.6",

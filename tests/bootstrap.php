@@ -1,13 +1,11 @@
 <?php
 
-use Tests\Wp\FastEndpoints\Helpers\Helpers;
+use Wp\FastEndpoints\Tests\Helpers\Helpers;
 use Yoast\WPTestUtils\WPIntegration;
 
 // Autoload everything for unit tests.
 $ds = DIRECTORY_SEPARATOR;
 require_once dirname(__FILE__, 2).$ds.'vendor'.$ds.'autoload.php';
-require_once 'constants.php';
-require_once 'wp-overrides.php';
 
 /**
  * Include core bootstrap for an integration test suite

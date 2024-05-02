@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 namespace Tests\Integration;
 
-use Tests\Wp\FastEndpoints\Helpers\Helpers;
+use Wp\FastEndpoints\Tests\Helpers\Helpers;
 use Yoast\WPTestUtils\WPIntegration\TestCase;
 
 if (! Helpers::isIntegrationTest()) {

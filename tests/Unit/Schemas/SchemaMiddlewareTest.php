@@ -10,7 +10,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Wp\FastEndpoints\Unit\Schemas;
+namespace Wp\FastEndpoints\Tests\Unit\Schemas;
 
 use Brain\Monkey;
 use Brain\Monkey\Filters;
@@ -19,10 +19,10 @@ use Mockery;
 use Opis\JsonSchema\ValidationResult;
 use Opis\JsonSchema\Validator;
 use org\bovigo\vfs\vfsStream;
-use Tests\Wp\FastEndpoints\Helpers\Helpers;
-use Tests\Wp\FastEndpoints\Helpers\LoadSchema;
 use Wp\FastEndpoints\Helpers\WpError;
 use Wp\FastEndpoints\Schemas\SchemaMiddleware;
+use Wp\FastEndpoints\Tests\Helpers\Helpers;
+use Wp\FastEndpoints\Tests\Helpers\LoadSchema;
 
 beforeEach(function () {
     Monkey\setUp();

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Wp\FastEndpoints\Helpers;
+namespace Wp\FastEndpoints\Tests\Helpers;
 
 abstract class LoadSchema
 {

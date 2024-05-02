@@ -10,7 +10,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Wp\FastEndpoints\Unit\Schemas;
+namespace Wp\FastEndpoints\Tests\Unit\Schemas;
 
 use Brain\Monkey;
 use Brain\Monkey\Filters;
@@ -18,13 +18,13 @@ use Brain\Monkey\Functions;
 use Exception;
 use Mockery;
 use org\bovigo\vfs\vfsStream;
-use Tests\Wp\FastEndpoints\Helpers\Helpers;
 use Wp\FastEndpoints\Contracts\Middlewares\OnRequestMiddleware;
 use Wp\FastEndpoints\Contracts\Middlewares\OnResponseMiddleware;
 use Wp\FastEndpoints\Endpoint;
 use Wp\FastEndpoints\Helpers\WpError;
 use Wp\FastEndpoints\Schemas\ResponseMiddleware;
 use Wp\FastEndpoints\Schemas\SchemaMiddleware;
+use Wp\FastEndpoints\Tests\Helpers\Helpers;
 
 beforeEach(function () {
     Monkey\setUp();

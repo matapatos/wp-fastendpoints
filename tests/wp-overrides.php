@@ -6,7 +6,7 @@
  * @since 0.9.0
  */
 
-use Tests\Wp\FastEndpoints\Helpers\Helpers;
+use Wp\FastEndpoints\Tests\Helpers\Helpers;
 
 if (Helpers::isIntegrationTest()) {
     return;
