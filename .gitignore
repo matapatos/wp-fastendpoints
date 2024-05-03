@@ -1,12 +1,9 @@
 .idea/
-wordpress/
-./Schemas/
 wp/
 wp-content/
-Example/
-routes.php
 *.cache
-tests/coverage
+/tests/coverage
+/coverage.xml
 
 # Created by https://www.toptal.com/developers/gitignore/api/composer,sublimetext,linux
 # Edit at https://www.toptal.com/developers/gitignore?templates=composer,sublimetext,linux
