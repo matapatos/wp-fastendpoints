@@ -18,6 +18,7 @@ use Wp\FastEndpoints\Contracts\Middleware;
 use Wp\FastEndpoints\Helpers\WpError;
 use Wp\FastEndpoints\Schemas\ResponseMiddleware;
 use Wp\FastEndpoints\Schemas\SchemaMiddleware;
+use Wp\FastEndpoints\Schemas\SchemaResolver;
 use WP_Error;
 use WP_Http;
 use WP_REST_Request;
@@ -61,6 +62,13 @@ class Endpoint implements EndpointInterface
      * @var callable
      */
     protected $handler;
+
+    /**
+     * Finds the correct JSON schema to be loaded
+     *
+     * @since 1.2.1
+     */
+    protected SchemaResolver $schemaResolver;
 
     /**
      * Same as the register_rest_route $override parameter
@@ -133,13 +141,14 @@ class Endpoint implements EndpointInterface
      *                       WP FastEndpoints arguments.
      * @param  bool  $override  Same as the WordPress register_rest_route $override parameter. Default value: false.
      */
-    public function __construct(string $method, string $route, callable $handler, array $args = [], bool $override = false)
+    public function __construct(string $method, string $route, callable $handler, array $args = [], bool $override = false, ?SchemaResolver $schemaResolver = null)
     {
         $this->method = $method;
         $this->route = $route;
         $this->handler = $handler;
         $this->args = $args;
         $this->override = $override;
+        $this->schemaResolver = $schemaResolver ?? new SchemaResolver();
         $this->invoker = new Invoker();
     }
 
@@ -152,10 +161,9 @@ class Endpoint implements EndpointInterface
      *
      * @param  string  $namespace  WordPress REST namespace.
      * @param  string  $restBase  Endpoint REST base.
-     * @param  array<string>  $schemaDirs  Array of directories to look for JSON schemas. Default value: [].
      * @return true|false true if successfully registered a REST route or false otherwise.
      */
-    public function register(string $namespace, string $restBase, array $schemaDirs = []): bool
+    public function register(string $namespace, string $restBase): bool
     {
         $args = [
             'methods' => $this->method,
@@ -163,10 +171,8 @@ class Endpoint implements EndpointInterface
             'permission_callback' => $this->permissionHandlers ? [$this, 'permissionCallback'] : '__return_true',
         ];
         if ($this->schema) {
-            $this->schema->appendSchemaDir($schemaDirs);
-            $args['schema'] = [$this->schema, 'getContents'];
+            $args['schema'] = [$this->schema, 'getSchema'];
         }
-        $this->responseSchema?->appendSchemaDir($schemaDirs);
         // Override default arguments.
         $args = \array_merge($args, $this->args);
         $args = \apply_filters('fastendpoints_endpoint_args', $args, $namespace, $restBase, $this);
@@ -228,7 +234,7 @@ class Endpoint implements EndpointInterface
      */
     public function schema(string|array $schema): Endpoint
     {
-        $this->schema = new SchemaMiddleware($schema);
+        $this->schema = new SchemaMiddleware($schema, $this->schemaResolver);
         $this->onRequestHandlers[] = [$this->schema, 'onRequest'];
 
         return $this;
@@ -249,7 +255,7 @@ class Endpoint implements EndpointInterface
      */
     public function returns(string|array $schema, string|bool|null $removeAdditionalProperties = true): Endpoint
     {
-        $this->responseSchema = new ResponseMiddleware($schema, $removeAdditionalProperties);
+        $this->responseSchema = new ResponseMiddleware($schema, $removeAdditionalProperties, $this->schemaResolver);
         $this->onResponseHandlers[] = [$this->responseSchema, 'onResponse'];
 
         return $this;
@@ -308,20 +314,20 @@ class Endpoint implements EndpointInterface
         ] + $request->get_url_params();
         // Request handlers.
         $result = $this->runHandlers($this->onRequestHandlers, $dependencies);
-        if (\is_wp_error($result) || $result instanceof \WP_REST_Response) {
+        if (\is_wp_error($result) || $result instanceof WP_REST_Response) {
             return $result;
         }
 
         // Main handler.
         $result = $this->invoker->call($this->handler, $dependencies);
-        if (\is_wp_error($result) || $result instanceof \WP_REST_Response) {
+        if (\is_wp_error($result) || $result instanceof WP_REST_Response) {
             return $result;
         }
         $dependencies['response']->set_data($result);
 
         // ResponseMiddleware handlers.
         $result = $this->runHandlers($this->onResponseHandlers, $dependencies);
-        if (\is_wp_error($result) || $result instanceof \WP_REST_Response) {
+        if (\is_wp_error($result) || $result instanceof WP_REST_Response) {
             return $result;
         }
 

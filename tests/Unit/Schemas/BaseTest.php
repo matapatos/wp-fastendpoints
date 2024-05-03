@@ -246,7 +246,7 @@ test('Trying to load invalid json', function (string $class, $schemaFilepath) {
     $suffix = Helpers::getHooksSuffixFromClass($schema);
     $schema->appendSchemaDir(\SCHEMAS_DIR);
     expect(function () use ($schema) {
-        $schema->getContents();
+        $schema->getSchema();
     })->toThrow(Exception::class, sprintf('Invalid json file: %1$s', $schemaFilepath));
     $this->assertEquals(Filters\applied($suffix.'_contents'), 0);
 })->with('base_classes')->with([
@@ -260,18 +260,9 @@ test('Failed to load file contents', function (string $class) {
     Functions\when('wp_die')->alias(function ($msg) {
         throw new Exception($msg);
     });
-    $mockedSchema = Mockery::mock($class)
-        ->makePartial()
-        ->shouldAllowMockingProtectedMethods()
-        ->shouldReceive('getValidSchemaFilepath')
-        ->andReturn(false)
-        ->shouldReceive('getFileContents')
-        ->andReturn(false)
-        ->getMock();
-    $suffix = Helpers::getHooksSuffixFromClass($class);
+    $schema = new $class('/file-doesnt-exist.json');
 
-    expect(function () use ($mockedSchema) {
-        $mockedSchema->getContents();
+    expect(function () use ($schema) {
+        var_dump($schema->getSchema());
     })->toThrow(Exception::class, 'Unable to read file: ');
-    $this->assertEquals(Filters\applied($suffix.'_contents'), 0);
-})->with('base_classes')->group('base', 'getContents');
+})->with('base_classes')->group('base', 'getSchema');

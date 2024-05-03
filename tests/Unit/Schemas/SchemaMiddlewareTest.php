@@ -16,8 +16,8 @@ use Brain\Monkey;
 use Brain\Monkey\Filters;
 use Brain\Monkey\Functions;
 use Mockery;
+use Opis\JsonSchema\Resolvers\SchemaResolver;
 use Opis\JsonSchema\ValidationResult;
-use Opis\JsonSchema\Validator;
 use org\bovigo\vfs\vfsStream;
 use Wp\FastEndpoints\Helpers\WpError;
 use Wp\FastEndpoints\Schemas\SchemaMiddleware;
@@ -36,16 +36,18 @@ afterEach(function () {
 // onRequest()
 
 test('validate valid parameters', function ($loadSchemaFrom) {
-    $schema = 'Users/Get';
     Functions\when('path_join')->alias(function ($path1, $path2) {
         return $path1.'/'.$path2;
     });
-    $expectedContents = Helpers::loadSchema(\SCHEMAS_DIR.$schema);
+    $schema = 'https://www.wp-fastendpoints.com/Users/Get.json';
+    $expectedContents = Helpers::loadSchema(\SCHEMAS_DIR.'Users/Get');
+    $schemaResolver = new SchemaResolver();
+    $schemaResolver->registerPrefix('https://www.wp-fastendpoints.com', \SCHEMAS_DIR);
     if ($loadSchemaFrom == LoadSchema::FromArray) {
+        $schemaResolver->unregisterPrefix('https://www.wp-fastendpoints.com');
         $schema = $expectedContents;
     }
-    $schema = new SchemaMiddleware($schema);
-    $schema->appendSchemaDir(\SCHEMAS_DIR);
+    $schema = new SchemaMiddleware($schema, $schemaResolver);
     $user = [
         'data' => [
             'user_email' => 'fake@wp-fastendpoints.com',
@@ -62,9 +64,6 @@ test('validate valid parameters', function ($loadSchemaFrom) {
     Filters\expectApplied('fastendpoints_schema_params')
         ->once()
         ->with($user, Mockery::type(\WP_REST_Request::class), $schema);
-    Filters\expectApplied('fastendpoints_schema_validator')
-        ->once()
-        ->with(Mockery::type(Validator::class), Mockery::type(\WP_REST_Request::class), $schema);
     Filters\expectApplied('fastendpoints_schema_is_valid')
         ->once()
         ->with(true, Mockery::type(ValidationResult::class), Mockery::type(\WP_REST_Request::class), $schema);
@@ -76,17 +75,19 @@ test('validate valid parameters', function ($loadSchemaFrom) {
 ])->group('schema', 'onRequest');
 
 test('validate invalid parameters', function ($loadSchemaFrom) {
-    $schema = 'Users/Get';
     Functions\when('esc_html__')->returnArg();
     Functions\when('path_join')->alias(function ($path1, $path2) {
         return $path1.'/'.$path2;
     });
-    $expectedContents = Helpers::loadSchema(\SCHEMAS_DIR.$schema);
+    $schema = 'https://www.wp-fastendpoints.com/Users/Get.json';
+    $schemaResolver = new SchemaResolver();
+    $expectedContents = Helpers::loadSchema(\SCHEMAS_DIR.'Users/Get');
+    $schemaResolver->registerPrefix('https://www.wp-fastendpoints.com', \SCHEMAS_DIR);
     if ($loadSchemaFrom == LoadSchema::FromArray) {
+        $schemaResolver->unregisterPrefix('https://www.wp-fastendpoints.com');
         $schema = $expectedContents;
     }
-    $schema = new SchemaMiddleware($schema);
-    $schema->appendSchemaDir(\SCHEMAS_DIR);
+    $schema = new SchemaMiddleware($schema, $schemaResolver);
     $user = [
         'data' => [
             'user_email' => 'invalid-email',
@@ -102,9 +103,6 @@ test('validate invalid parameters', function ($loadSchemaFrom) {
     Filters\expectApplied('fastendpoints_schema_params')
         ->once()
         ->with($user, Mockery::type(\WP_REST_Request::class), $schema);
-    Filters\expectApplied('fastendpoints_schema_validator')
-        ->once()
-        ->with(Mockery::type(Validator::class), Mockery::type(\WP_REST_Request::class), $schema);
     Filters\expectApplied('fastendpoints_schema_is_valid')
         ->once()
         ->with(false, Mockery::type(ValidationResult::class), Mockery::type(\WP_REST_Request::class), $schema);
@@ -122,7 +120,6 @@ test('validate invalid parameters', function ($loadSchemaFrom) {
 test('validate invalid schema', function () {
     Functions\when('esc_html__')->returnArg();
     $schema = new SchemaMiddleware(['type' => 'invalid']);
-    $schema->appendSchemaDir(\SCHEMAS_DIR);
     $user = [
         'data' => [
             'user_email' => 'invalid-email',
@@ -137,9 +134,6 @@ test('validate invalid schema', function () {
     Filters\expectApplied('fastendpoints_schema_params')
         ->once()
         ->with($user, Mockery::type(\WP_REST_Request::class), $schema);
-    Filters\expectApplied('fastendpoints_schema_validator')
-        ->once()
-        ->with(Mockery::type(Validator::class), Mockery::type(\WP_REST_Request::class), $schema);
     $result = $schema->onRequest($req);
     expect($result)
         ->toBeInstanceOf(WpError::class)
@@ -168,7 +162,7 @@ test('Always rejects requests when no schema content is defined', function ($val
     $mockedSchema = Mockery::mock(SchemaMiddleware::class)
         ->makePartial()
         ->shouldAllowMockingProtectedMethods()
-        ->shouldReceive('getContents')
+        ->shouldReceive('getSchema')
         ->andReturn($value)
         ->getMock();
 

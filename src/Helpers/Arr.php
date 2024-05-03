@@ -79,4 +79,12 @@ class Arr
 
         return $path;
     }
+
+    /**
+     * Converts an object to an array
+     */
+    public static function fromObjectToArray(mixed $data): mixed
+    {
+        return is_object($data) ? array_map([Arr::class, __FUNCTION__], (array) $data) : $data;
+    }
 }

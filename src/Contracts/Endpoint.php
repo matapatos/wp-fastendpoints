@@ -30,10 +30,9 @@ interface Endpoint
      *
      * @param  string  $namespace  WordPress REST namespace.
      * @param  string  $restBase  Endpoint REST base.
-     * @param  array<string>  $schemaDirs  Array of directories to look for JSON schemas. Default value: [].
      * @return true|false true if successfully registered a REST route or false otherwise.
      */
-    public function register(string $namespace, string $restBase, array $schemaDirs = []): bool;
+    public function register(string $namespace, string $restBase): bool;
 
     /**
      * Checks if the current user has the given WP capabilities. Example usage:

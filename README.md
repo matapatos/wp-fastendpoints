@@ -1,6 +1,6 @@
 # WP-FastEndpoints
 
-<img src="https://raw.githubusercontent.com/matapatos/wp-fastendpoints/main/docs/images/wp-fastendpoints-wallpaper.svg" alt="WordPress REST endpoints made easy">
+<img src="https://raw.githubusercontent.com/matapatos/wp-fastendpoints/main/docs/images/wp-fastendpoints-wallpaper.png" alt="WordPress REST endpoints made easy">
 <p align="center">
     <a href="https://github.com/matapatos/wp-fastendpoints/actions"><img alt="GitHub Actions Workflow Status (main)" src="https://img.shields.io/github/actions/workflow/status/matapatos/wp-fastendpoints/tests.yml"></a>
     <a href="https://codecov.io/gh/matapatos/wp-fastendpoints" ><img alt="Code Coverage" src="https://codecov.io/gh/matapatos/wp-fastendpoints/graph/badge.svg?token=8N7N9NMGLG"/></a>

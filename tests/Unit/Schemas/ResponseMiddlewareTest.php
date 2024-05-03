@@ -19,6 +19,7 @@ use Illuminate\Support\Str;
 use Mockery;
 use Opis\JsonSchema\Exceptions\ParseException;
 use Opis\JsonSchema\Helper;
+use Opis\JsonSchema\Resolvers\SchemaResolver;
 use Opis\JsonSchema\ValidationResult;
 use Opis\JsonSchema\Validator;
 use org\bovigo\vfs\vfsStream;
@@ -114,18 +115,12 @@ function looseExpectAllReturnHooks($req, $response)
     Filters\expectApplied('fastendpoints_response_is_to_validate')
         ->once()
         ->with(true, $response);
-    Filters\expectApplied('fastendpoints_response_contents')
-        ->once()
-        ->withAnyArgs();
     Filters\expectApplied('fastendpoints_response_remove_additional_properties')
         ->once()
         ->with(Mockery::any(), $response);
     Filters\expectApplied('fastendpoints_response_validation_data')
         ->once()
         ->with(Mockery::any(), $req, $response);
-    Filters\expectApplied('fastendpoints_response_validator')
-        ->once()
-        ->with(Mockery::type(Validator::class), Mockery::any(), $req, $response);
     Filters\expectApplied('fastendpoints_response_is_valid')
         ->once()
         ->with(true, Mockery::any(), Mockery::type(ValidationResult::class), $req, $response);
@@ -139,12 +134,13 @@ test('returns matches expected return value - Basic', function ($loadSchemaFrom,
         return $path1.'/'.$path2;
     });
     $schemaName = Str::ucfirst(Str::lower(gettype($value)));
-    $schema = 'Basics/'.$schemaName;
+    $schema = 'https://www.wp-fastendpoints.com/Basics/'.$schemaName;
     if ($loadSchemaFrom == LoadSchema::FromArray) {
-        $schema = Helpers::loadSchema(\SCHEMAS_DIR.$schema);
+        $schema = Helpers::loadSchema(\SCHEMAS_DIR.'Basics/'.$schemaName);
     }
-    $response = new ResponseMiddleware($schema, true);
-    $response->appendSchemaDir(\SCHEMAS_DIR);
+    $schemaResolver = new SchemaResolver();
+    $schemaResolver->registerPrefix('https://www.wp-fastendpoints.com', \SCHEMAS_DIR);
+    $response = new ResponseMiddleware($schema, true, $schemaResolver);
     // Create WP_REST_Request mock
     $req = Mockery::mock('WP_REST_Request');
     $req->shouldReceive('get_route')
@@ -153,18 +149,12 @@ test('returns matches expected return value - Basic', function ($loadSchemaFrom,
     Filters\expectApplied('fastendpoints_response_is_to_validate')
         ->once()
         ->with(true, $response);
-    Filters\expectApplied('fastendpoints_response_contents')
-        ->once()
-        ->withAnyArgs();
     Filters\expectApplied('fastendpoints_response_remove_additional_properties')
         ->once()
         ->with(true, $response);
     Filters\expectApplied('fastendpoints_response_validation_data')
         ->once()
         ->with($value, $req, $response);
-    Filters\expectApplied('fastendpoints_response_validator')
-        ->once()
-        ->with(Mockery::type(Validator::class), $value, $req, $response);
     Filters\expectApplied('fastendpoints_response_is_valid')
         ->once()
         ->with(true, Mockery::any(), Mockery::type(ValidationResult::class), $req, $response)
@@ -202,12 +192,13 @@ test('Ignoring additional properties in returns', function ($loadSchemaFrom) {
     Functions\when('path_join')->alias(function ($path1, $path2) {
         return $path1.'/'.$path2;
     });
-    $schema = 'Users/Get';
+    $schema = 'https://www.wp-fastendpoints.com/Users/Get.json';
     if ($loadSchemaFrom == LoadSchema::FromArray) {
-        $schema = Helpers::loadSchema(\SCHEMAS_DIR.$schema);
+        $schema = Helpers::loadSchema(\SCHEMAS_DIR.'Users/Get.json');
     }
-    $response = new ResponseMiddleware($schema, true);
-    $response->appendSchemaDir(\SCHEMAS_DIR);
+    $schemaResolver = new SchemaResolver();
+    $schemaResolver->registerPrefix('https://www.wp-fastendpoints.com', \SCHEMAS_DIR);
+    $response = new ResponseMiddleware($schema, true, $schemaResolver);
     $user = Faker::getWpUser();
     // Create WP_REST_Request mock
     $req = Mockery::mock('WP_REST_Request');
@@ -234,12 +225,13 @@ test('Keeps additional properties in returns', function ($loadSchemaFrom) {
     Functions\when('path_join')->alias(function ($path1, $path2) {
         return $path1.'/'.$path2;
     });
-    $schema = 'Users/Get';
+    $schema = 'https://www.wp-fastendpoints.com/Users/Get.json';
     if ($loadSchemaFrom == LoadSchema::FromArray) {
-        $schema = Helpers::loadSchema(\SCHEMAS_DIR.$schema);
+        $schema = Helpers::loadSchema(\SCHEMAS_DIR.'Users/Get');
     }
-    $response = new ResponseMiddleware($schema, false);
-    $response->appendSchemaDir(\SCHEMAS_DIR);
+    $schemaResolver = new SchemaResolver();
+    $schemaResolver->registerPrefix('https://www.wp-fastendpoints.com', \SCHEMAS_DIR);
+    $response = new ResponseMiddleware($schema, false, $schemaResolver);
     $user = Faker::getWpUser();
     // Create WP_REST_Request mock
     $req = Mockery::mock('WP_REST_Request');
@@ -262,12 +254,13 @@ test('Ignores additional properties expect a given type in returns', function ($
     Functions\when('path_join')->alias(function ($path1, $path2) {
         return $path1.'/'.$path2;
     });
-    $schema = 'Users/Get';
+    $schema = 'https://www.wp-fastendpoints.com/Users/Get.json';
     if ($loadSchemaFrom == LoadSchema::FromArray) {
-        $schema = Helpers::loadSchema(\SCHEMAS_DIR.$schema);
+        $schema = Helpers::loadSchema(\SCHEMAS_DIR.'Users/Get');
     }
-    $response = new ResponseMiddleware($schema, $type);
-    $response->appendSchemaDir(\SCHEMAS_DIR);
+    $schemaResolver = new SchemaResolver();
+    $schemaResolver->registerPrefix('https://www.wp-fastendpoints.com', \SCHEMAS_DIR);
+    $response = new ResponseMiddleware($schema, $type, $schemaResolver);
     $user = Faker::getWpUser();
     $user['is_admin'] = true;
     // Create WP_REST_Request mock
@@ -304,12 +297,13 @@ test('Ignores additional properties specified by the schema', function ($loadSch
     Functions\when('path_join')->alias(function ($path1, $path2) {
         return $path1.'/'.$path2;
     });
-    $schema = 'Users/WithAdditionalProperties';
+    $schema = 'https://www.wp-fastendpoints.com/Users/WithAdditionalProperties.json';
     if ($loadSchemaFrom == LoadSchema::FromArray) {
-        $schema = Helpers::loadSchema(\SCHEMAS_DIR.$schema);
+        $schema = Helpers::loadSchema(\SCHEMAS_DIR.'Users/WithAdditionalProperties.json');
     }
-    $response = new ResponseMiddleware($schema, null);
-    $response->appendSchemaDir(\SCHEMAS_DIR);
+    $schemaResolver = new SchemaResolver();
+    $schemaResolver->registerPrefix('https://www.wp-fastendpoints.com', \SCHEMAS_DIR);
+    $response = new ResponseMiddleware($schema, null, $schemaResolver);
     $user = Faker::getWpUser();
     // Create WP_REST_Request mock
     $req = Mockery::mock('WP_REST_Request');
@@ -340,8 +334,10 @@ test('Invalid additionalProperties field', function () {
     Functions\when('path_join')->alias(function ($path1, $path2) {
         return $path1.'/'.$path2;
     });
-    $response = new ResponseMiddleware('Invalid/InvalidAdditionalProperties', null);
-    $response->appendSchemaDir(\SCHEMAS_DIR);
+    $schemaResolver = new SchemaResolver();
+    $schemaResolver->registerPrefix('https://www.wp-fastendpoints.com', \SCHEMAS_DIR);
+    $schema = 'https://www.wp-fastendpoints.com/Invalid/InvalidAdditionalProperties.json';
+    $response = new ResponseMiddleware($schema, null, $schemaResolver);
     // Create WP_REST_Request mock
     $req = Mockery::mock('WP_REST_Request');
     $req->shouldReceive('get_route')
@@ -383,14 +379,14 @@ test('Skipping response validation when empty schema given', function () {
 test('SchemaException raised during validation', function () {
     Functions\when('esc_html__')->returnArg();
     $schema = Helpers::loadSchema(\SCHEMAS_DIR.'Basics/Array');
-    $mockedValidator = Mockery::mock(Validator::class)
+    $mockedValidator = Mockery::mock(Validator::class);
+    $mockedValidator
         ->shouldReceive('validate')
-        ->andThrow(new ParseException('my-test-error'))
-        ->getMock();
+        ->andThrow(new ParseException('my-test-error'));
     $mockedResponse = Mockery::mock(ResponseMiddleware::class)
         ->makePartial()
         ->shouldAllowMockingProtectedMethods()
-        ->shouldReceive('getContents')
+        ->shouldReceive('getSchema')
         ->andReturn($schema)
         ->getMock();
     // Create WP_REST_Request mock
@@ -401,11 +397,8 @@ test('SchemaException raised during validation', function () {
     Filters\expectApplied('fastendpoints_response_validation_data')
         ->once()
         ->with(Mockery::any(), $req, $mockedResponse);
-    Filters\expectApplied('fastendpoints_response_validator')
-        ->once()
-        ->with(Mockery::type(Validator::class), Mockery::any(), $req, $mockedResponse)
-        ->andReturn($mockedValidator);
     Helpers::setNonPublicClassProperty($mockedResponse, 'suffix', 'fastendpoints_response');
+    Helpers::setNonPublicClassProperty($mockedResponse, 'validator', $mockedValidator);
     $data = $mockedResponse->onResponse($req, new \WP_REST_Response([1, 2, 3, 4, 5]));
     expect($data)->toBeInstanceOf(WpError::class)
         ->toHaveProperty('code', 500)
@@ -420,8 +413,9 @@ test('Validation always failing via hook', function () {
         return $path1.'/'.$path2;
     });
     Functions\when('esc_html__')->returnArg();
-    $response = new ResponseMiddleware('Basics/Double', true);
-    $response->appendSchemaDir(\SCHEMAS_DIR);
+    $schemaResolver = new SchemaResolver();
+    $schemaResolver->registerPrefix('https://www.wp-fastendpoints.com', \SCHEMAS_DIR);
+    $response = new ResponseMiddleware('https://www.wp-fastendpoints.com/Basics/Double.json', true, $schemaResolver);
     // Create WP_REST_Request mock
     $req = Mockery::mock('WP_REST_Request');
     $req->shouldReceive('get_route')
@@ -429,13 +423,9 @@ test('Validation always failing via hook', function () {
     // Loose check for filters being called
     Filters\expectApplied('fastendpoints_response_is_to_validate')
         ->once();
-    Filters\expectApplied('fastendpoints_response_contents')
-        ->once();
     Filters\expectApplied('fastendpoints_response_remove_additional_properties')
         ->once();
     Filters\expectApplied('fastendpoints_response_validation_data')
-        ->once();
-    Filters\expectApplied('fastendpoints_response_validator')
         ->once();
     Filters\expectApplied('fastendpoints_response_is_valid')
         ->once()

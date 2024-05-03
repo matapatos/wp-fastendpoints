@@ -40,8 +40,6 @@ class SchemaMiddleware extends JsonSchema
      */
     public function onRequest(WP_REST_Request $request): ?WP_Error
     {
-        $this->contents = $this->getContents();
-
         return $this->parse($request);
     }
 
@@ -51,28 +49,29 @@ class SchemaMiddleware extends JsonSchema
      * @since 0.9.0
      * @see https://opis.io/json-schema
      *
-     * @param  WP_REST_Request  $req  Current REST Request.
+     * @param  WP_REST_Request  $request  Current REST Request.
      * @return ?WpError null on success or WpError on error.
      */
-    protected function parse(WP_REST_Request $req): ?WpError
+    protected function parse(WP_REST_Request $request): ?WpError
     {
         if (! \apply_filters($this->suffix.'_is_to_parse', true, $this)) {
             return null;
         }
 
-        if (! $this->contents) {
+        $schema = $this->getSchema();
+        if (! $schema) {
             return new WpError(
                 WP_Http::UNPROCESSABLE_ENTITY,
                 esc_html__('Unprocessable request. Always fails'),
             );
         }
 
-        $params = \apply_filters($this->suffix.'_params', $req->get_params(), $req, $this);
-        $json = Helper::toJSON($params);
-        $schema = Helper::toJSON($this->contents);
-        $validator = \apply_filters($this->suffix.'_validator', self::getDefaultValidator(), $req, $this);
+        $params = \apply_filters($this->suffix.'_params', $request->get_params(), $request, $this);
+        $payload = Helper::toJSON($params);
+        $requestPayloadSchema = Helper::toJSON($schema);
+
         try {
-            $result = $validator->validate($json, $schema);
+            $result = $this->validator->validate($payload, $requestPayloadSchema);
         } catch (SchemaException $e) {
             return new WpError(
                 WP_Http::INTERNAL_SERVER_ERROR,
@@ -80,7 +79,7 @@ class SchemaMiddleware extends JsonSchema
             );
         }
 
-        $isValid = \apply_filters($this->suffix.'_is_valid', $result->isValid(), $result, $req, $this);
+        $isValid = \apply_filters($this->suffix.'_is_valid', $result->isValid(), $result, $request, $this);
         if (! $isValid) {
             $error = $this->getError($result);
             $data = is_string($error) ? [] : $error;

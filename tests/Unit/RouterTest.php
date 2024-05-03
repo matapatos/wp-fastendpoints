@@ -164,21 +164,20 @@ test('Append invalid schema directories', function ($invalidDir, $errorMessage) 
     $router = new Router('custom-api', 'v1');
     expect(Helpers::getNonPublicClassProperty($router, 'schemaDirs'))->toBe([])
         ->and(function () use ($invalidDir, $router) {
-            $router->appendSchemaDir($invalidDir);
+            $router->appendSchemaDir($invalidDir, 'https://www.wp-fastendpoints.com');
         })->toThrow(Exception::class, $errorMessage)
         ->and(Helpers::getNonPublicClassProperty($router, 'schemaDirs'))->toBe([]);
 })->with([
     ['', 'Invalid schema directory'],
-    [[true], 'Expected a directory as a string but got: boolean'],
-    ['/invalid', 'SchemaMiddleware directory not found: /invalid'],
-    [__FILE__, 'Expected a directory with schemas but got a file: '.__FILE__],
+    ['/invalid', 'Invalid or not found schema directory: /invalid'],
+    [__FILE__, 'Invalid or not found schema directory: '.__FILE__],
 ])->group('router', 'appendSchemaDir');
 
 test('Append schema directories', function ($dir) {
     $router = new Router('custom-api', 'v1');
     expect(Helpers::getNonPublicClassProperty($router, 'schemaDirs'))->toBe([]);
-    $router->appendSchemaDir($dir);
-    expect(Helpers::getNonPublicClassProperty($router, 'schemaDirs'))->toBe([$dir]);
+    $router->appendSchemaDir($dir, 'https://www.wp-fastendpoints.com');
+    expect(Helpers::getNonPublicClassProperty($router, 'schemaDirs'))->toBe(['https://www.wp-fastendpoints.com' => $dir]);
 })->with([dirname(__FILE__), dirname(__FILE__).'/../Schemas'])->group('router', 'appendSchemaDir');
 
 // Register endpoints
@@ -186,15 +185,15 @@ test('Append schema directories', function ($dir) {
 test('Register endpoints', function () {
     $endpointMock1 = Mockery::mock(Endpoint::class)
         ->expects()
-        ->register('custom-api/v3', '', ['my-schema-dir', 'tests-schema-dir'])
+        ->register('custom-api/v3', '')
         ->getMock();
     $endpointMock2 = Mockery::mock(Endpoint::class)
         ->expects()
-        ->register('custom-api/v3', '', ['my-schema-dir', 'tests-schema-dir'])
+        ->register('custom-api/v3', '')
         ->getMock();
 
     $router = new Router('custom-api', 'v3');
-    Helpers::setNonPublicClassProperty($router, 'schemaDirs', ['my-schema-dir', 'tests-schema-dir']);
+    Helpers::setNonPublicClassProperty($router, 'schemaDirs', ['fake-prefix' => 'tests-schema-dir']);
     Helpers::setNonPublicClassProperty($router, 'endpoints', [$endpointMock1, $endpointMock2]);
     expect(Helpers::getNonPublicClassProperty($router, 'registered'))->toBeFalse();
     $router->registerEndpoints();
@@ -287,20 +286,20 @@ test('Register router with sub-routers mocks', function () {
     $router = new Router('api', 'v1');
     $subRouter1 = Mockery::mock(Router::class)
         ->expects()
-        ->appendSchemaDir(['fake-schema-dir', '/test-dir'])
+        ->appendSchemaDir('/test-dir', 'fake-uri-prefix')
         ->getMock()
         ->expects()
         ->register()
         ->getMock();
     $subRouter2 = Mockery::mock(Router::class)
         ->expects()
-        ->appendSchemaDir(['fake-schema-dir', '/test-dir'])
+        ->appendSchemaDir('/test-dir', 'fake-uri-prefix')
         ->getMock()
         ->expects()
         ->register()
         ->getMock();
     Helpers::setNonPublicClassProperty($router, 'subRouters', [$subRouter1, $subRouter2]);
-    Helpers::setNonPublicClassProperty($router, 'schemaDirs', ['fake-schema-dir', '/test-dir']);
+    Helpers::setNonPublicClassProperty($router, 'schemaDirs', ['fake-uri-prefix' => '/test-dir']);
     $router->register();
 
     $this->assertSame(Filters\applied('fastendpoints_is_to_register'), 1);

@@ -14,7 +14,7 @@ namespace Wp\FastEndpoints;
 
 use Wp\FastEndpoints\Contracts\Endpoint as EndpointContract;
 use Wp\FastEndpoints\Contracts\Router as RouterContract;
-use Wp\FastEndpoints\Helpers\Arr;
+use Wp\FastEndpoints\Schemas\SchemaResolver;
 
 /**
  * A Router can help developers in creating groups of endpoints. This way developers can aggregate
@@ -78,11 +78,11 @@ class Router implements RouterContract
     protected array $endpoints = [];
 
     /**
-     * SchemaMiddleware directory path
+     * Dictionary of prefix and directories
      *
      * @since 0.9.0
      *
-     * @var array<string>
+     * @var array<string,string>
      */
     protected array $schemaDirs = [];
 
@@ -92,6 +92,13 @@ class Router implements RouterContract
      * @since 0.9.0
      */
     protected string $version;
+
+    /**
+     * Looks for the correct JSON schema to be loaded
+     *
+     * @since 1.2.1
+     */
+    protected SchemaResolver $schemaResolver;
 
     /**
      * Creates a new Router instance
@@ -104,6 +111,7 @@ class Router implements RouterContract
     {
         $this->base = $base;
         $this->version = $version;
+        $this->schemaResolver = new SchemaResolver();
     }
 
     /**
@@ -133,7 +141,7 @@ class Router implements RouterContract
      *                       WP FastEndpoints arguments. Default value: [].
      * @param  bool  $override  Same as the WordPress register_rest_route $override parameter. Defaul value: false.
      */
-    public function post(string $route, callable $handler, array $args = [], $override = false): EndpointContract
+    public function post(string $route, callable $handler, array $args = [], bool $override = false): EndpointContract
     {
         return $this->endpoint('POST', $route, $handler, $args, $override);
     }
@@ -179,7 +187,7 @@ class Router implements RouterContract
      * @param  callable  $handler  User specified handler for the endpoint.
      * @param  array  $args  Same as the WordPress register_rest_route $args parameter. If set it can override the default
      *                       WP FastEndpoints arguments. Default value: [].
-     * @param  bool  $override  Same as the WordPress register_rest_route $override parameter. Defaul value: false.
+     * @param  bool  $override  Same as the WordPress register_rest_route $override parameter. Default value: false.
      */
     public function patch(string $route, callable $handler, array $args = [], bool $override = false): EndpointContract
     {
@@ -202,36 +210,24 @@ class Router implements RouterContract
     /**
      * Appends an additional directory where to look for the schema
      *
-     * @since 0.9.0
+     * @param  string  $dir  Directory path where to look for JSON schemas.
+     * @param  string  $uriPrefix  Prefix used to associate schema directory.
      *
-     * @param  string|array<string>  $dir  Directory path or an array of directories where to
-     *                                     look for JSON schemas.
+     * @since 0.9.0
      */
-    public function appendSchemaDir(string|array $dir): void
+    public function appendSchemaDir(string $dir, string $uriPrefix): void
     {
         if (! $dir) {
             \wp_die(\esc_html__('Invalid schema directory'));
         }
 
-        $dir = Arr::wrap($dir);
-        foreach ($dir as $d) {
-            if (! \is_string($d)) {
-                /* translators: 1: SchemaMiddleware directory */
-                \wp_die(\sprintf(\esc_html__('Expected a directory as a string but got: %s'), \esc_html(gettype($d))));
-            }
-
-            if (\is_file($d)) {
-                /* translators: 1: SchemaMiddleware directory */
-                \wp_die(\sprintf(\esc_html__('Expected a directory with schemas but got a file: %s'), \esc_html($d)));
-            }
-
-            if (! \is_dir($d)) {
-                /* translators: 1: SchemaMiddleware directory */
-                \wp_die(\sprintf(\esc_html__('SchemaMiddleware directory not found: %s'), \esc_html($d)));
-            }
+        if (! \is_dir($dir)) {
+            /* translators: 1: SchemaMiddleware directory */
+            \wp_die(\sprintf(\esc_html__('Invalid or not found schema directory: %s'), \esc_html($dir)));
         }
 
-        $this->schemaDirs = $this->schemaDirs + $dir;
+        $this->schemaDirs[$uriPrefix] = $dir;
+        $this->schemaResolver->registerPrefix($uriPrefix, $dir);
     }
 
     /**
@@ -267,8 +263,8 @@ class Router implements RouterContract
 
         // Register each sub router, if any.
         foreach ($this->subRouters as $router) {
-            if ($this->schemaDirs) {
-                $router->appendSchemaDir($this->schemaDirs);
+            foreach ($this->schemaDirs as $uriPrefix => $dir) {
+                $router->appendSchemaDir($dir, $uriPrefix);
             }
             $router->register();
         }
@@ -290,7 +286,7 @@ class Router implements RouterContract
         $namespace = $this->getNamespace();
         $restBase = $this->getRestBase();
         foreach ($this->endpoints as $e) {
-            $e->register($namespace, $restBase, $this->schemaDirs);
+            $e->register($namespace, $restBase);
         }
         $this->registered = true;
     }
@@ -362,7 +358,7 @@ class Router implements RouterContract
         array $args = [],
         bool $override = false
     ): EndpointContract {
-        $endpoint = new Endpoint($method, $route, $handler, $args, $override);
+        $endpoint = new Endpoint($method, $route, $handler, $args, $override, $this->schemaResolver);
         $this->endpoints[] = $endpoint;
 
         return $endpoint;

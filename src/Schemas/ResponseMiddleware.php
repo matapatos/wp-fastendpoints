@@ -15,10 +15,14 @@ namespace Wp\FastEndpoints\Schemas;
 
 use Opis\JsonSchema\Exceptions\SchemaException;
 use Opis\JsonSchema\Helper;
+use Opis\JsonSchema\SchemaLoader;
+use Opis\JsonSchema\Uri;
+use Opis\JsonSchema\Validator;
 use TypeError;
 use Wp\FastEndpoints\Contracts\JsonSchema;
 use Wp\FastEndpoints\Helpers\Arr;
 use Wp\FastEndpoints\Helpers\WpError;
+use Wp\FastEndpoints\Schemas\Opis\Parsers\ResponseSchemaParser;
 use WP_Error;
 use WP_Http;
 use WP_REST_Request;
@@ -48,11 +52,9 @@ class ResponseMiddleware extends JsonSchema
     protected bool|string|null $removeAdditionalProperties;
 
     /**
-     * Determines if a schema has been updated regarding the additional properties
-     *
-     * @since 1.0.0
+     * The loaded JSON schema
      */
-    protected bool $hasUpdatedSchema = false;
+    protected mixed $loadedSchema = null;
 
     /**
      * Holds all the possible removeAdditionalProperties options. Uses a dict for fast reading
@@ -74,18 +76,19 @@ class ResponseMiddleware extends JsonSchema
     /**
      * Creates a new instance of JsonSchema
      *
-     * @since 0.9.0
-     *
      * @param  string|array  $schema  File name or path to the JSON schema or a JSON schema as an array.
      * @param  bool|string|null  $removeAdditionalProperties  Determines if we want to keep additional properties.
      *                                                        If set to null assumes that the schema will take care of that. If a string is given it assumes only those
      *                                                        types of properties are allowed.
+     * @param  ?SchemaResolver  $schemaResolver  The validator to be used for validation.
      *
      * @throws TypeError if $schema is neither a string or an array.
+     *
+     *@since 0.9.0
      */
-    public function __construct(string|array $schema, bool|string|null $removeAdditionalProperties = null)
+    public function __construct(string|array $schema, bool|string|null $removeAdditionalProperties = null, ?SchemaResolver $schemaResolver = null)
     {
-        parent::__construct($schema);
+        parent::__construct($schema, $schemaResolver);
         $this->removeAdditionalProperties = $this->parseRemoveAdditionalProperties($removeAdditionalProperties);
     }
 
@@ -118,30 +121,31 @@ class ResponseMiddleware extends JsonSchema
      */
     protected function updateSchemaToAcceptOrDiscardAdditionalProperties(): void
     {
-        if ($this->hasUpdatedSchema) {
-            return;
-        }
-
-        $this->hasUpdatedSchema = true;
         $removeAdditionalProperties = \apply_filters($this->suffix.'_remove_additional_properties', $this->removeAdditionalProperties, $this);
         // Do we want to let the schema decide if we want additionalProperties?
         if (is_null($removeAdditionalProperties)) {
             return;
         }
 
-        if (! $this->contents || ! is_array($this->contents)) {
+        if (is_string($this->loadedSchema)) {
+            $uri = Uri::parse($this->loadedSchema);
+            $this->loadedSchema = $this->validator->loader()->loadSchemaById($uri)->info()->data();
+            $this->loadedSchema = Arr::fromObjectToArray($this->loadedSchema);
+        }
+
+        if (! $this->loadedSchema || ! is_array($this->loadedSchema)) {
             return;
         }
 
         // Is there any type object properties in the schema?
-        $foundTypeObjectsIndexes = Arr::recursiveKeyValueSearch($this->contents, 'type', 'object');
+        $foundTypeObjectsIndexes = Arr::recursiveKeyValueSearch($this->loadedSchema, 'type', 'object');
         if (! $foundTypeObjectsIndexes) {
             return;
         }
 
         // Update additional_properties
         foreach ($foundTypeObjectsIndexes as $schemaKeys) {
-            $contents = &$this->contents;
+            $contents = &$this->loadedSchema;
             foreach ($schemaKeys as $key) {
                 $contents = &$contents[$key];
             }
@@ -151,6 +155,7 @@ class ResponseMiddleware extends JsonSchema
             } else {
                 $contents['additionalProperties'] = ['type' => $this->removeAdditionalProperties];
             }
+            unset($contents);
         }
     }
 
@@ -170,18 +175,17 @@ class ResponseMiddleware extends JsonSchema
             return null;
         }
 
-        $this->contents = $this->getContents();
-        if (! $this->contents) {
+        $responseSchema = $this->getSchema();
+        if (! $responseSchema) {
             return null;
         }
 
         // Create Validator and enable it to return all errors.
         self::$data = \apply_filters($this->suffix.'_validation_data', $response->get_data(), $request, $this);
-        $validator = \apply_filters($this->suffix.'_validator', self::getDefaultValidator(), self::$data, $request, $this);
-        $schema = Helper::toJSON($this->contents);
+        $responseSchema = Helper::toJSON($responseSchema);
         self::$data = Helper::toJSON(self::$data);
         try {
-            $result = $validator->validate(self::$data, $schema);
+            $result = $this->validator->validate(self::$data, $responseSchema);
         } catch (SchemaException $e) {
             $wpError = new WpError(
                 WP_Http::INTERNAL_SERVER_ERROR,
@@ -208,12 +212,14 @@ class ResponseMiddleware extends JsonSchema
      *
      * @since 0.9.0
      */
-    public function getContents(): mixed
+    public function getSchema(): mixed
     {
-        $this->contents = parent::getContents();
-        $this->updateSchemaToAcceptOrDiscardAdditionalProperties();
+        if (is_null($this->loadedSchema)) {
+            $this->loadedSchema = parent::getSchema();
+            $this->updateSchemaToAcceptOrDiscardAdditionalProperties();
+        }
 
-        return $this->contents;
+        return $this->loadedSchema;
     }
 
     /**
@@ -238,5 +244,18 @@ class ResponseMiddleware extends JsonSchema
     public static function getData(): mixed
     {
         return self::$data;
+    }
+
+    /**
+     * Retrieves a JSON schema validator with a given SchemaResolver
+     *
+     * @param  ?SchemaResolver  $resolver
+     */
+    public function createValidatorWithResolver(?SchemaResolver $resolver): Validator
+    {
+        $resolver = $resolver ?? new SchemaResolver();
+        $schemaLoader = new SchemaLoader(new ResponseSchemaParser(), $resolver, true);
+
+        return new Validator($schemaLoader);
     }
 }

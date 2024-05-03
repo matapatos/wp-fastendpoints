@@ -66,7 +66,7 @@ test('Registering an endpoint', function (bool $withSchema, bool $withResponseSc
             ->with(['my-schema-dir'])
             ->getMock();
         Helpers::setNonPublicClassProperty($endpoint, 'schema', $mockedSchema);
-        $expectedArgs['schema'] = [$mockedSchema, 'getContents'];
+        $expectedArgs['schema'] = [$mockedSchema, 'getSchema'];
     }
     if ($withResponseSchema) {
         $mockedResponseSchema = Mockery::mock(ResponseMiddleware::class)
@@ -230,8 +230,7 @@ test('Adding request validation schema', function ($schema) {
     expect($endpoint->schema)->toBeNull()
         ->and($endpoint->schema($schema))->toBe($endpoint)
         ->and($endpoint->schema)->toBeInstanceOf(SchemaMiddleware::class);
-    $expectedVarName = is_string($schema) ? 'filepath' : 'contents';
-    $expectedVar = Helpers::getNonPublicClassProperty($endpoint->schema, $expectedVarName);
+    $expectedVar = Helpers::getNonPublicClassProperty($endpoint->schema, 'schema');
     expect($expectedVar)->toBe($schema);
     $onRequestHandlers = Helpers::getNonPublicClassProperty($endpoint, 'onRequestHandlers');
     expect($onRequestHandlers)
@@ -246,8 +245,7 @@ test('Adding response validation schema', function ($schema) {
     expect($endpoint->responseSchema)->toBeNull()
         ->and($endpoint->returns($schema))->toBe($endpoint)
         ->and($endpoint->responseSchema)->toBeInstanceOf(ResponseMiddleware::class);
-    $expectedVarName = is_string($schema) ? 'filepath' : 'contents';
-    $expectedVar = Helpers::getNonPublicClassProperty($endpoint->responseSchema, $expectedVarName);
+    $expectedVar = Helpers::getNonPublicClassProperty($endpoint->responseSchema, 'schema');
     expect($expectedVar)->toBe($schema);
     $onResponseHandlers = Helpers::getNonPublicClassProperty($endpoint, 'onResponseHandlers');
     expect($onResponseHandlers)
