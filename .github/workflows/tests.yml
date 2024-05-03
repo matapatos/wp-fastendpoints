@@ -40,3 +40,11 @@ jobs:
 
     - name: Run test suite
       run: composer run-script test
+
+    - name: Code coverage
+      run: composer run-script test:coverage
+
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v4.0.1
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
