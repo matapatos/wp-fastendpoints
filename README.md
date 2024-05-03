@@ -3,7 +3,7 @@
 <img src="https://raw.githubusercontent.com/matapatos/wp-fastendpoints/main/docs/images/FastEndpoints-Wallpaper-vYDGs.png" alt="WordPress REST endpoints made easy">
 <p align="center">
     <a href="https://github.com/matapatos/wp-fastendpoints/actions"><img alt="GitHub Actions Workflow Status (main)" src="https://img.shields.io/github/actions/workflow/status/matapatos/wp-fastendpoints/tests.yml"></a>
-    <a href="https://packagist.org/packages/matapatos/wp-fastendpoints"><img alt="Code Coverage" src="https://img.shields.io/codecov/c/github/matapatos/wp-fastendpoints"></a>
+    <a href="https://codecov.io/gh/matapatos/wp-fastendpoints" ><img alt="Code Coverage" src="https://codecov.io/gh/matapatos/wp-fastendpoints/graph/badge.svg?token=8N7N9NMGLG"/></a>
     <a href="https://packagist.org/packages/matapatos/wp-fastendpoints"><img alt="Latest Version" src="https://img.shields.io/packagist/v/matapatos/wp-fastendpoints"></a>
     <a href="https://packagist.org/packages/matapatos/wp-fastendpoints"><img alt="Supported WordPress Versions" src="https://img.shields.io/badge/6.x-versions?logo=wordpress&label=versions"></a>
     <a href="https://packagist.org/packages/matapatos/wp-fastendpoints"><img alt="Software License" src="https://img.shields.io/packagist/l/matapatos/wp-fastendpoints"></a>
