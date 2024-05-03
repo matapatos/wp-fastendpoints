@@ -16,8 +16,8 @@
 
 ## Features
 
-- Request validation via JSON schemas
-- Removes unwanted fields from Responses 
+- Separates request validation from main logic
+- Removes unwanted fields from responses 
 - Middlewares support
 - IDE auto completion support
 - No magic router. It uses WordPress [`register_rest_route`](https://developer.wordpress.org/reference/functions/register_rest_route/)
