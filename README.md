@@ -16,7 +16,7 @@
 
 ## Features
 
-- Separates request validation from main logic
+- Decouples request validation from main logic
 - Removes unwanted fields from responses 
 - Middlewares support
 - IDE auto completion support
