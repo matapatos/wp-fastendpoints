@@ -30,7 +30,7 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
           tools: composer:v2
-          coverage: none
+          coverage: pcov
 
       - name: Install PHP dependencies
         run: composer update --prefer-stable --no-interaction --no-progress --ansi

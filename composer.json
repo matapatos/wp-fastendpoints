@@ -44,7 +44,7 @@
 		"setup:wp:6.4": "rm -rf wp/ && ./vendor/bin/wp-pest setup plugin --plugin-slug fastendpoints --wp-version 6.4.4 --skip-delete --no-interaction",
 		"setup:wp:latest": "rm -rf wp/ && ./vendor/bin/wp-pest setup plugin --plugin-slug fastendpoints --skip-delete --no-interaction",
 		"test:lint": "./vendor/bin/pint --test",
-		"test:coverage": "./vendor/bin/pest --coverage --coverage-cobertura coverage.xml",
+		"test:coverage": "./vendor/bin/pest --coverage",
 		"test:unit": "./vendor/bin/pest --colors=always --exclude-group=integration",
 		"test:integration": "./vendor/bin/pest --colors=always --group=integration",
 		"test": [
