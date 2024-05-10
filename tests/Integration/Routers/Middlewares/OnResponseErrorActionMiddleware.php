@@ -2,15 +2,13 @@
 
 namespace Wp\FastEndpoints\Tests\Integration\Routers\Middlewares;
 
-use Wp\FastEndpoints\Contracts\Middlewares\OnResponseMiddleware;
+use Wp\FastEndpoints\Contracts\Middleware;
 use Wp\FastEndpoints\Helpers\WpError;
 
-class OnResponseErrorActionMiddleware implements OnResponseMiddleware
+class OnResponseErrorActionMiddleware extends Middleware
 {
-    public function onResponse(\WP_REST_Request $request, mixed $response): mixed
+    public function onResponse(string $action): ?\WP_Error
     {
-        $action = $request->get_param('action');
-
-        return $action !== 'error' ? $response : new WpError(469, 'Triggered error action before sending response');
+        return $action !== 'error' ? null : new WpError(469, 'Triggered error action before sending response');
     }
 }

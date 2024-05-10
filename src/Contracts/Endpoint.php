@@ -12,9 +12,6 @@ declare(strict_types=1);
 
 namespace Wp\FastEndpoints\Contracts;
 
-use Wp\FastEndpoints\Contracts\Middlewares\OnRequestMiddleware;
-use Wp\FastEndpoints\Contracts\Middlewares\OnResponseMiddleware;
-
 /**
  * REST Endpoint interface that registers custom WordPress REST endpoints
  *
@@ -84,9 +81,9 @@ interface Endpoint
      *
      * @since 0.9.0
      *
-     * @param  OnRequestMiddleware|OnResponseMiddleware  $middleware  Function to be used as a middleware.
+     * @param  Middleware  $middleware  Middleware to be attached to endpoint.
      */
-    public function middleware(OnRequestMiddleware|OnResponseMiddleware $middleware): Endpoint;
+    public function middleware(Middleware $middleware): Endpoint;
 
     /**
      * Registers a permission callback

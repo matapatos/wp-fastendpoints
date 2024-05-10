@@ -30,7 +30,7 @@ use Wp\FastEndpoints\Schemas\Opis\Parsers\ResponseSchemaParser;
  *
  * @author André Gil <andre_gil22@hotmail.com>
  */
-abstract class JsonSchema
+abstract class JsonSchema extends Middleware
 {
     /**
      * Filter suffix used in this class
@@ -85,6 +85,7 @@ abstract class JsonSchema
      */
     public function __construct(string|array $schema)
     {
+        parent::__construct();
         $this->errorFormatter = new ErrorFormatter();
         $this->suffix = $this->getSuffix();
         if (is_array($schema)) {

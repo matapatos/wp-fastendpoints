@@ -16,10 +16,10 @@ use Brain\Monkey;
 use Brain\Monkey\Filters;
 use Brain\Monkey\Functions;
 use Exception;
+use Invoker\Invoker;
 use Mockery;
 use org\bovigo\vfs\vfsStream;
-use Wp\FastEndpoints\Contracts\Middlewares\OnRequestMiddleware;
-use Wp\FastEndpoints\Contracts\Middlewares\OnResponseMiddleware;
+use Wp\FastEndpoints\Contracts\Middleware;
 use Wp\FastEndpoints\Endpoint;
 use Wp\FastEndpoints\Helpers\WpError;
 use Wp\FastEndpoints\Schemas\ResponseMiddleware;
@@ -258,7 +258,7 @@ test('Adding response validation schema', function ($schema) {
 // middleware
 
 test('Adding middleware before handling a request', function () {
-    class MyRequestMiddleware implements OnRequestMiddleware
+    class MyRequestMiddleware extends Middleware
     {
         public function onRequest(\WP_REST_Request $request): ?\WP_Error
         {
@@ -275,11 +275,11 @@ test('Adding middleware before handling a request', function () {
 })->group('endpoint', 'middleware');
 
 test('Adding middleware before sending response', function () {
-    class MyResponseMiddleware implements OnResponseMiddleware
+    class MyResponseMiddleware extends Middleware
     {
-        public function onResponse(\WP_REST_Request $request, mixed $response): mixed
+        public function onResponse(\WP_REST_Request $request, \WP_REST_Response $response)
         {
-            return $response;
+            return null;
         }
     }
     $middleware = new MyResponseMiddleware();
@@ -292,16 +292,16 @@ test('Adding middleware before sending response', function () {
 })->group('endpoint', 'middleware');
 
 test('Adding middleware to trigger before handling a request and before sending a response', function () {
-    class MyMiddleware implements OnRequestMiddleware, OnResponseMiddleware
+    class MyMiddleware extends Middleware
     {
         public function onRequest(\WP_REST_Request $request): ?\WP_Error
         {
             return null;
         }
 
-        public function onResponse(\WP_REST_Request $request, mixed $response): mixed
+        public function onResponse(\WP_REST_Request $request, \WP_REST_Response $response)
         {
-            return $response;
+            return null;
         }
     }
     $middleware = new MyMiddleware();
@@ -315,6 +315,18 @@ test('Adding middleware to trigger before handling a request and before sending 
     $onResponseHandlers = Helpers::getNonPublicClassProperty($endpoint, 'onResponseHandlers');
     expect($onResponseHandlers)->toHaveCount(1)
         ->and($onResponseHandlers[0])->toBe([$middleware, 'onResponse']);
+})->group('endpoint', 'middleware');
+
+test('Adding middleware with missing methods', function () {
+    class InvalidMiddleware extends Middleware
+    {
+        public function hey(): void
+        {
+        }
+    }
+    Functions\when('esc_html__')->returnArg();
+    expect(fn () => new InvalidMiddleware())
+        ->toThrow(Exception::class, 'At least one method onRequest() or onResponse() must be declared on the class.');
 })->group('endpoint', 'middleware');
 
 // permission
@@ -339,38 +351,41 @@ test('Running permission handlers in permission callback', function ($returnValu
         $returnValue = new $returnValue(123, 'testing-error');
     }
     $req = Mockery::mock(\WP_REST_Request::class);
+    $req->shouldReceive('get_url_params')
+        ->once()
+        ->andReturn(['hello' => 'my-value']);
     $mockedEndpoint = Mockery::mock(Endpoint::class)
         ->shouldAllowMockingProtectedMethods()
         ->makePartial();
+    Helpers::setNonPublicClassProperty($mockedEndpoint, 'invoker', new Invoker());
     Helpers::setNonPublicClassProperty($mockedEndpoint, 'permissionHandlers', ['test-permission-handler']);
     $mockedEndpoint->shouldReceive('runHandlers')
         ->once()
-        ->with(['test-permission-handler'], $req)
+        ->with(['test-permission-handler'], Mockery::type('array'))
         ->andReturn($returnValue);
     expect($mockedEndpoint->permissionCallback($req))
-        ->toBe($returnValue);
-})->with([true, WpError::class])->group('endpoint', 'permission', 'permissionCallback');
+        ->toBe($returnValue ?? true);
+})->with([null, WpError::class])->group('endpoint', 'permission', 'permissionCallback');
 
 // callback
 
 test('Endpoint request handler', function (bool $hasRequestHandlers, bool $hasResponseHandlers) {
-    Functions\expect('rest_ensure_response')
-        ->once()
-        ->with('my-response')
-        ->andReturn(new \WP_REST_Response('my-response'));
     $endpoint = new Endpoint('GET', '/my-endpoint', function () {
         return 'my-response';
     }, ['my-custom-arg' => true], true);
     $req = Mockery::mock(\WP_REST_Request::class);
+    $req->shouldReceive('get_url_params')
+        ->once()
+        ->andReturn([]);
     if ($hasRequestHandlers) {
-        $onRequestHandlers = [function ($req) {
+        $onRequestHandlers = [function () {
             return false;
         }];
         Helpers::setNonPublicClassProperty($endpoint, 'onRequestHandlers', $onRequestHandlers);
     }
     if ($hasResponseHandlers) {
-        $onResponseHandlers = [function ($req, $result) {
-            return $result;
+        $onResponseHandlers = [function () {
+            return null;
         }];
         Helpers::setNonPublicClassProperty($endpoint, 'onResponseHandlers', $onResponseHandlers);
     }
@@ -380,17 +395,19 @@ test('Endpoint request handler', function (bool $hasRequestHandlers, bool $hasRe
 })->with([true, false])->with([true, false])->group('endpoint', 'callback');
 
 test('Handling request and a WpError is returned', function ($onRequestReturnVal, $handlerReturnVal, $onResponseReturnVal) {
-    Functions\when('rest_ensure_response')->returnArg();
     Functions\when('esc_html__')->returnArg();
     $endpoint = new Endpoint('GET', '/my-endpoint', function () use ($handlerReturnVal) {
         return is_string($handlerReturnVal) ? new $handlerReturnVal(123, 'my-error-msg') : $handlerReturnVal;
     }, ['my-custom-arg' => true], true);
     $req = Mockery::mock(\WP_REST_Request::class);
-    $onRequestHandlers = [function ($req) use ($onRequestReturnVal) {
+    $req->shouldReceive('get_url_params')
+        ->once()
+        ->andReturn([]);
+    $onRequestHandlers = [function () use ($onRequestReturnVal) {
         return is_string($onRequestReturnVal) ? new $onRequestReturnVal(123, 'my-error-msg') : $onRequestReturnVal;
     }];
     Helpers::setNonPublicClassProperty($endpoint, 'onRequestHandlers', $onRequestHandlers);
-    $onResponseHandlers = [function ($req, $result) use ($onResponseReturnVal) {
+    $onResponseHandlers = [function () use ($onResponseReturnVal) {
         return is_string($onResponseReturnVal) ? new $onResponseReturnVal(123, 'my-error-msg') : $onResponseReturnVal;
     }];
     Helpers::setNonPublicClassProperty($endpoint, 'onResponseHandlers', $onResponseHandlers);

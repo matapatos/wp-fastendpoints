@@ -15,7 +15,6 @@ namespace Wp\FastEndpoints\Schemas;
 use Opis\JsonSchema\Exceptions\SchemaException;
 use Opis\JsonSchema\Helper;
 use Wp\FastEndpoints\Contracts\JsonSchema;
-use Wp\FastEndpoints\Contracts\Middlewares\OnRequestMiddleware;
 use Wp\FastEndpoints\Helpers\WpError;
 use WP_Error;
 use WP_Http;
@@ -28,7 +27,7 @@ use WP_REST_Request;
  *
  * @author André Gil <andre_gil22@hotmail.com>
  */
-class SchemaMiddleware extends JsonSchema implements OnRequestMiddleware
+class SchemaMiddleware extends JsonSchema
 {
     /**
      * Validates the JSON schema

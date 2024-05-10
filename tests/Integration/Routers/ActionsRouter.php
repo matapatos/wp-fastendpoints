@@ -19,19 +19,18 @@ $router = new Router('my-actions', 'v2');
 $router->appendSchemaDir(\SCHEMAS_DIR);
 
 // Triggers onRequest middleware
-$router->get('/middleware/on-request/(?P<action>\w+)', function (\WP_REST_Request $request): bool {
+$router->get('/middleware/on-request/(?P<action>\w+)', function (): bool {
     return true;
 })
     ->middleware(new OnRequestErrorActionMiddleware());
 
 // Triggers onResponse middleware
-$router->get('/middleware/on-response/(?P<action>\w+)', function (\WP_REST_Request $request): bool {
+$router->get('/middleware/on-response/(?P<action>\w+)', function (): bool {
     return true;
 })
     ->middleware(new OnResponseErrorActionMiddleware());
 
-$triggerPermissionCallback = function (\WP_REST_Request $request) {
-    $action = $request->get_param('action');
+$triggerPermissionCallback = function (string $action) {
     if ($action !== 'allowed') {
         return new WpError(403, 'Failed permission callback check');
     }
@@ -40,7 +39,7 @@ $triggerPermissionCallback = function (\WP_REST_Request $request) {
 };
 
 // Triggers permission callable
-$router->get('/permission/(?P<action>\w+)', function (\WP_REST_Request $request): bool {
+$router->get('/permission/(?P<action>\w+)', function (): bool {
     return true;
 })
     ->permission($triggerPermissionCallback);

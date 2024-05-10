@@ -182,8 +182,10 @@ test('returns matches expected return value - Basic', function ($loadSchemaFrom,
             return $givenValue;
         });
     // Validate response
-    $data = $response->onResponse($req, $value);
-    expect($data)->toEqual($value);
+    $restResponse = new \WP_REST_Response($value);
+    $data = $response->onResponse($req, $restResponse);
+    expect($data)->toBeNull()
+        ->and($restResponse->data)->toEqual($value);
     $this->assertEquals(Filters\applied('fastendpoints_response_on_validation_error'), 0);
 })->with([LoadSchema::FromArray, LoadSchema::FromFile])->with([
     0.674, 255, true, null, 'this is a string', [[1, 2, 3, 4, 5]],
@@ -213,14 +215,16 @@ test('Ignoring additional properties in returns', function ($loadSchemaFrom) {
         ->andReturn('user');
     // Expected hooks to be applied
     looseExpectAllReturnHooks($req, $response);
-    $data = $response->onResponse($req, $user);
-    expect($data)->toEqual(Helper::toJSON([
-        'data' => [
-            'user_email' => 'fake@wpfastendpoints.com',
-            'user_url' => 'https://www.wpfastendpoints.com/wp',
-            'display_name' => 'André Gil',
-        ],
-    ]));
+    $restResponse = new \WP_REST_Response($user);
+    $data = $response->onResponse($req, $restResponse);
+    expect($data)->toBeNull()
+        ->and($restResponse->data)->toEqual(Helper::toJSON([
+            'data' => [
+                'user_email' => 'fake@wpfastendpoints.com',
+                'user_url' => 'https://www.wpfastendpoints.com/wp',
+                'display_name' => 'André Gil',
+            ],
+        ]));
 })->with([
     LoadSchema::FromFile,
     LoadSchema::FromArray,
@@ -244,8 +248,10 @@ test('Keeps additional properties in returns', function ($loadSchemaFrom) {
     // Expected hooks to be applied
     looseExpectAllReturnHooks($req, $response);
     // Validate response
-    $data = $response->onResponse($req, $user);
-    expect($data)->toEqual(Helper::toJSON($user));
+    $restResponse = new \WP_REST_Response($user);
+    $data = $response->onResponse($req, $restResponse);
+    expect($data)->toBeNull()
+        ->and($restResponse->data)->toEqual(Helper::toJSON($user));
 })->with([
     LoadSchema::FromFile,
     LoadSchema::FromArray,
@@ -271,13 +277,15 @@ test('Ignores additional properties expect a given type in returns', function ($
     // Expected hooks to be applied
     looseExpectAllReturnHooks($req, $response);
     // Validate response
-    $data = $response->onResponse($req, $user);
+    $restResponse = new \WP_REST_Response($user);
+    $data = $response->onResponse($req, $restResponse);
     $expectedData = array_merge(['data' => [
         'user_email' => 'fake@wpfastendpoints.com',
         'user_url' => 'https://www.wpfastendpoints.com/wp',
         'display_name' => 'André Gil',
     ]], $expectedData);
-    expect($data)->toEqual(Helper::toJSON($expectedData));
+    expect($data)->toBeNull()
+        ->and($restResponse->data)->toEqual(Helper::toJSON($expectedData));
 })->with([LoadSchema::FromFile, LoadSchema::FromArray])->with([
     ['integer', ['ID' => 5]],
     ['string', ['cap_key' => 'wp_capabilities', 'data' => Faker::getWpUser()['data']]],
@@ -310,15 +318,18 @@ test('Ignores additional properties specified by the schema', function ($loadSch
     // Expected hooks to be applied
     looseExpectAllReturnHooks($req, $response);
     // Validate response
-    $data = $response->onResponse($req, $user);
-    expect($data)->toEqual(Helper::toJSON([
-        'data' => [
-            'user_email' => 'fake@wpfastendpoints.com',
-            'user_url' => 'https://www.wpfastendpoints.com/wp',
-            'display_name' => 'André Gil',
-        ],
-        'cap_key' => 'wp_capabilities',
-    ]));
+    $restResponse = new \WP_REST_Response($user);
+    $data = $response->onResponse($req, $restResponse);
+    expect($data)->toBeNull()
+        ->and($restResponse->data)
+        ->toEqual(Helper::toJSON([
+            'data' => [
+                'user_email' => 'fake@wpfastendpoints.com',
+                'user_url' => 'https://www.wpfastendpoints.com/wp',
+                'display_name' => 'André Gil',
+            ],
+            'cap_key' => 'wp_capabilities',
+        ]));
 })->with([
     LoadSchema::FromFile,
     LoadSchema::FromArray,
@@ -335,7 +346,7 @@ test('Invalid additionalProperties field', function () {
     $req = Mockery::mock('WP_REST_Request');
     $req->shouldReceive('get_route')
         ->andReturn('user');
-    $data = $response->onResponse($req, 'my-response');
+    $data = $response->onResponse($req, new \WP_REST_Response('my-response'));
     expect($data)
         ->toBeInstanceOf(WpError::class)
         ->toHaveProperty('code', 500)
@@ -352,8 +363,8 @@ test('Skipping response validation via hook', function () {
     Filters\expectApplied('fastendpoints_response_is_to_validate')
         ->once()
         ->andReturn(false);
-    $data = $response->onResponse($req, 'my-response');
-    expect($data)->toEqual('my-response');
+    $data = $response->onResponse($req, new \WP_REST_Response('my-response'));
+    expect($data)->toBeNull();
 })->group('response', 'returns');
 
 test('Skipping response validation when empty schema given', function () {
@@ -365,8 +376,8 @@ test('Skipping response validation when empty schema given', function () {
     Filters\expectApplied('fastendpoints_response_is_to_validate')
         ->once()
         ->with(true, $response);
-    $data = $response->onResponse($req, 'my-response');
-    expect($data)->toEqual('my-response');
+    $data = $response->onResponse($req, new \WP_REST_Response('my-response'));
+    expect($data)->toBeNull();
 })->group('response', 'returns');
 
 test('SchemaException raised during validation', function () {
@@ -395,7 +406,7 @@ test('SchemaException raised during validation', function () {
         ->with(Mockery::type(Validator::class), Mockery::any(), $req, $mockedResponse)
         ->andReturn($mockedValidator);
     Helpers::setNonPublicClassProperty($mockedResponse, 'suffix', 'fastendpoints_response');
-    $data = $mockedResponse->onResponse($req, [1, 2, 3, 4, 5]);
+    $data = $mockedResponse->onResponse($req, new \WP_REST_Response([1, 2, 3, 4, 5]));
     expect($data)->toBeInstanceOf(WpError::class)
         ->toHaveProperty('code', 500)
         ->toHaveProperty('message', 'Invalid response schema: my-test-error')
@@ -433,7 +444,7 @@ test('Validation always failing via hook', function () {
         ->once()
         ->with(Mockery::type(WpError::class), $req, $response);
     // Validate response
-    $data = $response->onResponse($req, 257.89);
+    $data = $response->onResponse($req, new \WP_REST_Response(257.89));
     expect($data)->toBeInstanceOf(WpError::class)
         ->toHaveProperty('code', 422)
         ->toHaveProperty('message', 'Number must be lower than or equal to 1')
