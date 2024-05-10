@@ -42,16 +42,6 @@ if (! file_exists(dirname(__FILE__, 2).'/wp/tests/phpunit/wp-tests-config.php'))
 // Give access to tests_add_filter() function.
 require_once dirname(__FILE__, 2).'/wp/tests/phpunit/includes/functions.php';
 
-/**
- * Manually load the plugin being tested.
- */
-function _manually_load_plugin()
-{
-    require dirname(__DIR__).'/wp-fastendpoints.php';
-}
-
-tests_add_filter('muplugins_loaded', '_manually_load_plugin');
-
 require_once dirname(__DIR__).'/vendor/yoast/wp-test-utils/src/WPIntegration/bootstrap-functions.php';
 
 /*
