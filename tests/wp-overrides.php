@@ -58,5 +58,15 @@ if (! class_exists('WP_REST_Response')) {
             $this->status = $status;
             $this->headers = $headers;
         }
+
+        public function get_data()
+        {
+            return $this->data;
+        }
+
+        public function set_data($data)
+        {
+            $this->data = $data;
+        }
     }
 }

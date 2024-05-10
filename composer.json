@@ -1,63 +1,64 @@
 {
-	"name": "matapatos/wp-fastendpoints",
-	"type": "library",
-	"description": "Fast to type. Fast to run WordPress REST endpoints",
-	"keywords": [
-		"wordpress",
-		"fastest",
-		"rest-api"
-	],
-	"license": "MIT",
-	"require": {
-    	"php": "^8.1",
-		"opis/json-schema": "^2.3",
-      	"ext-json": "*"
+    "name": "matapatos/wp-fastendpoints",
+    "type": "library",
+    "description": "Fast to type. Fast to run WordPress REST endpoints",
+    "keywords": [
+        "wordpress",
+        "fastest",
+        "rest-api"
+    ],
+    "license": "MIT",
+    "require": {
+        "php": "^8.1",
+        "opis/json-schema": "^2.3",
+        "ext-json": "*",
+        "php-di/invoker": "^2.3"
     },
-	"autoload": {
-		"psr-4": {
-			"Wp\\FastEndpoints\\": "src/"
-		}
-	},
-	"autoload-dev": {
-		"psr-4": {
-			"Wp\\FastEndpoints\\Tests\\": "tests/"
-		},
-		"files": [
-			"tests/constants.php",
-			"tests/wp-overrides.php"
-		]
-	},
-	"require-dev": {
-		"mockery/mockery": "^1.6",
-		"dingo-d/wp-pest": "^1.6",
-		"mikey179/vfsstream": "^1.6",
-		"roots/acorn": "^2.1",
-		"brain/monkey": "2.*",
-		"laravel/pint": "*"
-	},
-	"scripts": {
-		"lint": "./vendor/bin/pint --config pint.json",
-		"setup:wp:6.0": "rm -rf wp/ && ./vendor/bin/wp-pest setup plugin --plugin-slug fastendpoints --wp-version 6.0.8 --skip-delete --no-interaction",
-		"setup:wp:6.1": "rm -rf wp/ && ./vendor/bin/wp-pest setup plugin --plugin-slug fastendpoints --wp-version 6.1.6 --skip-delete --no-interaction",
-		"setup:wp:6.2": "rm -rf wp/ && ./vendor/bin/wp-pest setup plugin --plugin-slug fastendpoints --wp-version 6.2.5 --skip-delete --no-interaction",
-		"setup:wp:6.3": "rm -rf wp/ && ./vendor/bin/wp-pest setup plugin --plugin-slug fastendpoints --wp-version 6.3.4 --skip-delete --no-interaction",
-		"setup:wp:6.4": "rm -rf wp/ && ./vendor/bin/wp-pest setup plugin --plugin-slug fastendpoints --wp-version 6.4.4 --skip-delete --no-interaction",
-		"setup:wp:latest": "rm -rf wp/ && ./vendor/bin/wp-pest setup plugin --plugin-slug fastendpoints --skip-delete --no-interaction",
-		"test:lint": "./vendor/bin/pint --test",
-		"test:coverage": "./vendor/bin/pest --coverage",
-		"test:unit": "./vendor/bin/pest --colors=always --exclude-group=integration",
-		"test:integration": "./vendor/bin/pest --colors=always --group=integration",
-		"test": [
-			"@test:lint",
-			"@test:unit",
-			"@test:integration"
-		]
-	},
-	"prefer-stable": true,
-	"config": {
-		"allow-plugins": {
-			"composer/installers": true,
-			"pestphp/pest-plugin": true
-		}
-	}
+    "autoload": {
+        "psr-4": {
+            "Wp\\FastEndpoints\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Wp\\FastEndpoints\\Tests\\": "tests/"
+        },
+        "files": [
+            "tests/constants.php",
+            "tests/wp-overrides.php"
+        ]
+    },
+    "require-dev": {
+        "mockery/mockery": "^1.6",
+        "dingo-d/wp-pest": "^1.6",
+        "mikey179/vfsstream": "^1.6",
+        "roots/acorn": "^2.1",
+        "brain/monkey": "2.*",
+        "laravel/pint": "*"
+    },
+    "scripts": {
+        "lint": "./vendor/bin/pint --config pint.json",
+        "setup:wp:6.0": "rm -rf wp/ && ./vendor/bin/wp-pest setup plugin --plugin-slug fastendpoints --wp-version 6.0.8 --skip-delete --no-interaction",
+        "setup:wp:6.1": "rm -rf wp/ && ./vendor/bin/wp-pest setup plugin --plugin-slug fastendpoints --wp-version 6.1.6 --skip-delete --no-interaction",
+        "setup:wp:6.2": "rm -rf wp/ && ./vendor/bin/wp-pest setup plugin --plugin-slug fastendpoints --wp-version 6.2.5 --skip-delete --no-interaction",
+        "setup:wp:6.3": "rm -rf wp/ && ./vendor/bin/wp-pest setup plugin --plugin-slug fastendpoints --wp-version 6.3.4 --skip-delete --no-interaction",
+        "setup:wp:6.4": "rm -rf wp/ && ./vendor/bin/wp-pest setup plugin --plugin-slug fastendpoints --wp-version 6.4.4 --skip-delete --no-interaction",
+        "setup:wp:latest": "rm -rf wp/ && ./vendor/bin/wp-pest setup plugin --plugin-slug fastendpoints --skip-delete --no-interaction",
+        "test:lint": "./vendor/bin/pint --test",
+        "test:coverage": "./vendor/bin/pest --coverage",
+        "test:unit": "./vendor/bin/pest --colors=always --exclude-group=integration",
+        "test:integration": "./vendor/bin/pest --colors=always --group=integration",
+        "test": [
+            "@test:lint",
+            "@test:unit",
+            "@test:integration"
+        ]
+    },
+    "prefer-stable": true,
+    "config": {
+        "allow-plugins": {
+            "composer/installers": true,
+            "pestphp/pest-plugin": true
+        }
+    }
 }

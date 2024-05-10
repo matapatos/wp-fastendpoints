@@ -12,9 +12,9 @@ declare(strict_types=1);
 
 namespace Wp\FastEndpoints;
 
+use Invoker\Invoker;
 use Wp\FastEndpoints\Contracts\Endpoint as EndpointInterface;
-use Wp\FastEndpoints\Contracts\Middlewares\OnRequestMiddleware;
-use Wp\FastEndpoints\Contracts\Middlewares\OnResponseMiddleware;
+use Wp\FastEndpoints\Contracts\Middleware;
 use Wp\FastEndpoints\Helpers\WpError;
 use Wp\FastEndpoints\Schemas\ResponseMiddleware;
 use Wp\FastEndpoints\Schemas\SchemaMiddleware;
@@ -115,6 +115,13 @@ class Endpoint implements EndpointInterface
     protected array $onResponseHandlers = [];
 
     /**
+     * Dependency injection
+     *
+     * @since 1.2.0
+     */
+    protected Invoker $invoker;
+
+    /**
      * Creates a new instance of Endpoint
      *
      * @since 0.9.0
@@ -133,6 +140,7 @@ class Endpoint implements EndpointInterface
         $this->handler = $handler;
         $this->args = $args;
         $this->override = $override;
+        $this->invoker = new Invoker();
     }
 
     /**
@@ -193,13 +201,13 @@ class Endpoint implements EndpointInterface
             \wp_die(\esc_html__('Invalid capability. Empty capability given'));
         }
 
-        return $this->permission(function (WP_REST_Request $req) use ($capability, $args): bool|WpError {
+        return $this->permission(function (WP_REST_Request $request) use ($capability, $args): bool|WpError {
             foreach ($args as &$arg) {
                 if (! \is_string($arg)) {
                     continue;
                 }
 
-                $arg = $this->replaceSpecialValue($req, $arg);
+                $arg = $this->replaceSpecialValue($request, $arg);
             }
 
             if (! \current_user_can($capability, ...$args)) {
@@ -252,14 +260,14 @@ class Endpoint implements EndpointInterface
      *
      * @since 0.9.0
      *
-     * @param  OnRequestMiddleware|OnResponseMiddleware  $middleware  Middleware to be plugged.
+     * @param  Middleware  $middleware  Middleware to be plugged.
      */
-    public function middleware(OnRequestMiddleware|OnResponseMiddleware $middleware): Endpoint
+    public function middleware(Middleware $middleware): Endpoint
     {
-        if ($middleware instanceof OnRequestMiddleware) {
+        if (method_exists($middleware, 'onRequest')) {
             $this->onRequestHandlers[] = [$middleware, 'onRequest'];
         }
-        if ($middleware instanceof OnResponseMiddleware) {
+        if (method_exists($middleware, 'onResponse')) {
             $this->onResponseHandlers[] = [$middleware, 'onResponse'];
         }
 
@@ -291,24 +299,33 @@ class Endpoint implements EndpointInterface
      *
      * @uses rest_ensure_response
      */
-    public function callback(WP_REST_Request $req): WP_REST_Response|WP_Error
+    public function callback(WP_REST_Request $request): WP_REST_Response|WP_Error
     {
+        $dependencies = [
+            'endpoint' => $this,
+            'request' => $request,
+            'response' => new WP_REST_Response(),
+        ] + $request->get_url_params();
         // Request handlers.
-        $result = $this->runHandlers($this->onRequestHandlers, $req);
-        if (\is_wp_error($result)) {
+        $result = $this->runHandlers($this->onRequestHandlers, $dependencies);
+        if (\is_wp_error($result) || $result instanceof \WP_REST_Response) {
             return $result;
         }
 
         // Main handler.
-        $result = $this->handler->call($this, $req);
-        if (\is_wp_error($result)) {
+        $result = $this->invoker->call($this->handler, $dependencies);
+        if (\is_wp_error($result) || $result instanceof \WP_REST_Response) {
+            return $result;
+        }
+        $dependencies['response']->set_data($result);
+
+        // ResponseMiddleware handlers.
+        $result = $this->runHandlers($this->onResponseHandlers, $dependencies);
+        if (\is_wp_error($result) || $result instanceof \WP_REST_Response) {
             return $result;
         }
 
-        // ResponseMiddleware handlers.
-        $result = $this->runHandlers($this->onResponseHandlers, $req, $result);
-
-        return \rest_ensure_response($result);
+        return $dependencies['response'];
     }
 
     /**
@@ -318,12 +335,16 @@ class Endpoint implements EndpointInterface
      *
      * @internal
      *
-     * @param  WP_REST_Request  $req  Current REST request.
+     * @param  WP_REST_Request  $request  Current REST request.
      * @return bool|WP_Error true on success or WP_Error on error
      */
-    public function permissionCallback(WP_REST_Request $req): bool|WP_Error
+    public function permissionCallback(WP_REST_Request $request): bool|WP_Error
     {
-        $result = $this->runHandlers($this->permissionHandlers, $req);
+        $dependencies = [
+            'endpoint' => $this,
+            'request' => $request,
+        ] + $request->get_url_params();
+        $result = $this->runHandlers($this->permissionHandlers, $dependencies);
         if (\is_wp_error($result)) {
             return $result;
         }
@@ -354,11 +375,11 @@ class Endpoint implements EndpointInterface
      *
      * @since 0.9.0
      *
-     * @param  WP_REST_Request  $req  Current REST request.
+     * @param  WP_REST_Request  $request  Current REST request.
      * @param  string  $value  Value to be checked.
      * @return mixed The $value variable with all special parameters replaced.
      */
-    protected function replaceSpecialValue(WP_REST_Request $req, string $value): mixed
+    protected function replaceSpecialValue(WP_REST_Request $request, string $value): mixed
     {
         // Checks if value matches a special value.
         // If so, replaces with request variable.
@@ -368,11 +389,11 @@ class Endpoint implements EndpointInterface
         }
 
         $newValue = substr($newValue, 1, -1);
-        if (! $req->has_param($newValue)) {
+        if (! $request->has_param($newValue)) {
             return $value;
         }
 
-        return $req->get_param($newValue);
+        return $request->get_param($newValue);
     }
 
     /**
@@ -381,22 +402,19 @@ class Endpoint implements EndpointInterface
      * @since 0.9.0
      *
      * @param  array<callable>  $allHandlers  Holds all callables that we wish to run.
-     * @param  mixed  ...$args  Arguments to be passed in handlers.
-     * @return mixed Returns the result of the last callable or if no handlers are set the
-     *               last result passed as argument if any. If an error occurs a WP_Error instance is returned.
+     * @param  array  $dependencies  Arguments to be passed in handlers.
+     * @return WP_Error|WP_REST_Response|null Returns the result of the last callable or if no handlers are set the
+     *                                        last result passed as argument if any. If an error occurs a WP_Error instance is returned.
      */
-    protected function runHandlers(array &$allHandlers, ...$args): mixed
+    protected function runHandlers(array &$allHandlers, array $dependencies): WP_Error|WP_REST_Response|null
     {
-        // If no handlers are set we have to make sure to return the previous result if set.
-        $result = (\count($args) >= 2) ? $args[1] : null;
-        // Sort dictionary by keys.
-        foreach ($allHandlers as $h) {
-            $result = \call_user_func_array($h, $args);
-            if (\is_wp_error($result)) {
+        foreach ($allHandlers as $handler) {
+            $result = $this->invoker->call($handler, $dependencies);
+            if (\is_wp_error($result) || $result instanceof \WP_REST_Response) {
                 return $result;
             }
         }
 
-        return $result;
+        return null;
     }
 }

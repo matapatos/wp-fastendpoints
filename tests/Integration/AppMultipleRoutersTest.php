@@ -57,12 +57,12 @@ test('REST API endpoints registered', function () {
         ->toBeArray()
         ->toHaveKeys([
             '/my-api/v1',
-            '/my-api/v1/my-posts/v1/(?P<post_id>[\\d]+)',
+            '/my-api/v1/my-posts/v1/(?P<postId>[\\d]+)',
             '/my-api/v1/my-actions/v2/middleware/on-request/(?P<action>\w+)',
             '/my-api/v1/my-actions/v2/middleware/on-response/(?P<action>\w+)',
             '/my-api/v1/my-actions/v2/permission/(?P<action>\w+)',
         ])
-        ->and($routes['/my-api/v1/my-posts/v1/(?P<post_id>[\\d]+)'])
+        ->and($routes['/my-api/v1/my-posts/v1/(?P<postId>[\\d]+)'])
         ->toBeArray()
         ->toHaveCount(3)
         ->and($routes['/my-api/v1/my-actions/v2/middleware/on-request/(?P<action>\w+)'])

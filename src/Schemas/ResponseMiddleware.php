@@ -15,12 +15,14 @@ namespace Wp\FastEndpoints\Schemas;
 
 use Opis\JsonSchema\Exceptions\SchemaException;
 use Opis\JsonSchema\Helper;
+use TypeError;
 use Wp\FastEndpoints\Contracts\JsonSchema;
-use Wp\FastEndpoints\Contracts\Middlewares\OnResponseMiddleware;
 use Wp\FastEndpoints\Helpers\Arr;
 use Wp\FastEndpoints\Helpers\WpError;
+use WP_Error;
 use WP_Http;
 use WP_REST_Request;
+use WP_REST_Response;
 
 /**
  * ResponseMiddleware class that checks/parses the REST response of an endpoint before sending it to the client.
@@ -29,25 +31,21 @@ use WP_REST_Request;
  *
  * @author André Gil <andre_gil22@hotmail.com>
  */
-class ResponseMiddleware extends JsonSchema implements OnResponseMiddleware
+class ResponseMiddleware extends JsonSchema
 {
     /**
      * Data to be sent in the response to the client
      *
      * @since 0.9.0
-     *
-     * @var mixed
      */
-    protected static $data = null;
+    protected static mixed $data = null;
 
     /**
      * Do we want to remove additional properties from the response
      *
      * @since 0.9.0
-     *
-     * @var bool|string
      */
-    protected $removeAdditionalProperties;
+    protected bool|string|null $removeAdditionalProperties;
 
     /**
      * Determines if a schema has been updated regarding the additional properties
@@ -85,7 +83,7 @@ class ResponseMiddleware extends JsonSchema implements OnResponseMiddleware
      *
      * @throws TypeError if $schema is neither a string or an array.
      */
-    public function __construct(string|array $schema, $removeAdditionalProperties = null)
+    public function __construct(string|array $schema, bool|string|null $removeAdditionalProperties = null)
     {
         parent::__construct($schema);
         $this->removeAdditionalProperties = $this->parseRemoveAdditionalProperties($removeAdditionalProperties);
@@ -162,23 +160,23 @@ class ResponseMiddleware extends JsonSchema implements OnResponseMiddleware
      *
      * @param  WP_REST_Request  $request  Current REST Request.
      * @param  mixed  $response  Current REST response.
-     * @return mixed The parsed response on success or WpError on error.
+     * @return ?WP_Error null if nothing to change or WpError on error.
      *
      *@since 0.9.0
      */
-    public function onResponse(WP_REST_Request $request, mixed $response): mixed
+    public function onResponse(WP_REST_Request $request, WP_REST_Response $response): ?WP_Error
     {
         if (! \apply_filters($this->suffix.'_is_to_validate', true, $this)) {
-            return $response;
+            return null;
         }
 
         $this->contents = $this->getContents();
         if (! $this->contents) {
-            return $response;
+            return null;
         }
 
         // Create Validator and enable it to return all errors.
-        self::$data = \apply_filters($this->suffix.'_validation_data', $response, $request, $this);
+        self::$data = \apply_filters($this->suffix.'_validation_data', $response->get_data(), $request, $this);
         $validator = \apply_filters($this->suffix.'_validator', self::getDefaultValidator(), self::$data, $request, $this);
         $schema = Helper::toJSON($this->contents);
         self::$data = Helper::toJSON(self::$data);
@@ -200,7 +198,9 @@ class ResponseMiddleware extends JsonSchema implements OnResponseMiddleware
             return \apply_filters($this->suffix.'_on_validation_error', $wpError, $request, $this);
         }
 
-        return \apply_filters($this->suffix.'_on_validation_success', self::$data, $request, $this);
+        $response->set_data(\apply_filters($this->suffix.'_on_validation_success', self::$data, $request, $this));
+
+        return null;
     }
 
     /**
