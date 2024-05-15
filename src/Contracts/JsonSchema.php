@@ -104,12 +104,16 @@ abstract class JsonSchema extends Middleware
     public function getSchema(): mixed
     {
         $schema = $this->schema;
+        if (! is_string($schema)) {
+            return $schema;
+        }
+
         if (! str_ends_with($schema, '.json')) {
             $schema .= '.json';
         }
 
         if (filter_var($schema, FILTER_VALIDATE_URL) === false) {
-            $schema = $this->validator->resolver()->getDefaultPrefix();
+            $schema = $this->validator->resolver()->getDefaultPrefix().'/'.ltrim($schema, '/');
         }
 
         return $schema;

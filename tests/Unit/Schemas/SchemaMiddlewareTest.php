@@ -16,11 +16,11 @@ use Brain\Monkey;
 use Brain\Monkey\Filters;
 use Brain\Monkey\Functions;
 use Mockery;
-use Opis\JsonSchema\Resolvers\SchemaResolver;
 use Opis\JsonSchema\ValidationResult;
 use org\bovigo\vfs\vfsStream;
 use Wp\FastEndpoints\Helpers\WpError;
 use Wp\FastEndpoints\Schemas\SchemaMiddleware;
+use Wp\FastEndpoints\Schemas\SchemaResolver;
 use Wp\FastEndpoints\Tests\Helpers\Helpers;
 use Wp\FastEndpoints\Tests\Helpers\LoadSchema;
 
@@ -181,3 +181,26 @@ test('Always rejects requests when no schema content is defined', function ($val
     $this->assertEquals(Filters\applied('schema_validator'), 0);
     $this->assertEquals(Filters\applied('schema_is_valid'), 0);
 })->with([false, null, [[]]])->group('schema', 'onRequest');
+
+// getSchema()
+
+test('Retrieving correct schema as a string', function (string $schema) {
+    $schemaResolver = new SchemaResolver();
+    $schemaResolver->registerPrefix('http://www.example.com', '/fake-dir');
+    $middleware = new SchemaMiddleware($schema, $schemaResolver);
+    $expectedSchema = $schema;
+    if (! str_ends_with($schema, '.json')) {
+        $expectedSchema .= '.json';
+    }
+    if (filter_var($schema, FILTER_VALIDATE_URL) === false) {
+        $expectedSchema = 'http://www.example.com/'.ltrim($expectedSchema, '/');
+    }
+    expect($middleware->getSchema())->toBe($expectedSchema);
+})->with(['Posts/Get', 'Posts/Update.json', '/Posts/Update.json',
+    'file://Posts/Update.json', 'http://www.localhost.com:8080/Posts/Update',
+    'http://www.example.com/Users/Get.json'])->group('schema', 'getSchema');
+
+test('Retrieving correct schema as array', function (array $schema) {
+    $middleware = new SchemaMiddleware($schema);
+    expect($middleware->getSchema())->toBe($schema);
+})->with([[[]], [['hello', 'another']]])->group('schema', 'getSchema');
