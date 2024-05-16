@@ -19,12 +19,12 @@ use Illuminate\Support\Str;
 use Mockery;
 use Opis\JsonSchema\Exceptions\ParseException;
 use Opis\JsonSchema\Helper;
-use Opis\JsonSchema\Resolvers\SchemaResolver;
 use Opis\JsonSchema\ValidationResult;
 use Opis\JsonSchema\Validator;
 use org\bovigo\vfs\vfsStream;
 use Wp\FastEndpoints\Helpers\WpError;
 use Wp\FastEndpoints\Schemas\ResponseMiddleware;
+use Wp\FastEndpoints\Schemas\SchemaResolver;
 use Wp\FastEndpoints\Tests\Helpers\Faker;
 use Wp\FastEndpoints\Tests\Helpers\Helpers;
 use Wp\FastEndpoints\Tests\Helpers\LoadSchema;
@@ -55,9 +55,9 @@ test('Passing invalid options to removeAdditionalProperties', function ($loadSch
     'true', 'false', 'StRing', 'ntege', 'fake',
 ])->group('response', 'getContents');
 
-// getContents() and updateSchemaToAcceptOrDiscardAdditionalProperties()
+// getSchema() - remove additional properties
 
-test('getContents retrieves correct schema', function ($loadSchemaFrom, $removeAdditionalProperties) {
+test('getSchema retrieves correct schema', function ($loadSchemaFrom, $removeAdditionalProperties) {
     Functions\when('path_join')->alias(function ($path1, $path2) {
         return $path1.'/'.$path2;
     });
@@ -66,46 +66,48 @@ test('getContents retrieves correct schema', function ($loadSchemaFrom, $removeA
     if ($loadSchemaFrom == LoadSchema::FromArray) {
         $schema = $expectedContents;
     }
-    $response = new ResponseMiddleware($schema, $removeAdditionalProperties);
-    $response->appendSchemaDir(\SCHEMAS_DIR);
-    Filters\expectApplied('fastendpoints_response_contents')
-        ->once()
-        ->with($expectedContents, $response);
+    $schemaResolver = new SchemaResolver();
+    $schemaResolver->registerPrefix('https://www.wp-fastendpoints.com', \SCHEMAS_DIR);
+    $response = new ResponseMiddleware($schema, $removeAdditionalProperties, $schemaResolver);
     Filters\expectApplied('fastendpoints_response_remove_additional_properties')
         ->once()
         ->with($removeAdditionalProperties, $response);
-    $contents = $response->getContents();
+    $contents = $response->getSchema();
     if (is_bool($removeAdditionalProperties)) {
         $expectedContents['additionalProperties'] = ! $removeAdditionalProperties;
         $expectedContents['properties']['data']['additionalProperties'] = ! $removeAdditionalProperties;
     } elseif (is_string($removeAdditionalProperties)) {
         $expectedContents['additionalProperties'] = ['type' => $removeAdditionalProperties];
         $expectedContents['properties']['data']['additionalProperties'] = ['type' => $removeAdditionalProperties];
+    } elseif (is_null($removeAdditionalProperties) && $loadSchemaFrom == LoadSchema::FromFile) {
+        $expectedContents = 'https://www.wp-fastendpoints.com/Users/Get.json';
     }
     expect($contents)->toEqual($expectedContents);
 })->with([LoadSchema::FromFile, LoadSchema::FromArray])->with([
     true, false, null, 'string', 'integer', 'number',
     'boolean', 'null', 'object', 'array',
-])->group('response', 'getContents', 'updateSchemaToAcceptOrDiscardAdditionalProperties');
-
-// updateSchemaToAcceptOrDiscardAdditionalProperties
+])->group('response', 'getSchema', 'updateSchemaToAcceptOrDiscardAdditionalProperties');
 
 test('Avoids re-updating schema', function () {
     $response = new ResponseMiddleware(['hello'], true);
-    expect(Helpers::getNonPublicClassProperty($response, 'hasUpdatedSchema'))->toBeFalse();
-    Helpers::setNonPublicClassProperty($response, 'hasUpdatedSchema', true);
-    Helpers::invokeNonPublicClassMethod($response, 'updateSchemaToAcceptOrDiscardAdditionalProperties');
-    $this->assertEquals(Filters\applied('response_remove_additional_properties'), 0);
-    expect(Helpers::getNonPublicClassProperty($response, 'contents'))->toMatchArray(['hello']);
-})->group('response', 'updateSchemaToAcceptOrDiscardAdditionalProperties');
+    expect(Helpers::getNonPublicClassProperty($response, 'loadedSchema'))->toBeNull();
+    $response->getSchema();
+    expect(Helpers::getNonPublicClassProperty($response, 'loadedSchema'))->toMatchArray(['hello']);
+    $response->getSchema();
+    expect(Helpers::getNonPublicClassProperty($response, 'loadedSchema'))->toMatchArray(['hello']);
+    $this->assertEquals(Filters\applied('fastendpoints_response_remove_additional_properties'), 1);
+})->group('response', 'getSchema');
+
+// updateSchemaToAcceptOrDiscardAdditionalProperties
 
 test('Ignore removing properties if schema is empty or doesnt have a type object', function ($schema) {
     $response = new ResponseMiddleware($schema, true);
     Filters\expectApplied('fastendpoints_response_remove_additional_properties')
         ->once()
         ->with(true, $response);
+    Helpers::setNonPublicClassProperty($response, 'loadedSchema', $schema);
     Helpers::invokeNonPublicClassMethod($response, 'updateSchemaToAcceptOrDiscardAdditionalProperties');
-    expect(Helpers::getNonPublicClassProperty($response, 'contents'))->toMatchArray($schema);
+    expect(Helpers::getNonPublicClassProperty($response, 'loadedSchema'))->toMatchArray($schema);
 })->with([[[]], [[['type' => 'hello']]]])->group('response', 'updateSchemaToAcceptOrDiscardAdditionalProperties');
 
 // returns()
@@ -336,7 +338,7 @@ test('Invalid additionalProperties field', function () {
     });
     $schemaResolver = new SchemaResolver();
     $schemaResolver->registerPrefix('https://www.wp-fastendpoints.com', \SCHEMAS_DIR);
-    $schema = 'https://www.wp-fastendpoints.com/Invalid/InvalidAdditionalProperties.json';
+    $schema = 'Invalid/InvalidAdditionalProperties';
     $response = new ResponseMiddleware($schema, null, $schemaResolver);
     // Create WP_REST_Request mock
     $req = Mockery::mock('WP_REST_Request');
