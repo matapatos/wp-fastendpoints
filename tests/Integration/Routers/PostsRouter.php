@@ -14,38 +14,33 @@ use Wp\FastEndpoints\Helpers\WpError;
 use Wp\FastEndpoints\Router;
 
 $router = new Router('my-posts', 'v1');
-$router->appendSchemaDir(\SCHEMAS_DIR);
+$router->appendSchemaDir(\SCHEMAS_DIR, 'https://www.wp-fastendpoints.com');
 
 // Fetches a single post
-$router->get('(?P<postId>[\d]+)', function (string $postId) {
-    return get_post($postId);
+$router->get('(?P<ID>[\d]+)', function (string $ID) {
+    return get_post($ID);
 })
     ->returns('Posts/Get')
     ->hasCap('read');
 
 // Updates a post
-$router->post('(?P<postId>[\d]+)', function (string $postId, \WP_REST_Request $request) {
+$router->post('(?P<ID>[\d]+)', function (\WP_REST_Request $request, $ID) {
     $payload = $request->get_params();
-    $payload['ID'] = $postId;
+    $error = wp_update_post($payload, true);
 
-    $postId = wp_update_post($payload);
-    if (is_wp_error($postId)) {
-        return $postId;
-    }
-
-    return get_post($postId);
+    return is_wp_error($error) ? $error : get_post($ID);
 })
     ->schema('Posts/Update')
     ->returns('Posts/Get')
-    ->hasCap('edit_post', '{postId}');
+    ->hasCap('edit_post', '{ID}');
 
 // Deletes a post
-$router->delete('(?P<postId>[\d]+)', function (string $postId) {
-    $result = wp_delete_post($postId);
+$router->delete('(?P<ID>[\d]+)', function (string $ID) {
+    $result = wp_delete_post($ID);
     if ($result === false or $result === null) {
         return new WpError(500, 'Unable to delete post');
     }
 
     return esc_html__('Post deleted with success');
 })
-    ->hasCap('delete_post', '{postId}');
+    ->hasCap('delete_post', '{ID}');

@@ -16,7 +16,7 @@ use Wp\FastEndpoints\Tests\Integration\Routers\Middlewares\OnRequestErrorActionM
 use Wp\FastEndpoints\Tests\Integration\Routers\Middlewares\OnResponseErrorActionMiddleware;
 
 $router = new Router('my-actions', 'v2');
-$router->appendSchemaDir(\SCHEMAS_DIR);
+$router->appendSchemaDir(\SCHEMAS_DIR, 'https://www.wp-fastendpoints.com');
 
 // Triggers onRequest middleware
 $router->get('/middleware/on-request/(?P<action>\w+)', function (): bool {

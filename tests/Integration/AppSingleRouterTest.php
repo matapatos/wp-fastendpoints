@@ -52,9 +52,9 @@ test('REST API endpoints registered', function () {
         ->toBeArray()
         ->toHaveKeys([
             '/my-posts/v1',
-            '/my-posts/v1/(?P<postId>[\\d]+)',
+            '/my-posts/v1/(?P<ID>[\\d]+)',
         ])
-        ->and($routes['/my-posts/v1/(?P<postId>[\\d]+)'])
+        ->and($routes['/my-posts/v1/(?P<ID>[\\d]+)'])
         ->toBeArray()
         ->toHaveCount(3);
 })->group('single');
