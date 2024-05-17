@@ -27,7 +27,7 @@
 
 - PHP 8.1+
 - WordPress 6.x
-- [json/opis 2.x](https://opis.io/json-schema/2.x/)
+- [opis/json-schema](https://opis.io/json-schema/2.x/)
 - [php-di/invoker](https://packagist.org/packages/php-di/invoker)
 
 We aim to support versions that haven't reached their end-of-life.
