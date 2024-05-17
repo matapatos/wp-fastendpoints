@@ -255,7 +255,8 @@ class ResponseMiddleware extends JsonSchema
     {
         $resolver = $resolver ?? new SchemaResolver();
         $schemaLoader = new SchemaLoader(new ResponseSchemaParser(), $resolver, true);
+        $validator = apply_filters('fastendpoints_validator', new Validator($schemaLoader), $this);
 
-        return new Validator($schemaLoader);
+        return apply_filters($this->suffix.'_validator', $validator, $this);
     }
 }

@@ -153,7 +153,6 @@ test('Skip parsing schema', function () {
     $result = $schema->onRequest($req);
     expect($result)->toBeNull();
     $this->assertEquals(Filters\applied('fastendpoints_schema_params'), 0);
-    $this->assertEquals(Filters\applied('fastendpoints_schema_validator'), 0);
     $this->assertEquals(Filters\applied('fastendpoints_schema_is_valid'), 0);
 })->group('schema', 'validate');
 

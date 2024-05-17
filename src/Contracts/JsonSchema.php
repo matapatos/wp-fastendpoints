@@ -67,9 +67,9 @@ abstract class JsonSchema extends Middleware
     {
         parent::__construct();
         $this->schema = $schema;
+        $this->suffix = $this->getSuffix();
         $this->validator = $this->createValidatorWithResolver($schemaResolver);
         $this->errorFormatter = new ErrorFormatter();
-        $this->suffix = $this->getSuffix();
     }
 
     /**
@@ -128,7 +128,8 @@ abstract class JsonSchema extends Middleware
     {
         $resolver = $resolver ?? new SchemaResolver();
         $schemaLoader = new SchemaLoader(new SchemaParser(), $resolver, true);
+        $validator = apply_filters('fastendpoints_validator', new Validator($schemaLoader), $this);
 
-        return new Validator($schemaLoader);
+        return apply_filters($this->suffix.'_validator', $validator, $this);
     }
 }

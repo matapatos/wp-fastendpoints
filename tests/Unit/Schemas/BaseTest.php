@@ -70,7 +70,7 @@ test('Creating ResponseMiddleware instance with an invalid $schema type', functi
 
 // getSuffix()
 
-test('Checking correct ResponseMiddleware suffix', function (string $class) {
+test('Checking correct Middleware suffix', function (string $class) {
     $schema = new $class([]);
     $suffix = Helpers::invokeNonPublicClassMethod($schema, 'getSuffix');
     $expectedSuffix = Helpers::getHooksSuffixFromClass($schema);
@@ -117,4 +117,15 @@ test('Creating JSON schema validator', function (string $class) {
     expect($validator)->toBeInstanceOf(Validator::class)
         ->and($validator->resolver())
         ->toBeInstanceOf(SchemaResolver::class);
+})->with('base_classes')->group('base', 'createValidatorWithResolver');
+
+test('Calling hooks while creating JSON schema validator', function (string $class) {
+    $suffix = Helpers::getHooksSuffixFromClass($class);
+    Filters\expectApplied('fastendpoints_validator')
+        ->once()
+        ->with(Mockery::type(Validator::class), Mockery::type($class));
+    Filters\expectApplied($suffix.'_validator')
+        ->once()
+        ->with(Mockery::type(Validator::class), Mockery::type($class));
+    new $class([]);
 })->with('base_classes')->group('base', 'createValidatorWithResolver');
