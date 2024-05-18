@@ -12,7 +12,7 @@
 ------
 **FastEndpoints** is an elegant way of writing custom WordPress REST endpoints with a focus on readability and IDE auto completion support.
 
-- Explore our docs at **[FastEndpoints Wiki »](https://github.com/matapatos/wp-fastendpoints/wiki)**
+- Explore our docs at **[FastEndpoints Docs »](https://matapatos.github.io/wp-fastendpoints/)**
 
 ## Features
 
