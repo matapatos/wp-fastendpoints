@@ -1,0 +1,61 @@
+site_name: WP-FastEndpoints
+site_description: FastEndpoints is an elegant way of writing custom WordPress REST endpoints with a focus on readability and IDE auto completion support
+site_url: https://matapatos.github.io/wp-fastendpoints/
+watch:
+  - data
+  - docs
+  - images
+theme:
+  name: material
+  palette:
+    primary: indigo
+  features:
+    - search.suggest
+    - search.highlight
+    - content.tabs.link
+    - navigation.indexes
+    - content.tooltips
+    - navigation.path
+    - content.code.annotate
+    - content.code.copy
+    - content.code.select
+    - navigation.tabs
+    - navigation.footer
+  icon:
+    repo: fontawesome/brands/github-alt
+  language: en
+repo_name: matapatos/wp-fastendpoints
+repo_url: https://github.com/matapatos/wp-fastendpoints
+edit_uri: https://github.com/matapatos/wp-fastendpoints/tree/main/docs/docs
+plugins:
+  search: null
+  macros:
+    include_yaml:
+      - sponsors: data/sponsors.yml
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+      pygments_lang_class: true
+nav:
+  - WP-FastEndpoints: index.md
+  - Quick Start:
+    - Quick Start: quick-start/index.md
+    - JSON Schemas: quick-start/json-schemas.md
+    - Router: quick-start/router.md
+    - Service Provider: quick-start/service-provider.md
+    - Testing:
+      - Testing:  quick-start/tests/index.md
+      - Integration Tests:  quick-start/tests/integration.md
+      - Unit Tests:  quick-start/tests/unit.md
+  - Reference: reference/index.md
+  - Release Notes: release.md
+extra:
+  social:
+    - icon: fontawesome/brands/github-alt
+      link: https://github.com/matapatos/wp-fastendpoints
+    - icon: fontawesome/brands/linkedin
+      link: https://www.linkedin.com/in/andre-gil/
