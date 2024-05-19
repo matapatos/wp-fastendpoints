@@ -1,7 +1,6 @@
 The first thing we need to do is to create a Router.
 
 ```php
-<?php
 use Wp\FastEndpoints\Router;
 
 // Dependency injection to enable us to mock router in tests
@@ -20,7 +19,6 @@ With the posts router in place we can now start attaching our endpoints. We star
 allows a user to create a blog post.
 
 ```php
-<?php
 $router->post('/', function (\WP_REST_Request $request): int|\WP_Error {
     $payload = $request->get_params();
 
@@ -50,7 +48,6 @@ JSON schemas can help us to make sure that we are returning all the required fie
 as well as to avoid retrieving sensitive information. The last one is configurable.
 
 ```php
-<?php
 use Wp\FastEndpoints\Helpers\WpError;
 
 $router->get('(?P<ID>[\d]+)', function ($ID) {
@@ -87,7 +84,6 @@ Checking for user capabilities such as `publish_posts` and `read` is cool. Howev
 real world we sometimes also need to check for a particular resource.
 
 ```php
-<?php
 $router->put('(?P<ID>[\d]+)', function (\WP_REST_Request $request): int|\WP_Error {
     $payload = $request->get_params();
 
@@ -110,7 +106,6 @@ which will try to replace it by the _post_id_ parameter.
 #### Delete a post
 
 ```php
-<?php
 use Wp\FastEndpoints\Helpers\WpError;
 
 $router->delete('(?P<ID>[\d]+)', function ($ID) {
@@ -125,7 +120,6 @@ $router->delete('(?P<ID>[\d]+)', function ($ID) {
 ### Everything together
 
 ```php
-<?php
 """
 Api/Endpoints/Posts.php
 """

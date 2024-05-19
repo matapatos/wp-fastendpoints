@@ -14,7 +14,7 @@ Full source code can be found at **[matapatos/wp-fastendpoints-my-plugin »](htt
 To hold this API we are going to create a plugin called *MyPLugin* - don't forget that logic shouldn't
 be contained in a theme - with the following structure:
 
-```
+```text
 my-plugin
 │   my-plugin.php  # Registers the plugin provider
 │   composer.json
@@ -30,8 +30,8 @@ my-plugin
 │   │   └───Schemas
 │   │       │
 │   │       └───Posts
-│   │           │   CreateOrUpdate.json  # Validates our request payload
-│   │           │   Get.json             # Discards unwanted fields from our response
+│   │           │   CreateOrUpdate.json  # Validates request payload
+│   │           │   Get.json             # Validates responses and discards unwanted fields
 │   │
 │   │
 │   └───Providers

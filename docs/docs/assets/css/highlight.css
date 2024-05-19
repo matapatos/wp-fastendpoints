@@ -1,0 +1,17 @@
+/* Background color of a code snippet */
+.md-typeset code.hljs {
+    background-color: #282c34;
+    border-radius: 1vh;
+}
+
+.md-typeset code.hljs  {
+    color: #abb2bf;
+}
+
+.md-clipboard.md-icon {
+    color: white;
+}
+
+.md-clipboard.md-icon:hover {
+    color: #526cfe;
+}

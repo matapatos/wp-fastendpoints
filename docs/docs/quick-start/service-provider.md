@@ -6,7 +6,6 @@ Now that we have our posts router built the last main three bits missing are the
    the endpoints.
 
 ```php
-<?php
 """
 src/Providers/ApiProvider.php
 """

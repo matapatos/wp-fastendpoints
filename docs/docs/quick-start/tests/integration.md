@@ -32,7 +32,6 @@ The main reason of these differences is to allow us to run tests without the
 need to always specify a group of tests. Those changes include:
 
 ```php
-<?php
 /**
 * tests/Helpers.php
  */ 
@@ -51,7 +50,6 @@ class Helpers
 ```
 
 ```php
-<?php
 /**
 * tests/Integration/*Test.php
  */ 
@@ -70,7 +68,6 @@ if (! Helpers::isIntegrationTest()) {
 Now that everything is configured we can start creating integration tests:
 
 ```php
-<?php
 test('Create a new post', function () {
     // Create user with correct permissions
     $userId = $this::factory()->user->create();

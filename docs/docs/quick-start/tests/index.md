@@ -19,7 +19,7 @@ composer require dingo-d/wp-pest --dev  # Adds Pest support for integration test
 
 For testing our plugin, we are going to assume the following structure:
 
-```
+```text
 my-plugin
 │   my-plugin.php
 │   composer.json
