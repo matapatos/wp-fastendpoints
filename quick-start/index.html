@@ -50,6 +50,10 @@
       
     
     
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    
+      <link rel="stylesheet" href="../assets/css/highlight.css">
+    
     <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -674,32 +678,31 @@
 <h2 id="plugin-code-structure">Plugin code structure 🔨</h2>
 <p>To hold this API we are going to create a plugin called <em>MyPLugin</em> - don't forget that logic shouldn't
 be contained in a theme - with the following structure:</p>
-<div class="language-text highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>my-plugin
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>│   my-plugin.php  # Registers the plugin provider
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>│   composer.json
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>│
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>└───src
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>│   │   constants.php
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>│   │
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>│   └───Api
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>│   │   │
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>│   │   └───Routers
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>│   │   │   │   Posts.php  # Holds our custom endpoints
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>│   │   │
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>│   │   └───Schemas
-<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>│   │       │
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>│   │       └───Posts
-<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>│   │           │   CreateOrUpdate.json  # Validates our request payload
-<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>│   │           │   Get.json             # Discards unwanted fields from our response
-<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>│   │
-<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>│   │
-<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>│   └───Providers
-<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>│       │   ApiServiceProvider.php       # Registers all routers
-<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>│       │   MyPluginProvider.php         # Bootstraps our plugin
-<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>│       │   ProviderContract.php
-<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>│
-<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>└───tests
-</code></pre></div>
+<pre class="highlight"><code class="language-text">my-plugin
+│   my-plugin.php  # Registers the plugin provider
+│   composer.json
+│
+└───src
+│   │   constants.php
+│   │
+│   └───Api
+│   │   │
+│   │   └───Routers
+│   │   │   │   Posts.php  # Holds our custom endpoints
+│   │   │
+│   │   └───Schemas
+│   │       │
+│   │       └───Posts
+│   │           │   CreateOrUpdate.json  # Validates request payload
+│   │           │   Get.json             # Validates responses and discards unwanted fields
+│   │
+│   │
+│   └───Providers
+│       │   ApiServiceProvider.php       # Registers all routers
+│       │   MyPluginProvider.php         # Bootstraps our plugin
+│       │   ProviderContract.php
+│
+└───tests</code></pre>
 
 
 
@@ -818,6 +821,10 @@ be contained in a theme - with the following structure:</p>
     
     
       <script src="../assets/javascripts/bundle.ebd0bdb7.min.js"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+      
+        <script src="../assets/js/initHighlight.js"></script>
       
     
   </body>

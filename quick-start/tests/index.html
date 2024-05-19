@@ -50,6 +50,10 @@
       
     
     
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    
+      <link rel="stylesheet" href="../../assets/css/highlight.css">
+    
     <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -680,29 +684,27 @@ framework, the some principles should apply 😊</p>
 <p>Full source code can be found at <a href="https://github.com/matapatos/wp-fastendpoints-my-plugin"><strong>matapatos/wp-fastendpoints-my-plugin »</strong></a></p>
 <h2 id="testing-dependencies">Testing dependencies</h2>
 <p>First, let's add all the necessary testing dependencies:</p>
-<div class="language-bash highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>composer<span class="w"> </span>require<span class="w"> </span>mockery/mockery<span class="w"> </span>--dev<span class="w">  </span><span class="c1"># For mocking classes/functions</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>composer<span class="w"> </span>require<span class="w"> </span>dingo-d/wp-pest<span class="w"> </span>--dev<span class="w">  </span><span class="c1"># Adds Pest support for integration tests</span>
-</code></pre></div>
+<pre class="highlight"><code class="language-bash">composer require mockery/mockery --dev  # For mocking classes/functions
+composer require dingo-d/wp-pest --dev  # Adds Pest support for integration tests</code></pre>
 <h2 id="testing-structure">Testing structure</h2>
 <p>For testing our plugin, we are going to assume the following structure:</p>
-<div class="language-text highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>my-plugin
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>│   my-plugin.php
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>│   composer.json
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>│
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>└───src
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>│       (...)
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>│
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>└───tests
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>    │   bootstrap.php   # Loads WordPress for integration tests
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>    │   Helpers.php     # (optional) Helper functions
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>    │   Pest.php        # Pest configuration file
-<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>    │
-<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>    └───Integration
-<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>    │       PostsApiTest.php
-<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>    │
-<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>    └───Unit
-<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>            PostsApiTest.php
-</code></pre></div>
+<pre class="highlight"><code class="language-text">my-plugin
+│   my-plugin.php
+│   composer.json
+│
+└───src
+│       (...)
+│
+└───tests
+    │   bootstrap.php   # Loads WordPress for integration tests
+    │   Helpers.php     # (optional) Helper functions
+    │   Pest.php        # Pest configuration file
+    │
+    └───Integration
+    │       PostsApiTest.php
+    │
+    └───Unit
+            PostsApiTest.php</code></pre>
 
 
 
@@ -821,6 +823,10 @@ framework, the some principles should apply 😊</p>
     
     
       <script src="../../assets/javascripts/bundle.ebd0bdb7.min.js"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+      
+        <script src="../../assets/js/initHighlight.js"></script>
       
     
   </body>

@@ -50,6 +50,10 @@
       
     
     
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    
+      <link rel="stylesheet" href="../../assets/css/highlight.css">
+    
     <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -780,12 +784,10 @@
   <h1>Router</h1>
 
 <p>The first thing we need to do is to create a Router.</p>
-<div class="language-php highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="cp">&lt;?php</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="k">use</span> <span class="nx">Wp\FastEndpoints\Router</span><span class="p">;</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1">// Dependency injection to enable us to mock router in tests</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="nv">$router</span> <span class="o">=</span> <span class="nv">$router</span> <span class="o">??</span> <span class="k">new</span> <span class="nx">Router</span><span class="p">(</span><span class="s1">&#39;posts&#39;</span><span class="p">);</span>
-</code></pre></div>
+<pre class="highlight"><code class="language-php">use Wp\FastEndpoints\Router;
+
+// Dependency injection to enable us to mock router in tests
+$router = $router ?? new Router('posts');</code></pre>
 <p>A router is just an instance which allow us to attach and register endpoints.</p>
 <p>We can have an application with one or multiple routers. One main benefit of using multiple routers is to group endpoints by same namespace and (optionally) same version. For instance,
 in this tutorial we are going to create a main router with a base namespace <code>my-plugin</code> and a version of <code>v1</code>
@@ -793,15 +795,13 @@ which will add <code>/my-plugin/v1/</code> to the beginning of each attached end
 <h4 id="create-a-post">Create a post</h4>
 <p>With the posts router in place we can now start attaching our endpoints. We start adding the one to that
 allows a user to create a blog post.</p>
-<div class="language-php highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="cp">&lt;?php</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nv">$router</span><span class="o">-&gt;</span><span class="na">post</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span><span class="nx">\WP_REST_Request</span> <span class="nv">$request</span><span class="p">)</span><span class="o">:</span> <span class="nx">int</span><span class="o">|</span><span class="nx">\WP_Error</span> <span class="p">{</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    <span class="nv">$payload</span> <span class="o">=</span> <span class="nv">$request</span><span class="o">-&gt;</span><span class="na">get_params</span><span class="p">();</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    <span class="k">return</span> <span class="nx">wp_insert_post</span><span class="p">(</span><span class="nv">$payload</span><span class="p">,</span> <span class="k">true</span><span class="p">);</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="p">})</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    <span class="o">-&gt;</span><span class="na">schema</span><span class="p">(</span><span class="s1">&#39;Posts/CreateOrUpdate&#39;</span><span class="p">)</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>    <span class="o">-&gt;</span><span class="na">hasCap</span><span class="p">(</span><span class="s1">&#39;publish_posts&#39;</span><span class="p">);</span>
-</code></pre></div>
+<pre class="highlight"><code class="language-php">$router-&gt;post('/', function (\WP_REST_Request $request): int|\WP_Error {
+    $payload = $request-&gt;get_params();
+
+    return wp_insert_post($payload, true);
+})
+    -&gt;schema('Posts/CreateOrUpdate')
+    -&gt;hasCap('publish_posts');</code></pre>
 <p>When a request is received by this endpoint the following happens:</p>
 <p>1) Firstly, the user permissions are checked - Makes sure that the user has <a href="https://wordpress.org/documentation/article/roles-and-capabilities/#publish_posts"><em>publish_posts</em></a> capability
 2) Then, if successful, it validates the request payload by using the <em>Posts/CreateOrUpdate</em> schema.
@@ -817,17 +817,15 @@ either returns the ID of the post or a WP_Error which is already what we want ðŸ
 schemas can be of a great help.</p>
 <p>JSON schemas can help us to make sure that we are returning all the required fields
 as well as to avoid retrieving sensitive information. The last one is configurable.</p>
-<div class="language-php highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="cp">&lt;?php</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="k">use</span> <span class="nx">Wp\FastEndpoints\Helpers\WpError</span><span class="p">;</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="nv">$router</span><span class="o">-&gt;</span><span class="na">get</span><span class="p">(</span><span class="s1">&#39;(?P&lt;ID&gt;[\d]+)&#39;</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span><span class="nv">$ID</span><span class="p">)</span> <span class="p">{</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    <span class="nv">$post</span> <span class="o">=</span> <span class="nx">get_post</span><span class="p">(</span><span class="nv">$ID</span><span class="p">);</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>    <span class="k">return</span> <span class="nv">$post</span> <span class="o">?:</span> <span class="k">new</span> <span class="nx">WpError</span><span class="p">(</span><span class="mi">404</span><span class="p">,</span> <span class="s1">&#39;Post not found&#39;</span><span class="p">);</span>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="p">})</span>
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>    <span class="o">-&gt;</span><span class="na">returns</span><span class="p">(</span><span class="s1">&#39;Posts/Get&#39;</span><span class="p">)</span>
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>    <span class="o">-&gt;</span><span class="na">hasCap</span><span class="p">(</span><span class="s1">&#39;read&#39;</span><span class="p">);</span>
-</code></pre></div>
+<pre class="highlight"><code class="language-php">use Wp\FastEndpoints\Helpers\WpError;
+
+$router-&gt;get('(?P&lt;ID&gt;[\d]+)', function ($ID) {
+    $post = get_post($ID);
+
+    return $post ?: new WpError(404, 'Post not found');
+})
+    -&gt;returns('Posts/Get')
+    -&gt;hasCap('read');</code></pre>
 <p>In this case, we didn't set a JSON schema on purpose because we only need the
 <em>post_id</em> which is already parsed by the regex rule - we could have made that rule
 to match only positive integers though ðŸ¤”</p>
@@ -848,15 +846,13 @@ is just a subclass of WP_Error which automatically set's the HTTP status code of
 <h4 id="update-a-post">Update a post</h4>
 <p>Checking for user capabilities such as <code>publish_posts</code> and <code>read</code> is cool. However, in the
 real world we sometimes also need to check for a particular resource.</p>
-<div class="language-php highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="cp">&lt;?php</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nv">$router</span><span class="o">-&gt;</span><span class="na">put</span><span class="p">(</span><span class="s1">&#39;(?P&lt;ID&gt;[\d]+)&#39;</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span><span class="nx">\WP_REST_Request</span> <span class="nv">$request</span><span class="p">)</span><span class="o">:</span> <span class="nx">int</span><span class="o">|</span><span class="nx">\WP_Error</span> <span class="p">{</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>    <span class="nv">$payload</span> <span class="o">=</span> <span class="nv">$request</span><span class="o">-&gt;</span><span class="na">get_params</span><span class="p">();</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>    <span class="k">return</span> <span class="nx">wp_update_post</span><span class="p">(</span><span class="nv">$payload</span><span class="p">,</span> <span class="k">true</span><span class="p">);</span>
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="p">})</span>
-<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>    <span class="o">-&gt;</span><span class="na">schema</span><span class="p">(</span><span class="s1">&#39;Posts/CreateOrUpdate&#39;</span><span class="p">)</span>
-<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>    <span class="o">-&gt;</span><span class="na">hasCap</span><span class="p">(</span><span class="s1">&#39;edit_post&#39;</span><span class="p">,</span> <span class="s1">&#39;{ID}&#39;</span><span class="p">);</span>
-</code></pre></div>
+<pre class="highlight"><code class="language-php">$router-&gt;put('(?P&lt;ID&gt;[\d]+)', function (\WP_REST_Request $request): int|\WP_Error {
+    $payload = $request-&gt;get_params();
+
+    return wp_update_post($payload, true);
+})
+    -&gt;schema('Posts/CreateOrUpdate')
+    -&gt;hasCap('edit_post', '{ID}');</code></pre>
 <p>The code above is not that different from the one for creating a post. However, in the last line
 <code>hasCap('edit_post', '{post_id}')</code> the second parameter is a special one for FastEndpoints
 which will try to replace it by the <em>post_id</em> parameter.</p>
@@ -868,75 +864,71 @@ in an endpoint is checking the user capabilities. As such, at that time the requ
 been already validated by the request payload schema.</p>
 </div>
 <h4 id="delete-a-post">Delete a post</h4>
-<div class="language-php highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="cp">&lt;?php</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="k">use</span> <span class="nx">Wp\FastEndpoints\Helpers\WpError</span><span class="p">;</span>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="nv">$router</span><span class="o">-&gt;</span><span class="na">delete</span><span class="p">(</span><span class="s1">&#39;(?P&lt;ID&gt;[\d]+)&#39;</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span><span class="nv">$ID</span><span class="p">)</span> <span class="p">{</span>
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>    <span class="nv">$post</span> <span class="o">=</span> <span class="nx">wp_delete_post</span><span class="p">(</span><span class="nv">$postId</span><span class="p">);</span>
-<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>
-<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>    <span class="k">return</span> <span class="nv">$post</span> <span class="o">?:</span> <span class="k">new</span> <span class="nx">WpError</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="s1">&#39;Unable to delete post&#39;</span><span class="p">);</span>
-<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="p">})</span>
-<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>    <span class="o">-&gt;</span><span class="na">returns</span><span class="p">(</span><span class="s1">&#39;Posts/Get&#39;</span><span class="p">)</span>
-<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>    <span class="o">-&gt;</span><span class="na">hasCap</span><span class="p">(</span><span class="s1">&#39;delete_post&#39;</span><span class="p">,</span> <span class="s1">&#39;{ID}&#39;</span><span class="p">);</span>
-</code></pre></div>
+<pre class="highlight"><code class="language-php">use Wp\FastEndpoints\Helpers\WpError;
+
+$router-&gt;delete('(?P&lt;ID&gt;[\d]+)', function ($ID) {
+    $post = wp_delete_post($postId);
+
+    return $post ?: new WpError(500, 'Unable to delete post');
+})
+    -&gt;returns('Posts/Get')
+    -&gt;hasCap('delete_post', '{ID}');</code></pre>
 <h3 id="everything-together">Everything together</h3>
-<div class="language-php highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="cp">&lt;?php</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="s2">&quot;&quot;&quot;</span>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="s2">Api/Endpoints/Posts.php</span>
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="s2">&quot;&quot;&quot;</span>
-<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
-<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>
-<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="k">namespace</span> <span class="nx">MyPlugin\Api\Routers</span><span class="p">;</span>
-<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>
-<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="k">use</span> <span class="nx">Wp\FastEndpoints\Helpers\WpError</span><span class="p">;</span>
-<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="k">use</span> <span class="nx">Wp\FastEndpoints\Router</span><span class="p">;</span>
-<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>
-<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="c1">// Dependency injection to enable us to mock router in the tests</span>
-<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="nv">$router</span> <span class="o">=</span> <span class="nv">$router</span> <span class="o">??</span> <span class="k">new</span> <span class="nx">Router</span><span class="p">(</span><span class="s1">&#39;posts&#39;</span><span class="p">);</span>
-<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>
-<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="c1">// Creates a post</span>
-<a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a><span class="nv">$router</span><span class="o">-&gt;</span><span class="na">post</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span><span class="nx">\WP_REST_Request</span> <span class="nv">$request</span><span class="p">)</span><span class="o">:</span> <span class="nx">int</span><span class="o">|</span><span class="nx">\WP_Error</span> <span class="p">{</span>
-<a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a>    <span class="nv">$payload</span> <span class="o">=</span> <span class="nv">$request</span><span class="o">-&gt;</span><span class="na">get_params</span><span class="p">();</span>
-<a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a>
-<a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a>    <span class="k">return</span> <span class="nx">wp_insert_post</span><span class="p">(</span><span class="nv">$payload</span><span class="p">,</span> <span class="k">true</span><span class="p">);</span>
-<a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a><span class="p">})</span>
-<a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a>    <span class="o">-&gt;</span><span class="na">schema</span><span class="p">(</span><span class="s1">&#39;Posts/CreateOrUpdate&#39;</span><span class="p">)</span>
-<a id="__codelineno-5-22" name="__codelineno-5-22" href="#__codelineno-5-22"></a>    <span class="o">-&gt;</span><span class="na">hasCap</span><span class="p">(</span><span class="s1">&#39;publish_posts&#39;</span><span class="p">);</span>
-<a id="__codelineno-5-23" name="__codelineno-5-23" href="#__codelineno-5-23"></a>
-<a id="__codelineno-5-24" name="__codelineno-5-24" href="#__codelineno-5-24"></a><span class="c1">// Fetches a single post</span>
-<a id="__codelineno-5-25" name="__codelineno-5-25" href="#__codelineno-5-25"></a><span class="nv">$router</span><span class="o">-&gt;</span><span class="na">get</span><span class="p">(</span><span class="s1">&#39;(?P&lt;ID&gt;[\d]+)&#39;</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span><span class="nv">$ID</span><span class="p">)</span> <span class="p">{</span>
-<a id="__codelineno-5-26" name="__codelineno-5-26" href="#__codelineno-5-26"></a>    <span class="nv">$post</span> <span class="o">=</span> <span class="nx">get_post</span><span class="p">(</span><span class="nv">$ID</span><span class="p">);</span>
-<a id="__codelineno-5-27" name="__codelineno-5-27" href="#__codelineno-5-27"></a>
-<a id="__codelineno-5-28" name="__codelineno-5-28" href="#__codelineno-5-28"></a>    <span class="k">return</span> <span class="nv">$post</span> <span class="o">?:</span> <span class="k">new</span> <span class="nx">WpError</span><span class="p">(</span><span class="mi">404</span><span class="p">,</span> <span class="s1">&#39;Post not found&#39;</span><span class="p">);</span>
-<a id="__codelineno-5-29" name="__codelineno-5-29" href="#__codelineno-5-29"></a><span class="p">})</span>
-<a id="__codelineno-5-30" name="__codelineno-5-30" href="#__codelineno-5-30"></a>    <span class="o">-&gt;</span><span class="na">returns</span><span class="p">(</span><span class="s1">&#39;Posts/Get&#39;</span><span class="p">)</span>
-<a id="__codelineno-5-31" name="__codelineno-5-31" href="#__codelineno-5-31"></a>    <span class="o">-&gt;</span><span class="na">hasCap</span><span class="p">(</span><span class="s1">&#39;read&#39;</span><span class="p">);</span>
-<a id="__codelineno-5-32" name="__codelineno-5-32" href="#__codelineno-5-32"></a>
-<a id="__codelineno-5-33" name="__codelineno-5-33" href="#__codelineno-5-33"></a><span class="c1">// Updates a post</span>
-<a id="__codelineno-5-34" name="__codelineno-5-34" href="#__codelineno-5-34"></a><span class="nv">$router</span><span class="o">-&gt;</span><span class="na">put</span><span class="p">(</span><span class="s1">&#39;(?P&lt;ID&gt;[\d]+)&#39;</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span><span class="nx">\WP_REST_Request</span> <span class="nv">$request</span><span class="p">)</span><span class="o">:</span> <span class="nx">int</span><span class="o">|</span><span class="nx">\WP_Error</span> <span class="p">{</span>
-<a id="__codelineno-5-35" name="__codelineno-5-35" href="#__codelineno-5-35"></a>    <span class="nv">$payload</span> <span class="o">=</span> <span class="nv">$request</span><span class="o">-&gt;</span><span class="na">get_params</span><span class="p">();</span>
-<a id="__codelineno-5-36" name="__codelineno-5-36" href="#__codelineno-5-36"></a>
-<a id="__codelineno-5-37" name="__codelineno-5-37" href="#__codelineno-5-37"></a>    <span class="k">return</span> <span class="nx">wp_update_post</span><span class="p">(</span><span class="nv">$payload</span><span class="p">,</span> <span class="k">true</span><span class="p">);</span>
-<a id="__codelineno-5-38" name="__codelineno-5-38" href="#__codelineno-5-38"></a><span class="p">})</span>
-<a id="__codelineno-5-39" name="__codelineno-5-39" href="#__codelineno-5-39"></a>    <span class="o">-&gt;</span><span class="na">schema</span><span class="p">(</span><span class="s1">&#39;Posts/CreateOrUpdate&#39;</span><span class="p">)</span>
-<a id="__codelineno-5-40" name="__codelineno-5-40" href="#__codelineno-5-40"></a>    <span class="o">-&gt;</span><span class="na">hasCap</span><span class="p">(</span><span class="s1">&#39;edit_post&#39;</span><span class="p">,</span> <span class="s1">&#39;{ID}&#39;</span><span class="p">);</span>
-<a id="__codelineno-5-41" name="__codelineno-5-41" href="#__codelineno-5-41"></a>
-<a id="__codelineno-5-42" name="__codelineno-5-42" href="#__codelineno-5-42"></a><span class="c1">// Deletes a post</span>
-<a id="__codelineno-5-43" name="__codelineno-5-43" href="#__codelineno-5-43"></a><span class="nv">$router</span><span class="o">-&gt;</span><span class="na">delete</span><span class="p">(</span><span class="s1">&#39;(?P&lt;ID&gt;[\d]+)&#39;</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span><span class="nv">$ID</span><span class="p">)</span> <span class="p">{</span>
-<a id="__codelineno-5-44" name="__codelineno-5-44" href="#__codelineno-5-44"></a>    <span class="nv">$post</span> <span class="o">=</span> <span class="nx">wp_delete_post</span><span class="p">(</span><span class="nv">$postId</span><span class="p">);</span>
-<a id="__codelineno-5-45" name="__codelineno-5-45" href="#__codelineno-5-45"></a>
-<a id="__codelineno-5-46" name="__codelineno-5-46" href="#__codelineno-5-46"></a>    <span class="k">return</span> <span class="nv">$post</span> <span class="o">?:</span> <span class="k">new</span> <span class="nx">WpError</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="s1">&#39;Unable to delete post&#39;</span><span class="p">);</span>
-<a id="__codelineno-5-47" name="__codelineno-5-47" href="#__codelineno-5-47"></a><span class="p">})</span>
-<a id="__codelineno-5-48" name="__codelineno-5-48" href="#__codelineno-5-48"></a>    <span class="o">-&gt;</span><span class="na">returns</span><span class="p">(</span><span class="s1">&#39;Posts/Get&#39;</span><span class="p">)</span>
-<a id="__codelineno-5-49" name="__codelineno-5-49" href="#__codelineno-5-49"></a>    <span class="o">-&gt;</span><span class="na">hasCap</span><span class="p">(</span><span class="s1">&#39;delete_post&#39;</span><span class="p">,</span> <span class="s1">&#39;{ID}&#39;</span><span class="p">);</span>
-<a id="__codelineno-5-50" name="__codelineno-5-50" href="#__codelineno-5-50"></a>
-<a id="__codelineno-5-51" name="__codelineno-5-51" href="#__codelineno-5-51"></a><span class="c1">// IMPORTANT: If no service provider is used make sure to set a version to the $router and call</span>
-<a id="__codelineno-5-52" name="__codelineno-5-52" href="#__codelineno-5-52"></a><span class="c1">//            the following function here:</span>
-<a id="__codelineno-5-53" name="__codelineno-5-53" href="#__codelineno-5-53"></a><span class="c1">// $router-&gt;register();</span>
-<a id="__codelineno-5-54" name="__codelineno-5-54" href="#__codelineno-5-54"></a>
-<a id="__codelineno-5-55" name="__codelineno-5-55" href="#__codelineno-5-55"></a><span class="c1">// Used later on by the ApiProvider</span>
-<a id="__codelineno-5-56" name="__codelineno-5-56" href="#__codelineno-5-56"></a><span class="k">return</span> <span class="nv">$router</span><span class="p">;</span>
-</code></pre></div>
+<pre class="highlight"><code class="language-php">"""
+Api/Endpoints/Posts.php
+"""
+declare(strict_types=1);
+
+namespace MyPlugin\Api\Routers;
+
+use Wp\FastEndpoints\Helpers\WpError;
+use Wp\FastEndpoints\Router;
+
+// Dependency injection to enable us to mock router in the tests
+$router = $router ?? new Router('posts');
+
+// Creates a post
+$router-&gt;post('/', function (\WP_REST_Request $request): int|\WP_Error {
+    $payload = $request-&gt;get_params();
+
+    return wp_insert_post($payload, true);
+})
+    -&gt;schema('Posts/CreateOrUpdate')
+    -&gt;hasCap('publish_posts');
+
+// Fetches a single post
+$router-&gt;get('(?P&lt;ID&gt;[\d]+)', function ($ID) {
+    $post = get_post($ID);
+
+    return $post ?: new WpError(404, 'Post not found');
+})
+    -&gt;returns('Posts/Get')
+    -&gt;hasCap('read');
+
+// Updates a post
+$router-&gt;put('(?P&lt;ID&gt;[\d]+)', function (\WP_REST_Request $request): int|\WP_Error {
+    $payload = $request-&gt;get_params();
+
+    return wp_update_post($payload, true);
+})
+    -&gt;schema('Posts/CreateOrUpdate')
+    -&gt;hasCap('edit_post', '{ID}');
+
+// Deletes a post
+$router-&gt;delete('(?P&lt;ID&gt;[\d]+)', function ($ID) {
+    $post = wp_delete_post($postId);
+
+    return $post ?: new WpError(500, 'Unable to delete post');
+})
+    -&gt;returns('Posts/Get')
+    -&gt;hasCap('delete_post', '{ID}');
+
+// IMPORTANT: If no service provider is used make sure to set a version to the $router and call
+//            the following function here:
+// $router-&gt;register();
+
+// Used later on by the ApiProvider
+return $router;</code></pre>
 
 
 
@@ -1055,6 +1047,10 @@ been already validated by the request payload schema.</p>
     
     
       <script src="../../assets/javascripts/bundle.ebd0bdb7.min.js"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+      
+        <script src="../../assets/js/initHighlight.js"></script>
       
     
   </body>

@@ -50,6 +50,10 @@
       
     
     
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    
+      <link rel="stylesheet" href="../../../assets/css/highlight.css">
+    
     <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -654,34 +658,32 @@
 used and 2) the necessary user permissions on the endpoint that allows a user to create a new blog post.</p>
 <p>We could have separated each assertion in its own unit test but for the sake of simplicity we
 are going to make both of them in the same test.</p>
-<div class="language-php highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="cp">&lt;?php</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nx">test</span><span class="p">(</span><span class="s1">&#39;Creating post endpoint has correct permissions and schema&#39;</span><span class="p">,</span> <span class="k">function</span> <span class="p">()</span> <span class="p">{</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="c1">// Create endpoint mock</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="nv">$endpoint</span> <span class="o">=</span> <span class="nx">Mockery</span><span class="o">::</span><span class="na">mock</span><span class="p">(</span><span class="nx">Endpoint</span><span class="o">::</span><span class="na">class</span><span class="p">);</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="c1">// Assert that the request payload schema passed is correct</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="nv">$endpoint</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>        <span class="o">-&gt;</span><span class="na">shouldReceive</span><span class="p">(</span><span class="s1">&#39;schema&#39;</span><span class="p">)</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>        <span class="o">-&gt;</span><span class="na">once</span><span class="p">()</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>        <span class="o">-&gt;</span><span class="na">with</span><span class="p">(</span><span class="s1">&#39;Posts/CreateOrUpdate&#39;</span><span class="p">)</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>        <span class="o">-&gt;</span><span class="na">andReturnSelf</span><span class="p">();</span>
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="c1">// Assert that user permissions are correct</span>
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="nv">$endpoint</span>
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>        <span class="o">-&gt;</span><span class="na">shouldReceive</span><span class="p">(</span><span class="s1">&#39;hasCap&#39;</span><span class="p">)</span>
-<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>        <span class="o">-&gt;</span><span class="na">once</span><span class="p">()</span>
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>        <span class="o">-&gt;</span><span class="na">with</span><span class="p">(</span><span class="s1">&#39;publish_posts&#39;</span><span class="p">);</span>
-<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    <span class="c1">// Create router. Make sure that var name matches your router variable</span>
-<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>    <span class="nv">$router</span> <span class="o">=</span> <span class="nx">Mockery</span><span class="o">::</span><span class="na">mock</span><span class="p">(</span><span class="nx">Router</span><span class="o">::</span><span class="na">class</span><span class="p">)</span>
-<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>        <span class="o">-&gt;</span><span class="na">makePartial</span><span class="p">();</span>
-<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>    <span class="c1">// Assert that router endpoint is called</span>
-<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>    <span class="nv">$router</span>
-<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>        <span class="o">-&gt;</span><span class="na">shouldReceive</span><span class="p">(</span><span class="s1">&#39;post&#39;</span><span class="p">)</span>
-<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>        <span class="o">-&gt;</span><span class="na">once</span><span class="p">()</span>
-<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>        <span class="o">-&gt;</span><span class="na">with</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="nx">Mockery</span><span class="o">::</span><span class="na">type</span><span class="p">(</span><span class="s1">&#39;callable&#39;</span><span class="p">))</span>
-<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>        <span class="o">-&gt;</span><span class="na">andReturn</span><span class="p">(</span><span class="nv">$endpoint</span><span class="p">);</span>
-<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>    <span class="c1">// Needed to attach endpoints</span>
-<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>    <span class="k">require</span> <span class="nx">\ROUTERS_DIR</span><span class="o">.</span><span class="s1">&#39;/Posts.php&#39;</span><span class="p">;</span>
-<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="p">})</span><span class="o">-&gt;</span><span class="na">group</span><span class="p">(</span><span class="s1">&#39;api&#39;</span><span class="p">,</span> <span class="s1">&#39;posts&#39;</span><span class="p">);</span>
-</code></pre></div>
+<pre class="highlight"><code class="language-php">test('Creating post endpoint has correct permissions and schema', function () {
+    // Create endpoint mock
+    $endpoint = Mockery::mock(Endpoint::class);
+    // Assert that the request payload schema passed is correct
+    $endpoint
+        -&gt;shouldReceive('schema')
+        -&gt;once()
+        -&gt;with('Posts/CreateOrUpdate')
+        -&gt;andReturnSelf();
+    // Assert that user permissions are correct
+    $endpoint
+        -&gt;shouldReceive('hasCap')
+        -&gt;once()
+        -&gt;with('publish_posts');
+    // Create router. Make sure that var name matches your router variable
+    $router = Mockery::mock(Router::class)
+        -&gt;makePartial();
+    // Assert that router endpoint is called
+    $router
+        -&gt;shouldReceive('post')
+        -&gt;once()
+        -&gt;with('/', Mockery::type('callable'))
+        -&gt;andReturn($endpoint);
+    // Needed to attach endpoints
+    require \ROUTERS_DIR.'/Posts.php';
+})-&gt;group('api', 'posts');</code></pre>
 <p>The reason we are able to make the assertions above is
 <a href="https://github.com/matapatos/wp-fastendpoints/wiki/Quick-start#the-actual-code---srcapirouterspostsphp">due to this line</a>.
 Specially, regarding this part <code>$router ??</code>. This allows us to replace our original router with our mocked version.</p>
@@ -804,6 +806,10 @@ Specially, regarding this part <code>$router ??</code>. This allows us to replac
     
     
       <script src="../../../assets/javascripts/bundle.ebd0bdb7.min.js"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+      
+        <script src="../../../assets/js/initHighlight.js"></script>
       
     
   </body>
