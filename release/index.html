@@ -75,6 +75,11 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#v122" class="md-skip">
+          Skip to content
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -595,6 +600,17 @@
       
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Release Notes
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -604,6 +620,68 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#v122" class="md-nav__link">
+    <span class="md-ellipsis">
+      v1.2.2
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v121" class="md-nav__link">
+    <span class="md-ellipsis">
+      v1.2.1
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v120" class="md-nav__link">
+    <span class="md-ellipsis">
+      v1.2.0
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v110" class="md-nav__link">
+    <span class="md-ellipsis">
+      v1.1.0
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v100" class="md-nav__link">
+    <span class="md-ellipsis">
+      v1.0.0
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -627,6 +705,59 @@
   
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#v122" class="md-nav__link">
+    <span class="md-ellipsis">
+      v1.2.2
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v121" class="md-nav__link">
+    <span class="md-ellipsis">
+      v1.2.1
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v120" class="md-nav__link">
+    <span class="md-ellipsis">
+      v1.2.0
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v110" class="md-nav__link">
+    <span class="md-ellipsis">
+      v1.1.0
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v100" class="md-nav__link">
+    <span class="md-ellipsis">
+      v1.0.0
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -645,7 +776,71 @@
 
   <h1>Release Notes</h1>
 
+<h2 id="v122">v1.2.2</h2>
+<p>Three new filters that allows us to add customise our JSON schema validator.</p>
+<ul>
+<li><code>fastendpoints_validator</code> - Triggered by both middleware's</li>
+<li><code>fastendpoints_schema_validator</code> - Only triggered for Schema middleware's validators</li>
+<li><code>fastendpoints_response_validator</code> - Only triggered for Response middleware's validators</li>
+</ul>
+<pre class="highlight"><code class="language-php">use Opis\JsonSchema\Validator;
 
+add_filter('fastendpoints_validator', function (Validator $validator): Validator {
+    $formatsResolver = $validator-&gt;parser()-&gt;getFormatResolver();
+    $formatsResolver-&gt;registerCallable('integer', 'even', function (int $value): bool {
+        return $value % 2 === 0;
+    });
+
+    return $validator;
+});</code></pre>
+<div class="admonition info">
+<p class="admonition-title">Info</p>
+<p>For more customisations check the following links:
+- <a href="https://opis.io/json-schema/2.x/php-format.html">Custom formats</a>
+- <a href="https://opis.io/json-schema/2.x/php-filter.html">Custom filters</a>
+- <a href="https://opis.io/json-schema/2.x/php-media-type.html">Custom media types</a>
+- <a href="https://opis.io/json-schema/2.x/php-content-encoding.html">Custom content encoding</a></p>
+</div>
+<h2 id="v121">v1.2.1</h2>
+<p>Using JSON/opis schema loader and resolver which allows us to
+<a href="https://opis.io/json-schema/2.x/references.html">reference schemas</a> inside
+other schemas.</p>
+<pre class="highlight"><code class="language-php">// Now we also need to set a prefix while appending a directory. This prefix
+// will be used to reference schemas from inside another schema.
+$router-&gt;appendSchemaDir('/my-dir', 'http://www.example.com');</code></pre>
+<h2 id="v120">v1.2.0</h2>
+<p>We now can take advantage of dependency injection in main handler, middlewares and permission's
+handlers.</p>
+<pre class="highlight"><code class="language-php">// In the past, the $request parameter was mandatory:
+$router-&gt;get('/posts/(?P&lt;ID&gt;[\d]+)', function (WP_REST_Request $request) {
+    return $request-&gt;get_param('ID');
+});
+
+// Now you only type what you need
+$router-&gt;get('/posts/(?P&lt;ID&gt;[\d]+)', function ($ID) {
+    return $ID;
+});</code></pre>
+<h2 id="v110">v1.1.0</h2>
+<ul>
+<li>100% test coverage</li>
+<li>Integration tests</li>
+<li>Middleware support</li>
+<li>Upgraded PHP version to 8.1</li>
+<li>Full support for WordPress 6.x versions</li>
+<li>Updated both Response and Schema to a middleware</li>
+</ul>
+<pre class="highlight"><code class="language-php">// Middleware example
+class MyCustomMiddleware extends \Wp\FastEndpoints\Contracts\Middleware {
+    public function onRequest(/* Type what you need e.g. $request, URL params*/) {
+        // Called before handling the request
+    }
+
+    public function onResponse(/* Type what you need e.g. $response, $request */) {
+        // Called after the request being handled
+    }
+}</code></pre>
+<h2 id="v100">v1.0.0</h2>
+<p>Initial release - don't use it!</p>
 
 
 

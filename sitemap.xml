@@ -2,52 +2,52 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://matapatos.github.io/wp-fastendpoints/</loc>
-         <lastmod>2024-05-19</lastmod>
+         <lastmod>2024-05-21</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://matapatos.github.io/wp-fastendpoints/release/</loc>
-         <lastmod>2024-05-19</lastmod>
+         <lastmod>2024-05-21</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://matapatos.github.io/wp-fastendpoints/quick-start/</loc>
-         <lastmod>2024-05-19</lastmod>
+         <lastmod>2024-05-21</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://matapatos.github.io/wp-fastendpoints/quick-start/json-schemas/</loc>
-         <lastmod>2024-05-19</lastmod>
+         <lastmod>2024-05-21</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://matapatos.github.io/wp-fastendpoints/quick-start/router/</loc>
-         <lastmod>2024-05-19</lastmod>
+         <lastmod>2024-05-21</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://matapatos.github.io/wp-fastendpoints/quick-start/service-provider/</loc>
-         <lastmod>2024-05-19</lastmod>
+         <lastmod>2024-05-21</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://matapatos.github.io/wp-fastendpoints/quick-start/tests/</loc>
-         <lastmod>2024-05-19</lastmod>
+         <lastmod>2024-05-21</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://matapatos.github.io/wp-fastendpoints/quick-start/tests/integration/</loc>
-         <lastmod>2024-05-19</lastmod>
+         <lastmod>2024-05-21</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://matapatos.github.io/wp-fastendpoints/quick-start/tests/unit/</loc>
-         <lastmod>2024-05-19</lastmod>
+         <lastmod>2024-05-21</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://matapatos.github.io/wp-fastendpoints/reference/</loc>
-         <lastmod>2024-05-19</lastmod>
+         <lastmod>2024-05-21</lastmod>
          <changefreq>daily</changefreq>
     </url>
 </urlset>

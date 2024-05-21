@@ -1,7 +1,12 @@
 /* Background color of a code snippet */
 .md-typeset code.hljs {
     background-color: #282c34;
-    border-radius: 1vh;
+}
+
+@media only screen and (min-width: 720px) {
+    .md-typeset code.hljs {
+        border-radius: 1vh;
+    }
 }
 
 .md-typeset code.hljs  {
