@@ -788,13 +788,14 @@
 
 // Dependency injection to enable us to mock router in tests
 $router = $router ?? new Router('posts');</code></pre>
-<p>A router is just an instance which allow us to attach and register endpoints.</p>
-<p>We can have an application with one or multiple routers. One main benefit of using multiple routers is to group endpoints by same namespace and (optionally) same version. For instance,
+<p>A router is a class which allow us to attach and register endpoints.</p>
+<p>An application can have one or multiple routers. One main benefit of using multiple routers is to group endpoints
+by same namespace and (optionally) same version. For instance,
 in this tutorial we are going to create a main router with a base namespace <code>my-plugin</code> and a version of <code>v1</code>
-which will add <code>/my-plugin/v1/</code> to the beginning of each attached endpoint from sub-routers.</p>
+which will add <code>/my-plugin/v1/</code> to the beginning of each attached endpoint from all sub-routers.</p>
 <h4 id="create-a-post">Create a post</h4>
-<p>With the posts router in place we can now start attaching our endpoints. We start adding the one to that
-allows a user to create a blog post.</p>
+<p>With the posts router in place we can now start attaching our endpoints. We start adding the one
+responsible to create a new blog post.</p>
 <pre class="highlight"><code class="language-php">$router-&gt;post('/', function (\WP_REST_Request $request): int|\WP_Error {
     $payload = $request-&gt;get_params();
 
@@ -803,10 +804,13 @@ allows a user to create a blog post.</p>
     -&gt;schema('Posts/CreateOrUpdate')
     -&gt;hasCap('publish_posts');</code></pre>
 <p>When a request is received by this endpoint the following happens:</p>
-<p>1) Firstly, the user permissions are checked - Makes sure that the user has <a href="https://wordpress.org/documentation/article/roles-and-capabilities/#publish_posts"><em>publish_posts</em></a> capability
-2) Then, if successful, it validates the request payload by using the <em>Posts/CreateOrUpdate</em> schema.
-   We still didn't specify where the endpoints should look for the schemas, but don't worry we are getting into that in a moment
-3) Lastly, if the validation process also passes the handler is called.</p>
+<ol>
+<li>Firstly, the user permissions are checked - Makes sure that the user has <a href="https://wordpress.org/documentation/article/roles-and-capabilities/#publish_posts"><em>publish_posts</em></a> capability</li>
+<li>Then, if successful, it validates the request payload by using the <em>Posts/CreateOrUpdate</em> schema. 
+   We still didn't explain where the endpoints should look for the schemas, but will get into that 
+   in <a href="/wp-fastendpoints/quick-start/service-provider">Service Provider page</a></li>
+<li>Lastly, if the validation process also passes the handler is called.</li>
+</ol>
 <div class="admonition info">
 <p class="admonition-title">Info</p>
 <p>In this scenario we are not using a JSON schema to discard fields because the <a href="https://developer.wordpress.org/reference/functions/wp_insert_post/"><em>wp_insert_post</em></a>
@@ -830,14 +834,16 @@ $router-&gt;get('(?P&lt;ID&gt;[\d]+)', function ($ID) {
 <em>post_id</em> which is already parsed by the regex rule - we could have made that rule
 to match only positive integers though 🤔</p>
 <p>Going back to the endpoint, this is what happens if a request comes in:</p>
-<p>1) Firstly, it checks the user has <a href="https://wordpress.org/documentation/article/roles-and-capabilities/#read"><em>read</em></a>
-   capability - one of the lowest WordPress users capabilities
-2) If so, it then calls the handler which either retrieves the post data (e.g. array or object)
+<ol>
+<li>Firstly, it checks the user has <a href="https://wordpress.org/documentation/article/roles-and-capabilities/#read"><em>read</em></a>
+   capability - one of the lowest WordPress users capabilities</li>
+<li>If so, it then calls the handler which either retrieves the post data (e.g. array or object)
    or a <a href="https://github.com/matapatos/wp-fastendpoints/blob/main/src/Helpers/WpError.php"><em>WpError</em></a>
    in case that is not found. If a WpError or WP_Error is returned it stops further code execution
-   and returns that error message to the client - avoiding triggering response schema validation for example.
-3) Lastly, if the post data is returned by the handler the response schema will be triggered
-   and will check the response according to the given schema (e.g. <em>Posts/Get</em>)</p>
+   and returns that error message to the client - avoiding triggering response schema validation for example.</li>
+<li>Lastly, if the post data is returned by the handler the response schema will be triggered
+   and will check the response according to the given schema (e.g. <em>Posts/Get</em>)</li>
+</ol>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>The <a href="https://github.com/matapatos/wp-fastendpoints/blob/main/src/Helpers/WpError.php">WpError</a>

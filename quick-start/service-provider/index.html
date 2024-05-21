@@ -712,10 +712,12 @@
   <h1>Service Provider</h1>
 
 <p>Now that we have our posts router built the last main three bits missing are the following:</p>
-<p>1) create a main router to hold all sub-routers (e.g. posts router)
-2) specifying where to look for the JSON schemas (one or multiple directories) and
-3) lastly register the router. This is what adds the <code>rest_api_init</code> hook for registering all
-   the endpoints.</p>
+<ol>
+<li>Create a main router to hold all sub-routers (e.g. posts router)</li>
+<li>Specifying where to look for the JSON schemas (one or multiple directories) and</li>
+<li>Lastly, register the router. This is what adds the <code>rest_api_init</code> hook for registering all
+   the endpoints.</li>
+</ol>
 <pre class="highlight"><code class="language-php">"""
 src/Providers/ApiProvider.php
 """

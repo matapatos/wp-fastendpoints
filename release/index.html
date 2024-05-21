@@ -777,11 +777,11 @@
   <h1>Release Notes</h1>
 
 <h2 id="v122">v1.2.2</h2>
-<p>Three new filters that allows us to add customise our JSON schema validator.</p>
+<p>Three new filters that allows us to customise our JSON schema validator's.</p>
 <ul>
-<li><code>fastendpoints_validator</code> - Triggered by both middleware's</li>
-<li><code>fastendpoints_schema_validator</code> - Only triggered for Schema middleware's validators</li>
-<li><code>fastendpoints_response_validator</code> - Only triggered for Response middleware's validators</li>
+<li><code>fastendpoints_validator</code> - Triggered by both middlewares</li>
+<li><code>fastendpoints_schema_validator</code> - Only triggered for Schema middlewares validators</li>
+<li><code>fastendpoints_response_validator</code> - Only triggered for Response middlewares validators</li>
 </ul>
 <pre class="highlight"><code class="language-php">use Opis\JsonSchema\Validator;
 
@@ -796,10 +796,10 @@ add_filter('fastendpoints_validator', function (Validator $validator): Validator
 <div class="admonition info">
 <p class="admonition-title">Info</p>
 <p>For more customisations check the following links:
-- <a href="https://opis.io/json-schema/2.x/php-format.html">Custom formats</a>
-- <a href="https://opis.io/json-schema/2.x/php-filter.html">Custom filters</a>
-- <a href="https://opis.io/json-schema/2.x/php-media-type.html">Custom media types</a>
-- <a href="https://opis.io/json-schema/2.x/php-content-encoding.html">Custom content encoding</a></p>
+1) <a href="https://opis.io/json-schema/2.x/php-format.html">Custom formats</a>,
+2) <a href="https://opis.io/json-schema/2.x/php-filter.html">Custom filters</a>,
+3) <a href="https://opis.io/json-schema/2.x/php-media-type.html">Custom media types</a> and,
+4) <a href="https://opis.io/json-schema/2.x/php-content-encoding.html">Custom content encoding</a></p>
 </div>
 <h2 id="v121">v1.2.1</h2>
 <p>Using JSON/opis schema loader and resolver which allows us to
@@ -809,8 +809,7 @@ other schemas.</p>
 // will be used to reference schemas from inside another schema.
 $router-&gt;appendSchemaDir('/my-dir', 'http://www.example.com');</code></pre>
 <h2 id="v120">v1.2.0</h2>
-<p>We now can take advantage of dependency injection in main handler, middlewares and permission's
-handlers.</p>
+<p>Dependency injection support in main handler, middlewares and permission handlers.</p>
 <pre class="highlight"><code class="language-php">// In the past, the $request parameter was mandatory:
 $router-&gt;get('/posts/(?P&lt;ID&gt;[\d]+)', function (WP_REST_Request $request) {
     return $request-&gt;get_param('ID');
@@ -819,7 +818,16 @@ $router-&gt;get('/posts/(?P&lt;ID&gt;[\d]+)', function (WP_REST_Request $request
 // Now you only type what you need
 $router-&gt;get('/posts/(?P&lt;ID&gt;[\d]+)', function ($ID) {
     return $ID;
-});</code></pre>
+});
+// Middleware changes
+class MyCustomMiddleware extends \Wp\FastEndpoints\Contracts\Middleware {
+    public function onRequest(/* Type what you need e.g. $request */) {
+        // Called before handling the request
+    }
+    public function onResponse(/* Type what you need e.g. $response, $request */) {
+        // Called after the request being handled
+    }
+}</code></pre>
 <h2 id="v110">v1.1.0</h2>
 <ul>
 <li>100% test coverage</li>
@@ -831,12 +839,13 @@ $router-&gt;get('/posts/(?P&lt;ID&gt;[\d]+)', function ($ID) {
 </ul>
 <pre class="highlight"><code class="language-php">// Middleware example
 class MyCustomMiddleware extends \Wp\FastEndpoints\Contracts\Middleware {
-    public function onRequest(/* Type what you need e.g. $request, URL params*/) {
+    public function onRequest(\WP_REST_Request $request): ?\WP_Error {
         // Called before handling the request
+        return null;
     }
-
-    public function onResponse(/* Type what you need e.g. $response, $request */) {
+    public function onResponse(\WP_REST_Request $request, mixed $response): mixed {
         // Called after the request being handled
+        return $response;
     }
 }</code></pre>
 <h2 id="v100">v1.0.0</h2>
