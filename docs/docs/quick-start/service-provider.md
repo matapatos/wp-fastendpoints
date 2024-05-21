@@ -1,8 +1,8 @@
 Now that we have our posts router built the last main three bits missing are the following:
 
-1) create a main router to hold all sub-routers (e.g. posts router)
-2) specifying where to look for the JSON schemas (one or multiple directories) and
-3) lastly register the router. This is what adds the `rest_api_init` hook for registering all
+1. Create a main router to hold all sub-routers (e.g. posts router)
+2. Specifying where to look for the JSON schemas (one or multiple directories) and
+3. Lastly, register the router. This is what adds the `rest_api_init` hook for registering all
    the endpoints.
 
 ```php

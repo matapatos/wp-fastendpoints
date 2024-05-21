@@ -7,16 +7,17 @@ use Wp\FastEndpoints\Router;
 $router = $router ?? new Router('posts');
 ```
 
-A router is just an instance which allow us to attach and register endpoints.
+A router is a class which allow us to attach and register endpoints.
 
-We can have an application with one or multiple routers. One main benefit of using multiple routers is to group endpoints by same namespace and (optionally) same version. For instance,
+An application can have one or multiple routers. One main benefit of using multiple routers is to group endpoints
+by same namespace and (optionally) same version. For instance,
 in this tutorial we are going to create a main router with a base namespace `my-plugin` and a version of `v1`
-which will add `/my-plugin/v1/` to the beginning of each attached endpoint from sub-routers.
+which will add `/my-plugin/v1/` to the beginning of each attached endpoint from all sub-routers.
 
 #### Create a post
 
-With the posts router in place we can now start attaching our endpoints. We start adding the one to that
-allows a user to create a blog post.
+With the posts router in place we can now start attaching our endpoints. We start adding the one
+responsible to create a new blog post.
 
 ```php
 $router->post('/', function (\WP_REST_Request $request): int|\WP_Error {
@@ -30,10 +31,11 @@ $router->post('/', function (\WP_REST_Request $request): int|\WP_Error {
 
 When a request is received by this endpoint the following happens:
 
-1) Firstly, the user permissions are checked - Makes sure that the user has [*publish_posts*](https://wordpress.org/documentation/article/roles-and-capabilities/#publish_posts) capability
-2) Then, if successful, it validates the request payload by using the *Posts/CreateOrUpdate* schema.
-   We still didn't specify where the endpoints should look for the schemas, but don't worry we are getting into that in a moment
-3) Lastly, if the validation process also passes the handler is called.
+1. Firstly, the user permissions are checked - Makes sure that the user has [*publish_posts*](https://wordpress.org/documentation/article/roles-and-capabilities/#publish_posts) capability
+2. Then, if successful, it validates the request payload by using the *Posts/CreateOrUpdate* schema. 
+   We still didn't explain where the endpoints should look for the schemas, but will get into that 
+   in [Service Provider page](/wp-fastendpoints/quick-start/service-provider)
+3. Lastly, if the validation process also passes the handler is called.
 
 !!! info
     In this scenario we are not using a JSON schema to discard fields because the [_wp_insert_post_](https://developer.wordpress.org/reference/functions/wp_insert_post/)
@@ -65,13 +67,13 @@ to match only positive integers though 🤔
 
 Going back to the endpoint, this is what happens if a request comes in:
 
-1) Firstly, it checks the user has [_read_](https://wordpress.org/documentation/article/roles-and-capabilities/#read)
+1. Firstly, it checks the user has [_read_](https://wordpress.org/documentation/article/roles-and-capabilities/#read)
    capability - one of the lowest WordPress users capabilities
-2) If so, it then calls the handler which either retrieves the post data (e.g. array or object)
+2. If so, it then calls the handler which either retrieves the post data (e.g. array or object)
    or a [_WpError_](https://github.com/matapatos/wp-fastendpoints/blob/main/src/Helpers/WpError.php)
    in case that is not found. If a WpError or WP_Error is returned it stops further code execution
    and returns that error message to the client - avoiding triggering response schema validation for example.
-3) Lastly, if the post data is returned by the handler the response schema will be triggered
+3. Lastly, if the post data is returned by the handler the response schema will be triggered
    and will check the response according to the given schema (e.g. _Posts/Get_)
 
 !!! note
