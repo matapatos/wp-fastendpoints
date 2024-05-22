@@ -2,10 +2,10 @@ Integration tests, are a bit tricky to set up.
 
 The following needs to happen in order to successfully run them:
 
-1) Load WordPress
-2) Replace the default _TestCase_ class with one with enhanced WordPress functionalities
+1. Load WordPress
+2. Replace the default _TestCase_ class with another with enhanced WordPress functionalities
    (e.g. to easily create users or posts)
-3) Create the REST server and boot it using the [`rest_api_init`](https://developer.wordpress.org/reference/hooks/rest_api_init/)
+3. Create the REST server and boot it using the [`rest_api_init`](https://developer.wordpress.org/reference/hooks/rest_api_init/)
    hook
 
 ### _wp-pest_ to the rescue 🦸
@@ -25,8 +25,8 @@ version you want and also set up the tests directory for you.
 #### Optional changes
 
 If you take a closer look at the resultant tests structure you might notice that is slightly
-different from the one previously mentioned. These changes are not mandatory and so, feel free
-to skip this section ⏩
+different from [matapatos/wp-fastendpoints-my-plugin](https://github.com/matapatos/wp-fastendpoints-my-plugin?tab=readme-ov-file#setup-wordpress).
+These changes are not mandatory and so, feel free to skip this section ⏩
 
 The main reason of these differences is to allow us to run tests without the
 need to always specify a group of tests. Those changes include:

@@ -19,9 +19,11 @@ test('Creating post endpoint has correct permissions and schema', function () {
         ->shouldReceive('hasCap')
         ->once()
         ->with('publish_posts');
+    // To ignore all the other endpoints
+    $ignoreEndpoint = Mockery::mock(Endpoint::class)->shouldIgnoreMissing(Mockery::self());
     // Create router. Make sure that var name matches your router variable
     $router = Mockery::mock(Router::class)
-        ->makePartial();
+        ->shouldIgnoreMissing($ignoreEndpoint);
     // Assert that router endpoint is called
     $router
         ->shouldReceive('post')
@@ -37,4 +39,4 @@ The reason we are able to make the assertions above is
 [due to this line](https://github.com/matapatos/wp-fastendpoints/wiki/Quick-start#the-actual-code---srcapirouterspostsphp).
 Specially, regarding this part ```$router ??```. This allows us to replace our original router with our mocked version.
 
-As you might notice, this is just pure PHP code nothing magical! 🪄
+Nothing magical happening here, just pure PHP code! 🪄
