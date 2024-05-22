@@ -763,11 +763,13 @@
 
 <p>Integration tests, are a bit tricky to set up.</p>
 <p>The following needs to happen in order to successfully run them:</p>
-<p>1) Load WordPress
-2) Replace the default <em>TestCase</em> class with one with enhanced WordPress functionalities
-   (e.g. to easily create users or posts)
-3) Create the REST server and boot it using the <a href="https://developer.wordpress.org/reference/hooks/rest_api_init/"><code>rest_api_init</code></a>
-   hook</p>
+<ol>
+<li>Load WordPress</li>
+<li>Replace the default <em>TestCase</em> class with another with enhanced WordPress functionalities
+   (e.g. to easily create users or posts)</li>
+<li>Create the REST server and boot it using the <a href="https://developer.wordpress.org/reference/hooks/rest_api_init/"><code>rest_api_init</code></a>
+   hook</li>
+</ol>
 <h3 id="wp-pest-to-the-rescue"><em>wp-pest</em> to the rescue 🦸</h3>
 <p>However, thanks to <a href="https://github.com/dingo-d/wp-pest">wp-pest</a> most of this trouble is no longer
 an issue. By simply running the command bellow, it will automatically pull the WordPress
@@ -780,8 +782,8 @@ you can use the already configured <code>composer setup:wp:6.x</code> commands</
 </div>
 <h4 id="optional-changes">Optional changes</h4>
 <p>If you take a closer look at the resultant tests structure you might notice that is slightly
-different from the one previously mentioned. These changes are not mandatory and so, feel free
-to skip this section ⏩</p>
+different from <a href="https://github.com/matapatos/wp-fastendpoints-my-plugin?tab=readme-ov-file#setup-wordpress">matapatos/wp-fastendpoints-my-plugin</a>.
+These changes are not mandatory and so, feel free to skip this section ⏩</p>
 <p>The main reason of these differences is to allow us to run tests without the
 need to always specify a group of tests. Those changes include:</p>
 <pre class="highlight"><code class="language-php">/**

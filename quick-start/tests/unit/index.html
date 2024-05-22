@@ -672,9 +672,11 @@ are going to make both of them in the same test.</p>
         -&gt;shouldReceive('hasCap')
         -&gt;once()
         -&gt;with('publish_posts');
+    // To ignore all the other endpoints
+    $ignoreEndpoint = Mockery::mock(Endpoint::class)-&gt;shouldIgnoreMissing(Mockery::self());
     // Create router. Make sure that var name matches your router variable
     $router = Mockery::mock(Router::class)
-        -&gt;makePartial();
+        -&gt;shouldIgnoreMissing($ignoreEndpoint);
     // Assert that router endpoint is called
     $router
         -&gt;shouldReceive('post')
@@ -687,7 +689,7 @@ are going to make both of them in the same test.</p>
 <p>The reason we are able to make the assertions above is
 <a href="https://github.com/matapatos/wp-fastendpoints/wiki/Quick-start#the-actual-code---srcapirouterspostsphp">due to this line</a>.
 Specially, regarding this part <code>$router ??</code>. This allows us to replace our original router with our mocked version.</p>
-<p>As you might notice, this is just pure PHP code nothing magical! 🪄</p>
+<p>Nothing magical happening here, just pure PHP code! 🪄</p>
 
 
 
