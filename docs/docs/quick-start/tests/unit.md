@@ -20,7 +20,8 @@ test('Creating post endpoint has correct permissions and schema', function () {
         ->once()
         ->with('publish_posts');
     // To ignore all the other endpoints
-    $ignoreEndpoint = Mockery::mock(Endpoint::class)->shouldIgnoreMissing(Mockery::self());
+    $ignoreEndpoint = Mockery::mock(Endpoint::class)
+        ->shouldIgnoreMissing(Mockery::self());
     // Create router. Make sure that var name matches your router variable
     $router = Mockery::mock(Router::class)
         ->shouldIgnoreMissing($ignoreEndpoint);

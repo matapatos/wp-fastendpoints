@@ -20,7 +20,8 @@ With the posts router in place we can now start attaching our endpoints. We star
 responsible to create a new blog post.
 
 ```php
-$router->post('/', function (\WP_REST_Request $request): int|\WP_Error {
+$router->post('/', function (\WP_REST_Request $request, \WP_REST_Response $response): int|\WP_Error {
+    $response->set_status(201);
     $payload = $request->get_params();
 
     return wp_insert_post($payload, true);

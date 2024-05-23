@@ -83,7 +83,7 @@ test('Create a new post', function () {
         'post_content' => '<p>Message body</p>',
     ]);
     $response = $this->server->dispatch($request);
-    expect($response->get_status())->toBe(200);
+    expect($response->get_status())->toBe(201);
     $postId = $response->get_data();
     // Check that the post details are correct
     expect(get_post($postId))
