@@ -10,26 +10,28 @@
       
       
       
-        <link rel="canonical" href="https://matapatos.github.io/wp-fastendpoints/release/">
+        <link rel="canonical" href="https://matapatos.github.io/wp-fastendpoints/advanced-user-guide/responses/">
       
       
-        <link rel="prev" href="../advanced-user-guide/json-schemas/references/">
+        <link rel="prev" href="../dependency-injection/">
       
       
+        <link rel="next" href="../middlewares/">
       
-      <link rel="icon" href="../assets/images/favicon.png">
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.23">
     
     
       
-        <title>Release Notes - WP-FastEndpoints</title>
+        <title>Responses - WP-FastEndpoints</title>
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.6543a935.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.6543a935.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
       
       
 
@@ -50,9 +52,9 @@
     
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
     
-      <link rel="stylesheet" href="../assets/css/highlight.css">
+      <link rel="stylesheet" href="../../assets/css/highlight.css">
     
-    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -76,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#v122" class="md-skip">
+        <a href="#early-return" class="md-skip">
           Skip to content
         </a>
       
@@ -90,7 +92,7 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="WP-FastEndpoints" class="md-header__button md-logo" aria-label="WP-FastEndpoints" data-md-component="logo">
+    <a href="../.." title="WP-FastEndpoints" class="md-header__button md-logo" aria-label="WP-FastEndpoints" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
@@ -110,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Release Notes
+              Responses
             
           </span>
         </div>
@@ -193,7 +195,7 @@
   
   
     <li class="md-tabs__item">
-      <a href=".." class="md-tabs__link">
+      <a href="../.." class="md-tabs__link">
         
   
     
@@ -212,7 +214,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../quick-start/" class="md-tabs__link">
+        <a href="../../quick-start/" class="md-tabs__link">
           
   
     
@@ -228,11 +230,13 @@
         
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../advanced-user-guide/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
           
   
     
@@ -248,11 +252,9 @@
         
   
   
-    
   
-  
-    <li class="md-tabs__item md-tabs__item--active">
-      <a href="./" class="md-tabs__link">
+    <li class="md-tabs__item">
+      <a href="../../release/" class="md-tabs__link">
         
   
     
@@ -286,7 +288,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="WP-FastEndpoints" class="md-nav__button md-logo" aria-label="WP-FastEndpoints" data-md-component="logo">
+    <a href="../.." title="WP-FastEndpoints" class="md-nav__button md-logo" aria-label="WP-FastEndpoints" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
@@ -316,7 +318,7 @@
   
   
     <li class="md-nav__item">
-      <a href=".." class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -365,7 +367,7 @@
           
           
           <div class="md-nav__link md-nav__container">
-            <a href="../quick-start/" class="md-nav__link ">
+            <a href="../../quick-start/" class="md-nav__link ">
               
   
   <span class="md-ellipsis">
@@ -398,7 +400,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../quick-start/json-schemas/" class="md-nav__link">
+      <a href="../../quick-start/json-schemas/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -419,7 +421,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../quick-start/router/" class="md-nav__link">
+      <a href="../../quick-start/router/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -440,7 +442,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../quick-start/service-provider/" class="md-nav__link">
+      <a href="../../quick-start/service-provider/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -486,7 +488,7 @@
           
           
           <div class="md-nav__link md-nav__container">
-            <a href="../quick-start/tests/" class="md-nav__link ">
+            <a href="../../quick-start/tests/" class="md-nav__link ">
               
   
   <span class="md-ellipsis">
@@ -519,7 +521,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../quick-start/tests/integration/" class="md-nav__link">
+      <a href="../../quick-start/tests/integration/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -540,7 +542,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../quick-start/tests/unit/" class="md-nav__link">
+      <a href="../../quick-start/tests/unit/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -573,6 +575,8 @@
       
   
   
+    
+  
   
   
     
@@ -595,19 +599,22 @@
     
     
       
+        
+        
+      
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
         
           
           
           <div class="md-nav__link md-nav__container">
-            <a href="../advanced-user-guide/" class="md-nav__link ">
+            <a href="../" class="md-nav__link ">
               
   
   <span class="md-ellipsis">
@@ -618,13 +625,13 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             Advanced User Guide
@@ -640,7 +647,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../advanced-user-guide/request-life-cycle/" class="md-nav__link">
+      <a href="../request-life-cycle/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -661,7 +668,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../advanced-user-guide/dependency-injection/" class="md-nav__link">
+      <a href="../dependency-injection/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -679,10 +686,28 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../advanced-user-guide/responses/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Responses
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -691,6 +716,48 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#early-return" class="md-nav__link">
+    <span class="md-ellipsis">
+      Early return
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Early return">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#difference-between-returning-wp_rest_response-or-wp_error" class="md-nav__link">
+    <span class="md-ellipsis">
+      Difference between returning WP_REST_Response or WP_Error
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -703,7 +770,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../advanced-user-guide/middlewares/" class="md-nav__link">
+      <a href="../middlewares/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -770,7 +837,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../advanced-user-guide/json-schemas/multiple-root-dirs/" class="md-nav__link">
+      <a href="../json-schemas/multiple-root-dirs/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -791,7 +858,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../advanced-user-guide/json-schemas/validator/" class="md-nav__link">
+      <a href="../json-schemas/validator/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -812,7 +879,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../advanced-user-guide/json-schemas/references/" class="md-nav__link">
+      <a href="../json-schemas/references/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -845,28 +912,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  <span class="md-ellipsis">
-    Release Notes
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../release/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -875,69 +924,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#v122" class="md-nav__link">
-    <span class="md-ellipsis">
-      v1.2.2
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#v121" class="md-nav__link">
-    <span class="md-ellipsis">
-      v1.2.1
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#v120" class="md-nav__link">
-    <span class="md-ellipsis">
-      v1.2.0
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#v110" class="md-nav__link">
-    <span class="md-ellipsis">
-      v1.1.0
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#v100" class="md-nav__link">
-    <span class="md-ellipsis">
-      v1.0.0
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -967,47 +953,26 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#v122" class="md-nav__link">
+  <a href="#early-return" class="md-nav__link">
     <span class="md-ellipsis">
-      v1.2.2
+      Early return
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Early return">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#difference-between-returning-wp_rest_response-or-wp_error" class="md-nav__link">
+    <span class="md-ellipsis">
+      Difference between returning WP_REST_Response or WP_Error
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#v121" class="md-nav__link">
-    <span class="md-ellipsis">
-      v1.2.1
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#v120" class="md-nav__link">
-    <span class="md-ellipsis">
-      v1.2.0
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#v110" class="md-nav__link">
-    <span class="md-ellipsis">
-      v1.1.0
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#v100" class="md-nav__link">
-    <span class="md-ellipsis">
-      v1.0.0
-    </span>
-  </a>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1029,82 +994,54 @@
   
 
 
-  <h1>Release Notes</h1>
+  <h1>Responses</h1>
 
-<h2 id="v122">v1.2.2</h2>
-<p>Three new filters that allows us to customise our JSON schema validator's.</p>
-<ul>
-<li><code>fastendpoints_validator</code> - Triggered by both middlewares</li>
-<li><code>fastendpoints_schema_validator</code> - Only triggered for Schema middlewares validators</li>
-<li><code>fastendpoints_response_validator</code> - Only triggered for Response middlewares validators</li>
-</ul>
-<pre class="highlight"><code class="language-php">use Opis\JsonSchema\Validator;
-
-add_filter('fastendpoints_validator', function (Validator $validator): Validator {
-    $formatsResolver = $validator-&gt;parser()-&gt;getFormatResolver();
-    $formatsResolver-&gt;registerCallable('integer', 'even', function (int $value): bool {
-        return $value % 2 === 0;
-    });
-
-    return $validator;
-});</code></pre>
-<div class="admonition info">
-<p class="admonition-title">Info</p>
-<p>For more customisations check the following links:
-1. <a href="https://opis.io/json-schema/2.x/php-format.html">Custom formats</a>,
-2. <a href="https://opis.io/json-schema/2.x/php-filter.html">Custom filters</a>,
-3. <a href="https://opis.io/json-schema/2.x/php-media-type.html">Custom media types</a> and,
-4. <a href="https://opis.io/json-schema/2.x/php-content-encoding.html">Custom content encoding</a></p>
+<p>When building an API sometimes we want to return a response directly to the client. For example:</p>
+<pre class="highlight"><code class="language-php">$router-&gt;get('/posts/(?P&lt;ID&gt;[\d]+)', function ($ID) {
+    return get_post($ID);
+})
+-&gt;returns('Posts/Get');  // It will raise a 422 HTTP error when we are unable to find a post</code></pre>
+<p>The code above, will raise a 422 HTTP status code error when ever we are unable to find
+a given post. This is where returning a message directly to the client can be useful.</p>
+<h2 id="early-return">Early return</h2>
+<p>To trigger those scenarios we can either return a WP_Error or a WP_REST_Response.</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">WP_REST_Response</label><label for="__tabbed_1_2">WP_Error</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<pre class="highlight"><code class="language-php">$router-&gt;get('/posts/(?P&lt;ID&gt;[\d]+)', function ($ID) {
+    $post = get_post($ID);
+    return $post ?: new WP_REST_Response("No posts found", 404);
+})
+-&gt;returns('Posts/Get');  // This will not be triggered if no posts are found</code></pre>
 </div>
-<h2 id="v121">v1.2.1</h2>
-<p>Using JSON/opis schema loader and resolver which allows us to
-<a href="https://opis.io/json-schema/2.x/references.html">reference schemas</a> inside
-other schemas.</p>
-<pre class="highlight"><code class="language-php">// Now we also need to set a prefix while appending a directory. This prefix
-// will be used to reference schemas from inside another schema.
-$router-&gt;appendSchemaDir('/my-dir', 'http://www.example.com');</code></pre>
-<h2 id="v120">v1.2.0</h2>
-<p>Dependency injection support in main handler, middlewares and permission handlers.</p>
-<pre class="highlight"><code class="language-php">// In the past, the $request parameter was mandatory:
-$router-&gt;get('/posts/(?P&lt;ID&gt;[\d]+)', function (WP_REST_Request $request) {
-    return $request-&gt;get_param('ID');
-});
-
-// Now you only type what you need
-$router-&gt;get('/posts/(?P&lt;ID&gt;[\d]+)', function ($ID) {
-    return $ID;
-});
-// Middleware changes
-class MyCustomMiddleware extends \Wp\FastEndpoints\Contracts\Middleware {
-    public function onRequest(/* Type what you need e.g. $request */) {
-        // Called before handling the request
-    }
-    public function onResponse(/* Type what you need e.g. $response, $request */) {
-        // Called after the request being handled
+<div class="tabbed-block">
+<pre class="highlight"><code class="language-php">$router-&gt;get('/posts/(?P&lt;ID&gt;[\d]+)', function ($ID) {
+    $post = get_post($ID);
+    return $post ?: new WpError(404, "No posts found");
+})
+-&gt;returns('Posts/Get');  // This will not be triggered if no posts are found</code></pre>
+</div>
+</div>
+</div>
+<h3 id="difference-between-returning-wp_rest_response-or-wp_error">Difference between returning WP_REST_Response or WP_Error</h3>
+<p>The main difference between returning a WP_Error or a WP_REST_Response
+is regarding the JSON returned in the body.</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="2:2"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">WP_REST_Response</label><label for="__tabbed_2_2">WP_Error</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<pre class="highlight"><code class="language-json">"No posts found"</code></pre>
+</div>
+<div class="tabbed-block">
+<pre class="highlight"><code class="language-json">{
+    "error": 404,
+    "message": "No posts found",
+    "data": {
+        "status": 404
     }
 }</code></pre>
-<h2 id="v110">v1.1.0</h2>
-<ul>
-<li>100% test coverage</li>
-<li>Integration tests</li>
-<li>Middleware support</li>
-<li>Upgraded PHP version to 8.1</li>
-<li>Full support for WordPress 6.x versions</li>
-<li>Updated both Response and Schema to a middleware</li>
-</ul>
-<pre class="highlight"><code class="language-php">// Middleware example
-class MyCustomMiddleware extends \Wp\FastEndpoints\Contracts\Middleware {
-    public function onRequest(\WP_REST_Request $request): ?\WP_Error {
-        // Called before handling the request
-        return null;
-    }
-    public function onResponse(\WP_REST_Request $request, mixed $response): mixed {
-        // Called after the request being handled
-        return $response;
-    }
-}</code></pre>
-<h2 id="v100">v1.0.0</h2>
-<p>Initial release - don't use it!</p>
+</div>
+</div>
+</div>
 
 
 
@@ -1136,7 +1073,7 @@ class MyCustomMiddleware extends \Wp\FastEndpoints\Contracts\Middleware {
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../advanced-user-guide/json-schemas/references/" class="md-footer__link md-footer__link--prev" aria-label="Previous: References">
+          <a href="../dependency-injection/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Dependency Injection">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
@@ -1146,11 +1083,27 @@ class MyCustomMiddleware extends \Wp\FastEndpoints\Contracts\Middleware {
                 Previous
               </span>
               <div class="md-ellipsis">
-                References
+                Dependency Injection
               </div>
             </div>
           </a>
         
+        
+          
+          <a href="../middlewares/" class="md-footer__link md-footer__link--next" aria-label="Next: Middlewares">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Middlewares
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4Z"/></svg>
+            </div>
+          </a>
         
       </nav>
     
@@ -1203,14 +1156,14 @@ class MyCustomMiddleware extends \Wp\FastEndpoints\Contracts\Middleware {
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "..", "features": ["search.suggest", "search.highlight", "content.tabs.link", "navigation.indexes", "content.tooltips", "navigation.path", "content.code.annotate", "content.code.copy", "content.code.select", "navigation.tabs", "navigation.footer"], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": ["search.suggest", "search.highlight", "content.tabs.link", "navigation.indexes", "content.tooltips", "navigation.path", "content.code.annotate", "content.code.copy", "content.code.select", "navigation.tabs", "navigation.footer"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.ebd0bdb7.min.js"></script>
+      <script src="../../assets/javascripts/bundle.ebd0bdb7.min.js"></script>
       
         <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
       
-        <script src="../assets/js/initHighlight.js"></script>
+        <script src="../../assets/js/initHighlight.js"></script>
       
     
   </body>

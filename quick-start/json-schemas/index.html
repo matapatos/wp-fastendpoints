@@ -233,16 +233,19 @@
   
   
   
-    <li class="md-tabs__item">
-      <a href="../../reference/" class="md-tabs__link">
-        
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../advanced-user-guide/" class="md-tabs__link">
+          
   
     
   
-  Reference
+  Advanced User Guide
 
-      </a>
-    </li>
+        </a>
+      </li>
+    
   
 
       
@@ -633,16 +636,268 @@
   
   
   
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../advanced-user-guide/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    Advanced User Guide
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Advanced User Guide
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
     <li class="md-nav__item">
-      <a href="../../reference/" class="md-nav__link">
+      <a href="../../advanced-user-guide/request-life-cycle/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
-    Reference
+    Request Life Cycle
   </span>
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced-user-guide/dependency-injection/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Dependency Injection
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced-user-guide/responses/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Responses
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced-user-guide/middlewares/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Middlewares
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_6" id="__nav_3_6_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    JSON Schemas
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_6">
+            <span class="md-nav__icon md-icon"></span>
+            JSON Schemas
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced-user-guide/json-schemas/multiple-root-dirs/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Multiple Root Dirs
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced-user-guide/json-schemas/validator/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Validator
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced-user-guide/json-schemas/references/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    References
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
     </li>
   
 
@@ -730,7 +985,7 @@
   <h1>JSON Schemas</h1>
 
 <p>For this scenario, we are going to create two JSON schemas: 1) for validating the request payload and another 2) to discard unwanted fields from responses (e.g. sensitive information).</p>
-<h3 id="request-payload-createupdate">Request payload (create/update)</h3>
+<h2 id="request-payload-createupdate">Request payload (create/update)</h2>
 <p>For the payload we decided to accept the following fields: 1) <em>post_title</em>, 2) <em>post_status</em>, 3) <em>post_type</em> and 4) optionally <em>post_content</em></p>
 <pre class="highlight"><code class="language-json">{
   "type": "object",
@@ -752,7 +1007,7 @@
   },
   "required": ["post_title", "post_status", "post_type"]
 }</code></pre>
-<h3 id="response-retrieve">Response (retrieve)</h3>
+<h2 id="response-retrieve">Response (retrieve)</h2>
 <p>For the response we decided to only return the following fields: 1) <em>post_title</em> and 2) optionally <em>post_excerpt</em></p>
 <pre class="highlight"><code class="language-json">{
   "type": "object",
