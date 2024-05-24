@@ -39,6 +39,8 @@ markdown_extensions:
   - pymdownx.superfences
   - pymdownx.highlight:
       use_pygments: false
+  - pymdownx.tabbed:
+      alternate_style: true
 nav:
   - WP-FastEndpoints: index.md
   - Quick Start:
@@ -50,7 +52,16 @@ nav:
       - Testing:  quick-start/tests/index.md
       - Integration Tests:  quick-start/tests/integration.md
       - Unit Tests:  quick-start/tests/unit.md
-  - Reference: reference/index.md
+  - Advanced User Guide:
+    - Advanced User Guide: advanced-user-guide/index.md
+    - Request Life Cycle: advanced-user-guide/request-life-cycle.md
+    - Dependency Injection: advanced-user-guide/dependency-injection.md
+    - Responses: advanced-user-guide/responses.md
+    - Middlewares: advanced-user-guide/middlewares.md
+    - JSON Schemas:
+      - Multiple Root Dirs: advanced-user-guide/json-schemas/multiple-root-dirs.md
+      - Validator: advanced-user-guide/json-schemas/validator.md
+      - References: advanced-user-guide/json-schemas/references.md
   - Release Notes: release.md
 extra:
   social:

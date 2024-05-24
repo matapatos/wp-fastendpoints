@@ -312,20 +312,20 @@ class Endpoint implements EndpointInterface
             'request' => $request,
             'response' => new WP_REST_Response(),
         ] + $request->get_url_params();
-        // Request handlers.
+        // onRequest handlers.
         $result = $this->runHandlers($this->onRequestHandlers, $dependencies);
         if (\is_wp_error($result) || $result instanceof WP_REST_Response) {
             return $result;
         }
 
-        // Main handler.
+        // Main endpoint handler.
         $result = $this->invoker->call($this->handler, $dependencies);
         if (\is_wp_error($result) || $result instanceof WP_REST_Response) {
             return $result;
         }
         $dependencies['response']->set_data($result);
 
-        // ResponseMiddleware handlers.
+        // onResponse handlers.
         $result = $this->runHandlers($this->onResponseHandlers, $dependencies);
         if (\is_wp_error($result) || $result instanceof WP_REST_Response) {
             return $result;

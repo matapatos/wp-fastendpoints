@@ -21,10 +21,10 @@ add_filter('fastendpoints_validator', function (Validator $validator): Validator
 
 !!! info
     For more customisations check the following links:
-    1) [Custom formats](https://opis.io/json-schema/2.x/php-format.html),
-    2) [Custom filters](https://opis.io/json-schema/2.x/php-filter.html),
-    3) [Custom media types](https://opis.io/json-schema/2.x/php-media-type.html) and,
-    4) [Custom content encoding](https://opis.io/json-schema/2.x/php-content-encoding.html)
+    1. [Custom formats](https://opis.io/json-schema/2.x/php-format.html),
+    2. [Custom filters](https://opis.io/json-schema/2.x/php-filter.html),
+    3. [Custom media types](https://opis.io/json-schema/2.x/php-media-type.html) and,
+    4. [Custom content encoding](https://opis.io/json-schema/2.x/php-content-encoding.html)
 
 ## v1.2.1
 

@@ -14,7 +14,7 @@ by same namespace and (optionally) same version. For instance,
 in this tutorial we are going to create a main router with a base namespace `my-plugin` and a version of `v1`
 which will add `/my-plugin/v1/` to the beginning of each attached endpoint from all sub-routers.
 
-#### Create a post
+## Create a post
 
 With the posts router in place we can now start attaching our endpoints. We start adding the one
 responsible to create a new blog post.
@@ -42,7 +42,7 @@ When a request is received by this endpoint the following happens:
     In this scenario we are not using a JSON schema to discard fields because the [_wp_insert_post_](https://developer.wordpress.org/reference/functions/wp_insert_post/)
     either returns the ID of the post or a WP_Error which is already what we want 😊
 
-#### Retrieve a post
+## Retrieve a post
 
 Some endpoints however do need to return more complex objects. And in those cases JSON
 schemas can be of a great help.
@@ -81,7 +81,7 @@ Going back to the endpoint, this is what happens if a request comes in:
     The [WpError](https://github.com/matapatos/wp-fastendpoints/blob/main/src/Helpers/WpError.php)
     is just a subclass of WP_Error which automatically set's the HTTP status code of the response
 
-#### Update a post
+## Update a post
 
 Checking for user capabilities such as `publish_posts` and `read` is cool. However, in the
 real world we sometimes also need to check for a particular resource.
@@ -106,7 +106,7 @@ which will try to replace it by the _post_id_ parameter.
     in an endpoint is checking the user capabilities. As such, at that time the request params have not
     been already validated by the request payload schema.
 
-#### Delete a post
+## Delete a post
 
 ```php
 use Wp\FastEndpoints\Helpers\WpError;
@@ -120,7 +120,7 @@ $router->delete('(?P<ID>[\d]+)', function ($ID) {
     ->hasCap('delete_post', '{ID}');
 ```
 
-### Everything together
+## Everything together
 
 ```php
 """
