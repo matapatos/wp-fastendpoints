@@ -11,16 +11,6 @@ use Wp\FastEndpoints\Router;
 class Helpers
 {
     /**
-     * Determines if we only want to run unit tests
-     *
-     * @since 0.9.0
-     */
-    public static function isUnitTest(): bool
-    {
-        return ! empty($GLOBALS['argv']) && in_array('--group=unit', $GLOBALS['argv'], true);
-    }
-
-    /**
      * Invokes a private/protected class method and retrieves it's result
      *
      * @since 0.9.0
