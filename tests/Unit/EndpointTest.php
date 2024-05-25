@@ -18,7 +18,6 @@ use Brain\Monkey\Functions;
 use Exception;
 use Invoker\Invoker;
 use Mockery;
-use org\bovigo\vfs\vfsStream;
 use Wp\FastEndpoints\Contracts\Middleware;
 use Wp\FastEndpoints\Endpoint;
 use Wp\FastEndpoints\Helpers\WpError;
@@ -32,7 +31,6 @@ beforeEach(function () {
 
 afterEach(function () {
     Monkey\tearDown();
-    vfsStream::setup();
 });
 
 // Constructor

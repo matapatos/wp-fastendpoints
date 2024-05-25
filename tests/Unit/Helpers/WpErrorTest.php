@@ -15,7 +15,6 @@ namespace Wp\FastEndpoints\Tests\Unit\Schemas;
 use Brain\Monkey;
 use Brain\Monkey\Functions;
 use Mockery;
-use org\bovigo\vfs\vfsStream;
 use Wp\FastEndpoints\Helpers\WpError;
 use Wp\FastEndpoints\Tests\Helpers\Helpers;
 
@@ -26,7 +25,6 @@ beforeEach(function () {
 afterEach(function () {
     Monkey\tearDown();
     Mockery::close();
-    vfsStream::setup();
 });
 
 // Constructor

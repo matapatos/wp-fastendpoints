@@ -21,7 +21,6 @@ use Opis\JsonSchema\Exceptions\ParseException;
 use Opis\JsonSchema\Helper;
 use Opis\JsonSchema\ValidationResult;
 use Opis\JsonSchema\Validator;
-use org\bovigo\vfs\vfsStream;
 use Wp\FastEndpoints\Helpers\WpError;
 use Wp\FastEndpoints\Schemas\ResponseMiddleware;
 use Wp\FastEndpoints\Schemas\SchemaResolver;
@@ -35,7 +34,6 @@ beforeEach(function () {
 
 afterEach(function () {
     Monkey\tearDown();
-    vfsStream::setup();
 });
 
 // Constructor

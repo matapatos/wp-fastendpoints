@@ -31,8 +31,7 @@
     "require-dev": {
         "mockery/mockery": "^1.6",
         "dingo-d/wp-pest": "^1.6",
-        "mikey179/vfsstream": "^1.6",
-        "roots/acorn": "^2.1",
+        "roots/acorn": "^4.2",
         "brain/monkey": "2.*",
         "laravel/pint": "*"
     },

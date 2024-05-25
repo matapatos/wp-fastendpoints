@@ -18,7 +18,6 @@ use Brain\Monkey\Filters;
 use Brain\Monkey\Functions;
 use Exception;
 use Mockery;
-use org\bovigo\vfs\vfsStream;
 use TypeError;
 use Wp\FastEndpoints\Endpoint;
 use Wp\FastEndpoints\Router;
@@ -30,7 +29,6 @@ beforeEach(function () {
 
 afterEach(function () {
     Monkey\tearDown();
-    vfsStream::setup();
 });
 
 dataset('http_methods', [

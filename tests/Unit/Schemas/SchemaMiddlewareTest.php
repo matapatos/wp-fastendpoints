@@ -17,7 +17,6 @@ use Brain\Monkey\Filters;
 use Brain\Monkey\Functions;
 use Mockery;
 use Opis\JsonSchema\ValidationResult;
-use org\bovigo\vfs\vfsStream;
 use Wp\FastEndpoints\Helpers\WpError;
 use Wp\FastEndpoints\Schemas\SchemaMiddleware;
 use Wp\FastEndpoints\Schemas\SchemaResolver;
@@ -30,7 +29,6 @@ beforeEach(function () {
 
 afterEach(function () {
     Monkey\tearDown();
-    vfsStream::setup();
 });
 
 // onRequest()

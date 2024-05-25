@@ -20,7 +20,6 @@ use Opis\JsonSchema\Errors\ErrorFormatter;
 use Opis\JsonSchema\Errors\ValidationError;
 use Opis\JsonSchema\ValidationResult;
 use Opis\JsonSchema\Validator;
-use org\bovigo\vfs\vfsStream;
 use TypeError;
 use Wp\FastEndpoints\Schemas\ResponseMiddleware;
 use Wp\FastEndpoints\Schemas\SchemaMiddleware;
@@ -33,7 +32,6 @@ beforeEach(function () {
 
 afterEach(function () {
     Monkey\tearDown();
-    vfsStream::setup();
 });
 
 dataset('base_classes', [ResponseMiddleware::class, SchemaMiddleware::class]);
