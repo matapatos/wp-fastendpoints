@@ -143,11 +143,7 @@ class Helpers
     public static function getRouter(string $filename): Router
     {
         $filename = Str::finish($filename, '.php');
-        require \ROUTERS_DIR.$filename;
-        if (! isset($router)) {
-            wp_die("Missing \$router variable in {$filename}");
-        }
 
-        return $router;
+        return require \ROUTERS_DIR.$filename;
     }
 }

@@ -44,3 +44,5 @@ $router->delete('(?P<ID>[\d]+)', function (string $ID) {
     return esc_html__('Post deleted with success');
 })
     ->hasCap('delete_post', '{ID}');
+
+return $router;

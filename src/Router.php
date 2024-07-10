@@ -292,6 +292,26 @@ class Router implements RouterContract
     }
 
     /**
+     * Retrieves all the attached endpoints
+     *
+     * @return array<Endpoint>
+     */
+    public function getEndpoints(): array
+    {
+        return $this->endpoints;
+    }
+
+    /**
+     * Retrieves all attached sub-routers
+     *
+     * @return array<Router>
+     */
+    public function getSubRouters(): array
+    {
+        return $this->subRouters;
+    }
+
+    /**
      * Retrieves the base router namespace for each endpoint
      *
      * @param  bool  $isToApplyFilters  Flag used to ignore fastendpoints filters

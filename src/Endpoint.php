@@ -64,6 +64,22 @@ class Endpoint implements EndpointInterface
     protected $handler;
 
     /**
+     * Plugins needed for the REST route
+     *
+     * @since 1.3.0
+     *
+     * @var array<string>
+     */
+    protected array $plugins = [];
+
+    /**
+     * The registered REST route with namespace and route
+     *
+     * @var string|null
+     */
+    protected ?string $fullRestRoute = null;
+
+    /**
      * Finds the correct JSON schema to be loaded
      *
      * @since 1.2.1
@@ -182,6 +198,7 @@ class Endpoint implements EndpointInterface
             return false;
         }
         $route = $this->getRoute($restBase);
+        $this->fullRestRoute = $namespace.$route;
         \register_rest_route($namespace, $route, $args, $this->override);
 
         return true;
@@ -278,6 +295,52 @@ class Endpoint implements EndpointInterface
         }
 
         return $this;
+    }
+
+    /**
+     * Specifies a set of plugins that are needed by the endpoint
+     *
+     * @param string|array $plugins
+     * @return Endpoint
+     */
+    public function depends(string|array $plugins): Endpoint
+    {
+        if (is_string($plugins)) {
+            $plugins = [$plugins];
+        }
+
+        $this->plugins += $plugins;
+        return $this;
+    }
+
+    /**
+     * Retrieves the registered REST route: namespace + route
+     *
+     * @return string|null
+     */
+    public function getFullRestRoute(): ?string
+    {
+        return $this->fullRestRoute;
+    }
+
+    /**
+     * Retrieves the HTTP method of the endpoint
+     *
+     * @return string
+     */
+    public function getHttpMethod(): string
+    {
+        return $this->method;
+    }
+
+    /**
+     * Retrieves the required endpoint plugins
+     *
+     * @return array
+     */
+    public function getRequiredPlugins(): array
+    {
+        return apply_filters('fastendpoints_endpoint_plugins', $this->plugins, $this);
     }
 
     /**
