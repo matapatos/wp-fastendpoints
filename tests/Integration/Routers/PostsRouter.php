@@ -32,7 +32,7 @@ $router->post('(?P<ID>[\d]+)', function (\WP_REST_Request $request, $ID) {
 })
     ->schema('Posts/Update')
     ->returns('Posts/Get')
-    ->hasCap('edit_post', '{ID}');
+    ->hasCap('edit_post', '<ID>');
 
 // Deletes a post
 $router->delete('(?P<ID>[\d]+)', function (string $ID) {
@@ -43,6 +43,6 @@ $router->delete('(?P<ID>[\d]+)', function (string $ID) {
 
     return esc_html__('Post deleted with success');
 })
-    ->hasCap('delete_post', '{ID}');
+    ->hasCap('delete_post', '<ID>');
 
 return $router;

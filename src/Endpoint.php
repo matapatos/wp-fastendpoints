@@ -74,8 +74,6 @@ class Endpoint implements EndpointInterface
 
     /**
      * The registered REST route with namespace and route
-     *
-     * @var string|null
      */
     protected ?string $fullRestRoute = null;
 
@@ -299,9 +297,6 @@ class Endpoint implements EndpointInterface
 
     /**
      * Specifies a set of plugins that are needed by the endpoint
-     *
-     * @param string|array $plugins
-     * @return Endpoint
      */
     public function depends(string|array $plugins): Endpoint
     {
@@ -310,13 +305,12 @@ class Endpoint implements EndpointInterface
         }
 
         $this->plugins += $plugins;
+
         return $this;
     }
 
     /**
      * Retrieves the registered REST route: namespace + route
-     *
-     * @return string|null
      */
     public function getFullRestRoute(): ?string
     {
@@ -325,8 +319,6 @@ class Endpoint implements EndpointInterface
 
     /**
      * Retrieves the HTTP method of the endpoint
-     *
-     * @return string
      */
     public function getHttpMethod(): string
     {
@@ -335,8 +327,6 @@ class Endpoint implements EndpointInterface
 
     /**
      * Retrieves the required endpoint plugins
-     *
-     * @return array
      */
     public function getRequiredPlugins(): array
     {
@@ -453,7 +443,7 @@ class Endpoint implements EndpointInterface
         // Checks if value matches a special value.
         // If so, replaces with request variable.
         $newValue = \trim($value);
-        if (! \str_starts_with($newValue, '{') && ! \str_ends_with($newValue, '}')) {
+        if (! \str_starts_with($newValue, '<') || ! \str_ends_with($newValue, '>')) {
             return $value;
         }
 

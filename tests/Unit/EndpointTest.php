@@ -118,14 +118,14 @@ test('User with valid permissions', function (string $capability, ...$args) {
     $mockedRequest = Mockery::mock(\WP_REST_Request::class);
     $expectedParams = [];
     foreach ($args as $arg) {
-        if (! is_string($arg) || ! str_starts_with($arg, '{')) {
+        if (! is_string($arg) || ! str_starts_with($arg, '<')) {
             $expectedParams[] = $arg;
 
             continue;
         }
 
         $paramName = substr($arg, 1, -1);
-        $isArgumentMissing = $arg === '{argument-missing}';
+        $isArgumentMissing = $arg === '<argument-missing>';
         $mockedRequest
             ->shouldReceive('has_param')
             ->once()
@@ -152,7 +152,7 @@ test('User with valid permissions', function (string $capability, ...$args) {
     expect($permissionHandlers[0]($mockedRequest))->toBeTrue();
 })->with([
     'create_users', ['edit_plugins', 'delete_plugins', 98],
-    ['create_users', '{post_id}', '{another_var}', false],
+    ['create_users', '<post_id>', '{another_var}', false],
     ['edit_posts', '{argument-missing}'], '{custom-cap}',
 ])->group('endpoint', 'hasCap');
 
@@ -166,14 +166,14 @@ test('User not having enough permissions', function (string $capability, ...$arg
     $mockedRequest = Mockery::mock(\WP_REST_Request::class);
     $expectedParams = [];
     foreach ($args as $arg) {
-        if (! str_starts_with($arg, '{')) {
+        if (! str_starts_with($arg, '<')) {
             $expectedParams[] = $arg;
 
             continue;
         }
 
         $paramName = substr($arg, 1, -1);
-        $isArgumentMissing = $arg === '{argument-missing}';
+        $isArgumentMissing = $arg === '<argument-missing>';
         $mockedRequest
             ->shouldReceive('has_param')
             ->once()
@@ -205,8 +205,8 @@ test('User not having enough permissions', function (string $capability, ...$arg
         ->toHaveProperty('data', ['status' => 403]);
 })->with([
     'create_users', ['edit_plugins', 'delete_plugins'],
-    '{custom_capability}', ['create_users', '{post_id}', '{another_var}'],
-    ['create_users', '{post_id}', '{argument-missing}'],
+    '{custom_capability}', ['create_users', '<post_id>', '{another_var}'],
+    ['create_users', '<post_id>', '{argument-missing}'],
 ])->group('endpoint', 'hasCap');
 
 test('Missing capability', function () {
