@@ -196,7 +196,7 @@ class Endpoint implements EndpointInterface
             return false;
         }
         $route = $this->getRoute($restBase);
-        $this->fullRestRoute = $namespace.$route;
+        $this->fullRestRoute = '/'.trim($namespace, '/').'/'.ltrim($route, '/');
         \register_rest_route($namespace, $route, $args, $this->override);
 
         return true;
@@ -304,7 +304,7 @@ class Endpoint implements EndpointInterface
             $plugins = [$plugins];
         }
 
-        $this->plugins += $plugins;
+        $this->plugins = array_merge($this->plugins, $plugins);
 
         return $this;
     }

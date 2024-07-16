@@ -43,7 +43,8 @@ test('Creating Endpoint instance', function () {
         ->and(Helpers::getNonPublicClassProperty($endpoint, 'route'))->toBe('/my-endpoint')
         ->and(Helpers::getNonPublicClassProperty($endpoint, 'handler'))->toBe('__return_false')
         ->and(Helpers::getNonPublicClassProperty($endpoint, 'args'))->toEqual(['my-args'])
-        ->and(Helpers::getNonPublicClassProperty($endpoint, 'override'))->toBeFalse();
+        ->and(Helpers::getNonPublicClassProperty($endpoint, 'override'))->toBeFalse()
+        ->and($endpoint->getHttpMethod())->toBe('GET');
 })->group('endpoint', 'constructor');
 
 // Register
@@ -93,7 +94,8 @@ test('Registering an endpoint', function (bool $withSchema, bool $withResponseSc
 
             return true;
         });
-    expect($endpoint->register('my-namespace', 'v1/users', ['my-schema-dir']))->toBeTrue();
+    expect($endpoint->register('my-namespace', 'v1/users', ['my-schema-dir']))->toBeTrue()
+        ->and($endpoint->getFullRestRoute())->toBe('/my-namespace/v1/users/my-endpoint');
 })->with([true, false])->with([true, false])->with([null, '__return_false'])->group('endpoint', 'register');
 
 test('Skipping registering endpoint if no args specified', function () {
@@ -152,8 +154,8 @@ test('User with valid permissions', function (string $capability, ...$args) {
     expect($permissionHandlers[0]($mockedRequest))->toBeTrue();
 })->with([
     'create_users', ['edit_plugins', 'delete_plugins', 98],
-    ['create_users', '<post_id>', '{another_var}', false],
-    ['edit_posts', '{argument-missing}'], '{custom-cap}',
+    ['create_users', '<post_id>', '<another_var>', false],
+    ['edit_posts', '<argument-missing>'], '<custom-cap>',
 ])->group('endpoint', 'hasCap');
 
 test('User not having enough permissions', function (string $capability, ...$args) {
@@ -205,8 +207,8 @@ test('User not having enough permissions', function (string $capability, ...$arg
         ->toHaveProperty('data', ['status' => 403]);
 })->with([
     'create_users', ['edit_plugins', 'delete_plugins'],
-    '{custom_capability}', ['create_users', '<post_id>', '{another_var}'],
-    ['create_users', '<post_id>', '{argument-missing}'],
+    '<custom_capability>', ['create_users', '<post_id>', '<another_var>'],
+    ['create_users', '<post_id>', '<argument-missing>'],
 ])->group('endpoint', 'hasCap');
 
 test('Missing capability', function () {
@@ -316,9 +318,7 @@ test('Adding middleware to trigger before handling a request and before sending 
 test('Adding middleware with missing methods', function () {
     class InvalidMiddleware extends Middleware
     {
-        public function hey(): void
-        {
-        }
+        public function hey(): void {}
     }
     Functions\when('esc_html__')->returnArg();
     expect(fn () => new InvalidMiddleware())
@@ -434,3 +434,38 @@ test('Getting endpoint route', function (string $route, string $expectedRoute) {
     ['hello', '/my-base/hello'],
     ['hello/another', '/my-base/hello/another'],
 ])->group('endpoint', 'getRoute');
+
+// depends
+
+test('Specifying endpoint dependencies', function (array|string $dependencies) {
+    $endpoint = new Endpoint('GET', '/dependencies', '__return_false');
+    $endpoint->depends($dependencies);
+    $dependencies = is_string($dependencies) ? [$dependencies] : $dependencies;
+    Filters\expectApplied('fastendpoints_endpoint_plugins')
+        ->once()
+        ->with($dependencies, $endpoint);
+    expect($endpoint->getRequiredPlugins())
+        ->toBeArray()
+        ->toBe($dependencies);
+})->with([
+    'plugin1',
+    [['plugin1', 'plugin2']],
+])->group('endpoint', 'getRoute');
+
+test('Specifying endpoint dependencies multiple times', function (string $firstDependency, string $secondDependency) {
+    $endpoint = new Endpoint('GET', '/dependencies', '__return_false');
+    $endpoint->depends($firstDependency);
+    Filters\expectApplied('fastendpoints_endpoint_plugins')
+        ->once()
+        ->with([$firstDependency], $endpoint);
+    expect($endpoint->getRequiredPlugins())
+        ->toBeArray()
+        ->toBe([$firstDependency]);
+    $endpoint->depends($secondDependency);
+    Filters\expectApplied('fastendpoints_endpoint_plugins')
+        ->once()
+        ->with([$firstDependency, $secondDependency], $endpoint);
+    expect($endpoint->getRequiredPlugins())
+        ->toBeArray()
+        ->toBe([$firstDependency, $secondDependency]);
+})->with([['plugin1', 'plugin2']])->group('endpoint', 'getRoute');

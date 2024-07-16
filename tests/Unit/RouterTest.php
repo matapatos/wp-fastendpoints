@@ -95,9 +95,9 @@ test('Include sub-routers', function () {
         return 'Current user';
     });
     $mainRouter->includeRouter($usersRouter);
-    expect(Helpers::getNonPublicClassProperty($mainRouter, 'endpoints'))->toMatchArray([$readyzEndpoint])
-        ->and(Helpers::getNonPublicClassProperty($usersRouter, 'endpoints'))->toMatchArray([$user123Endpoint, $currentUserEndpoint])
-        ->and(Helpers::getNonPublicClassProperty($mainRouter, 'subRouters'))->toMatchArray([$usersRouter]);
+    expect($mainRouter->getEndpoints())->toMatchArray([$readyzEndpoint])
+        ->and($usersRouter->getEndpoints())->toMatchArray([$user123Endpoint, $currentUserEndpoint])
+        ->and($mainRouter->getSubRouters())->toMatchArray([$usersRouter]);
 })->group('router', 'includeRouter');
 
 // Router namespace
