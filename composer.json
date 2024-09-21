@@ -34,7 +34,8 @@
         "dingo-d/wp-pest": "^1.6",
         "roots/acorn": "^4.2",
         "brain/monkey": "2.*",
-        "laravel/pint": "*"
+        "laravel/pint": "*",
+        "pestphp/pest-plugin-parallel": "^1.2"
     },
     "scripts": {
         "lint": "./vendor/bin/pint --config pint.json",
@@ -45,8 +46,8 @@
         "setup:wp:6.4": "rm -rf wp/ && ./vendor/bin/wp-pest setup plugin --plugin-slug fastendpoints --wp-version 6.4.5 --skip-delete --no-interaction",
         "setup:wp:latest": "rm -rf wp/ && ./vendor/bin/wp-pest setup plugin --plugin-slug fastendpoints --skip-delete --no-interaction",
         "test:lint": "./vendor/bin/pint --test",
-        "test:coverage": "./vendor/bin/pest --coverage",
-        "test:unit": "./vendor/bin/pest --colors=always --exclude-group=integration",
+        "test:coverage": "./vendor/bin/pest --coverage --parallel",
+        "test:unit": "./vendor/bin/pest --colors=always --exclude-group=integration --parallel",
         "test:integration": "./vendor/bin/pest --colors=always --group=integration",
         "test": [
             "@test:lint",
