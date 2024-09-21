@@ -64,7 +64,7 @@ test('getSchema retrieves correct schema', function ($loadSchemaFrom, $removeAdd
     if ($loadSchemaFrom == LoadSchema::FromArray) {
         $schema = $expectedContents;
     }
-    $schemaResolver = new SchemaResolver();
+    $schemaResolver = new SchemaResolver;
     $schemaResolver->registerPrefix('https://www.wp-fastendpoints.com', \SCHEMAS_DIR);
     $response = new ResponseMiddleware($schema, $removeAdditionalProperties, $schemaResolver);
     Filters\expectApplied('fastendpoints_response_remove_additional_properties')
@@ -138,7 +138,7 @@ test('returns matches expected return value - Basic', function ($loadSchemaFrom,
     if ($loadSchemaFrom == LoadSchema::FromArray) {
         $schema = Helpers::loadSchema(\SCHEMAS_DIR.'Basics/'.$schemaName);
     }
-    $schemaResolver = new SchemaResolver();
+    $schemaResolver = new SchemaResolver;
     $schemaResolver->registerPrefix('https://www.wp-fastendpoints.com', \SCHEMAS_DIR);
     $response = new ResponseMiddleware($schema, true, $schemaResolver);
     // Create WP_REST_Request mock
@@ -196,7 +196,7 @@ test('Ignoring additional properties in returns', function ($loadSchemaFrom) {
     if ($loadSchemaFrom == LoadSchema::FromArray) {
         $schema = Helpers::loadSchema(\SCHEMAS_DIR.'Users/Get.json');
     }
-    $schemaResolver = new SchemaResolver();
+    $schemaResolver = new SchemaResolver;
     $schemaResolver->registerPrefix('https://www.wp-fastendpoints.com', \SCHEMAS_DIR);
     $response = new ResponseMiddleware($schema, true, $schemaResolver);
     $user = Faker::getWpUser();
@@ -229,7 +229,7 @@ test('Keeps additional properties in returns', function ($loadSchemaFrom) {
     if ($loadSchemaFrom == LoadSchema::FromArray) {
         $schema = Helpers::loadSchema(\SCHEMAS_DIR.'Users/Get');
     }
-    $schemaResolver = new SchemaResolver();
+    $schemaResolver = new SchemaResolver;
     $schemaResolver->registerPrefix('https://www.wp-fastendpoints.com', \SCHEMAS_DIR);
     $response = new ResponseMiddleware($schema, false, $schemaResolver);
     $user = Faker::getWpUser();
@@ -258,7 +258,7 @@ test('Ignores additional properties expect a given type in returns', function ($
     if ($loadSchemaFrom == LoadSchema::FromArray) {
         $schema = Helpers::loadSchema(\SCHEMAS_DIR.'Users/Get');
     }
-    $schemaResolver = new SchemaResolver();
+    $schemaResolver = new SchemaResolver;
     $schemaResolver->registerPrefix('https://www.wp-fastendpoints.com', \SCHEMAS_DIR);
     $response = new ResponseMiddleware($schema, $type, $schemaResolver);
     $user = Faker::getWpUser();
@@ -301,7 +301,7 @@ test('Ignores additional properties specified by the schema', function ($loadSch
     if ($loadSchemaFrom == LoadSchema::FromArray) {
         $schema = Helpers::loadSchema(\SCHEMAS_DIR.'Users/WithAdditionalProperties.json');
     }
-    $schemaResolver = new SchemaResolver();
+    $schemaResolver = new SchemaResolver;
     $schemaResolver->registerPrefix('https://www.wp-fastendpoints.com', \SCHEMAS_DIR);
     $response = new ResponseMiddleware($schema, null, $schemaResolver);
     $user = Faker::getWpUser();
@@ -334,7 +334,7 @@ test('Invalid additionalProperties field', function () {
     Functions\when('path_join')->alias(function ($path1, $path2) {
         return $path1.'/'.$path2;
     });
-    $schemaResolver = new SchemaResolver();
+    $schemaResolver = new SchemaResolver;
     $schemaResolver->registerPrefix('https://www.wp-fastendpoints.com', \SCHEMAS_DIR);
     $schema = 'Invalid/InvalidAdditionalProperties';
     $response = new ResponseMiddleware($schema, null, $schemaResolver);
@@ -413,7 +413,7 @@ test('Validation always failing via hook', function () {
         return $path1.'/'.$path2;
     });
     Functions\when('esc_html__')->returnArg();
-    $schemaResolver = new SchemaResolver();
+    $schemaResolver = new SchemaResolver;
     $schemaResolver->registerPrefix('https://www.wp-fastendpoints.com', \SCHEMAS_DIR);
     $response = new ResponseMiddleware('https://www.wp-fastendpoints.com/Basics/Double.json', true, $schemaResolver);
     // Create WP_REST_Request mock

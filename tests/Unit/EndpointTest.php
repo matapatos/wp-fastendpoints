@@ -18,7 +18,7 @@ use Brain\Monkey\Functions;
 use Exception;
 use Invoker\Invoker;
 use Mockery;
-use Wp\FastEndpoints\Contracts\Middleware;
+use Wp\FastEndpoints\Contracts\Middlewares\Middleware;
 use Wp\FastEndpoints\Endpoint;
 use Wp\FastEndpoints\Helpers\WpError;
 use Wp\FastEndpoints\Schemas\ResponseMiddleware;
@@ -263,7 +263,7 @@ test('Adding middleware before handling a request', function () {
             return null;
         }
     }
-    $middleware = new MyRequestMiddleware();
+    $middleware = new MyRequestMiddleware;
     $endpoint = new Endpoint('GET', '/my-endpoint', '__return_false', ['my-custom-arg' => true], false);
     expect(Helpers::getNonPublicClassProperty($endpoint, 'onRequestHandlers'))->toBeEmpty();
     $endpoint->middleware($middleware);
@@ -280,7 +280,7 @@ test('Adding middleware before sending response', function () {
             return null;
         }
     }
-    $middleware = new MyResponseMiddleware();
+    $middleware = new MyResponseMiddleware;
     $endpoint = new Endpoint('GET', '/my-endpoint', '__return_false', ['my-custom-arg' => true], false);
     expect(Helpers::getNonPublicClassProperty($endpoint, 'onResponseHandlers'))->toBeEmpty();
     $endpoint->middleware($middleware);
@@ -302,7 +302,7 @@ test('Adding middleware to trigger before handling a request and before sending 
             return null;
         }
     }
-    $middleware = new MyMiddleware();
+    $middleware = new MyMiddleware;
     $endpoint = new Endpoint('GET', '/my-endpoint', '__return_false', ['my-custom-arg' => true], false);
     expect(Helpers::getNonPublicClassProperty($endpoint, 'onResponseHandlers'))->toBeEmpty()
         ->and(Helpers::getNonPublicClassProperty($endpoint, 'onRequestHandlers'))->toBeEmpty();
@@ -321,7 +321,7 @@ test('Adding middleware with missing methods', function () {
         public function hey(): void {}
     }
     Functions\when('esc_html__')->returnArg();
-    expect(fn () => new InvalidMiddleware())
+    expect(fn () => new InvalidMiddleware)
         ->toThrow(Exception::class, 'At least one method onRequest() or onResponse() must be declared on the class.');
 })->group('endpoint', 'middleware');
 
@@ -353,7 +353,7 @@ test('Running permission handlers in permission callback', function ($returnValu
     $mockedEndpoint = Mockery::mock(Endpoint::class)
         ->shouldAllowMockingProtectedMethods()
         ->makePartial();
-    Helpers::setNonPublicClassProperty($mockedEndpoint, 'invoker', new Invoker());
+    Helpers::setNonPublicClassProperty($mockedEndpoint, 'invoker', new Invoker);
     Helpers::setNonPublicClassProperty($mockedEndpoint, 'permissionHandlers', ['test-permission-handler']);
     $mockedEndpoint->shouldReceive('runHandlers')
         ->once()

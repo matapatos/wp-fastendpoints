@@ -1,3 +1,21 @@
+## v2.0.0
+
+Support for treating plugins as dependencies.
+
+- `depends(['buddypress''])` - Only loads the BuddyPress plugin for this given endpoint
+
+```php
+$router->get('/users/(?P<ID>[\d]+)', function ($ID) {
+    return get_user_by('id', $ID);
+})
+->returns('Users/Get')
+->depends(['buddypress']);  // Only BuddyPress plugin will be loaded for this REST endpoint
+```
+
+!!! warn
+Make sure to run the following WP-CLI command after a successfull deployment:
+`wp `
+
 ## v1.2.2
 
 Three new filters that allows us to customise our JSON schema validator's.

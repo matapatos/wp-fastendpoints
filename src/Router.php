@@ -12,8 +12,8 @@ declare(strict_types=1);
 
 namespace Wp\FastEndpoints;
 
-use Wp\FastEndpoints\Contracts\Endpoint as EndpointContract;
-use Wp\FastEndpoints\Contracts\Router as RouterContract;
+use Wp\FastEndpoints\Contracts\Http\Endpoint as EndpointContract;
+use Wp\FastEndpoints\Contracts\Http\Router as RouterContract;
 use Wp\FastEndpoints\Schemas\SchemaResolver;
 
 /**
@@ -54,8 +54,6 @@ class Router implements RouterContract
      * Parent router
      *
      * @since 0.9.0
-     *
-     * @var ?Router
      */
     protected ?Router $parent = null;
 
@@ -111,7 +109,7 @@ class Router implements RouterContract
     {
         $this->base = $base;
         $this->version = $version;
-        $this->schemaResolver = new SchemaResolver();
+        $this->schemaResolver = new SchemaResolver;
     }
 
     /**

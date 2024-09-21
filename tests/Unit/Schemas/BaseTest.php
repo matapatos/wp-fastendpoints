@@ -102,7 +102,7 @@ test('Getting error', function (string $class) {
 
 test('Creating JSON schema validator with custom resolver', function (string $class) {
     $middleware = new $class([]);
-    $schemaResolver = new SchemaResolver();
+    $schemaResolver = new SchemaResolver;
     $validator = $middleware->createValidatorWithResolver($schemaResolver);
     expect($validator)->toBeInstanceOf(Validator::class)
         ->and($validator->resolver())

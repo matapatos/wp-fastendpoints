@@ -2,7 +2,7 @@
 
 namespace Wp\FastEndpoints\Tests\Integration\Routers\Middlewares;
 
-use Wp\FastEndpoints\Contracts\Middleware;
+use Wp\FastEndpoints\Contracts\Middlewares\Middleware;
 use Wp\FastEndpoints\Helpers\WpError;
 
 class OnRequestErrorActionMiddleware extends Middleware
