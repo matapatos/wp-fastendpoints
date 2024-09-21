@@ -14,7 +14,6 @@ namespace Wp\FastEndpoints\Schemas;
 
 use Opis\JsonSchema\Exceptions\SchemaException;
 use Opis\JsonSchema\Helper;
-use Wp\FastEndpoints\Contracts\JsonSchema;
 use Wp\FastEndpoints\Helpers\WpError;
 use WP_Error;
 use WP_Http;

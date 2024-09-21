@@ -33,7 +33,7 @@ beforeEach(function () {
     // Set up a REST server instance.
     global $wp_rest_server;
 
-    $this->server = $wp_rest_server = new \WP_REST_Server();
+    $this->server = $wp_rest_server = new \WP_REST_Server;
     $postsRouter = Helpers::getRouter('PostsRouter.php');
     $actionsRouter = Helpers::getRouter('ActionsRouter.php');
     $router = new Router('my-api', 'v1');

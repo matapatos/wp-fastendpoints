@@ -32,7 +32,7 @@ beforeEach(function () {
     // Set up a REST server instance.
     global $wp_rest_server;
 
-    $this->server = $wp_rest_server = new \WP_REST_Server();
+    $this->server = $wp_rest_server = new \WP_REST_Server;
     $router = Helpers::getRouter('PostsRouter.php');
     $router->register();
     do_action('rest_api_init', $this->server);

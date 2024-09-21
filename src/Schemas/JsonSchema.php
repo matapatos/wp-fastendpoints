@@ -10,14 +10,14 @@
 
 declare(strict_types=1);
 
-namespace Wp\FastEndpoints\Contracts;
+namespace Wp\FastEndpoints\Schemas;
 
 use Opis\JsonSchema\Errors\ErrorFormatter;
 use Opis\JsonSchema\Parsers\SchemaParser;
 use Opis\JsonSchema\SchemaLoader;
 use Opis\JsonSchema\ValidationResult;
 use Opis\JsonSchema\Validator;
-use Wp\FastEndpoints\Schemas\SchemaResolver;
+use Wp\FastEndpoints\Contracts\Middlewares\Middleware;
 
 /**
  * Abstract class that holds logic to search and retrieve the contents of a
@@ -69,7 +69,7 @@ abstract class JsonSchema extends Middleware
         $this->schema = $schema;
         $this->suffix = $this->getSuffix();
         $this->validator = $this->createValidatorWithResolver($schemaResolver);
-        $this->errorFormatter = new ErrorFormatter();
+        $this->errorFormatter = new ErrorFormatter;
     }
 
     /**
@@ -121,13 +121,11 @@ abstract class JsonSchema extends Middleware
 
     /**
      * Retrieves a JSON schema validator with a given SchemaResolver
-     *
-     * @param  ?SchemaResolver  $resolver
      */
     public function createValidatorWithResolver(?SchemaResolver $resolver): Validator
     {
-        $resolver = $resolver ?? new SchemaResolver();
-        $schemaLoader = new SchemaLoader(new SchemaParser(), $resolver, true);
+        $resolver = $resolver ?? new SchemaResolver;
+        $schemaLoader = new SchemaLoader(new SchemaParser, $resolver, true);
         $validator = apply_filters('fastendpoints_validator', new Validator($schemaLoader), $this);
 
         return apply_filters($this->suffix.'_validator', $validator, $this);

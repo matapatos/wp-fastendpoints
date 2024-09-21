@@ -19,7 +19,6 @@ use Opis\JsonSchema\SchemaLoader;
 use Opis\JsonSchema\Uri;
 use Opis\JsonSchema\Validator;
 use TypeError;
-use Wp\FastEndpoints\Contracts\JsonSchema;
 use Wp\FastEndpoints\Helpers\Arr;
 use Wp\FastEndpoints\Helpers\WpError;
 use Wp\FastEndpoints\Schemas\Opis\Parsers\ResponseSchemaParser;
@@ -248,13 +247,11 @@ class ResponseMiddleware extends JsonSchema
 
     /**
      * Retrieves a JSON schema validator with a given SchemaResolver
-     *
-     * @param  ?SchemaResolver  $resolver
      */
     public function createValidatorWithResolver(?SchemaResolver $resolver): Validator
     {
-        $resolver = $resolver ?? new SchemaResolver();
-        $schemaLoader = new SchemaLoader(new ResponseSchemaParser(), $resolver, true);
+        $resolver = $resolver ?? new SchemaResolver;
+        $schemaLoader = new SchemaLoader(new ResponseSchemaParser, $resolver, true);
         $validator = apply_filters('fastendpoints_validator', new Validator($schemaLoader), $this);
 
         return apply_filters($this->suffix.'_validator', $validator, $this);

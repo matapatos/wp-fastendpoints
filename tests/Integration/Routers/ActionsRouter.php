@@ -22,13 +22,13 @@ $router->appendSchemaDir(\SCHEMAS_DIR, 'https://www.wp-fastendpoints.com');
 $router->get('/middleware/on-request/(?P<action>\w+)', function (): bool {
     return true;
 })
-    ->middleware(new OnRequestErrorActionMiddleware());
+    ->middleware(new OnRequestErrorActionMiddleware);
 
 // Triggers onResponse middleware
 $router->get('/middleware/on-response/(?P<action>\w+)', function (): bool {
     return true;
 })
-    ->middleware(new OnResponseErrorActionMiddleware());
+    ->middleware(new OnResponseErrorActionMiddleware);
 
 $triggerPermissionCallback = function (string $action) {
     if ($action !== 'allowed') {

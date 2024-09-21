@@ -13,8 +13,8 @@ declare(strict_types=1);
 namespace Wp\FastEndpoints;
 
 use Invoker\Invoker;
-use Wp\FastEndpoints\Contracts\Endpoint as EndpointInterface;
-use Wp\FastEndpoints\Contracts\Middleware;
+use Wp\FastEndpoints\Contracts\Http\Endpoint as EndpointInterface;
+use Wp\FastEndpoints\Contracts\Middlewares\Middleware;
 use Wp\FastEndpoints\Helpers\WpError;
 use Wp\FastEndpoints\Schemas\ResponseMiddleware;
 use Wp\FastEndpoints\Schemas\SchemaMiddleware;
@@ -95,8 +95,6 @@ class Endpoint implements EndpointInterface
      * JSON SchemaMiddleware used to validate request params
      *
      * @since 0.9.0
-     *
-     * @var ?SchemaMiddleware
      */
     public ?SchemaMiddleware $schema = null;
 
@@ -104,8 +102,6 @@ class Endpoint implements EndpointInterface
      * JSON SchemaMiddleware used to retrieve data to client - ignores additional properties
      *
      * @since 0.9.0
-     *
-     * @var ?ResponseMiddleware
      */
     public ?ResponseMiddleware $responseSchema = null;
 
@@ -162,8 +158,8 @@ class Endpoint implements EndpointInterface
         $this->handler = $handler;
         $this->args = $args;
         $this->override = $override;
-        $this->schemaResolver = $schemaResolver ?? new SchemaResolver();
-        $this->invoker = new Invoker();
+        $this->schemaResolver = $schemaResolver ?? new SchemaResolver;
+        $this->invoker = new Invoker;
     }
 
     /**
@@ -363,7 +359,7 @@ class Endpoint implements EndpointInterface
         $dependencies = [
             'endpoint' => $this,
             'request' => $request,
-            'response' => new WP_REST_Response(),
+            'response' => new WP_REST_Response,
         ] + $request->get_url_params();
         // onRequest handlers.
         $result = $this->runHandlers($this->onRequestHandlers, $dependencies);

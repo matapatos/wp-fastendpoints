@@ -39,7 +39,7 @@ test('validate valid parameters', function ($loadSchemaFrom) {
     });
     $schema = 'https://www.wp-fastendpoints.com/Users/Get.json';
     $expectedContents = Helpers::loadSchema(\SCHEMAS_DIR.'Users/Get');
-    $schemaResolver = new SchemaResolver();
+    $schemaResolver = new SchemaResolver;
     $schemaResolver->registerPrefix('https://www.wp-fastendpoints.com', \SCHEMAS_DIR);
     if ($loadSchemaFrom == LoadSchema::FromArray) {
         $schemaResolver->unregisterPrefix('https://www.wp-fastendpoints.com');
@@ -78,7 +78,7 @@ test('validate invalid parameters', function ($loadSchemaFrom) {
         return $path1.'/'.$path2;
     });
     $schema = 'https://www.wp-fastendpoints.com/Users/Get.json';
-    $schemaResolver = new SchemaResolver();
+    $schemaResolver = new SchemaResolver;
     $expectedContents = Helpers::loadSchema(\SCHEMAS_DIR.'Users/Get');
     $schemaResolver->registerPrefix('https://www.wp-fastendpoints.com', \SCHEMAS_DIR);
     if ($loadSchemaFrom == LoadSchema::FromArray) {
@@ -182,7 +182,7 @@ test('Always rejects requests when no schema content is defined', function ($val
 // getSchema()
 
 test('Retrieving correct schema as a string', function (string $schema) {
-    $schemaResolver = new SchemaResolver();
+    $schemaResolver = new SchemaResolver;
     $schemaResolver->registerPrefix('http://www.example.com', '/fake-dir');
     $middleware = new SchemaMiddleware($schema, $schemaResolver);
     $expectedSchema = $schema;

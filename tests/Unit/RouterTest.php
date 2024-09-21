@@ -42,7 +42,7 @@ dataset('http_methods', [
 // Constructor
 
 test('Creating Router instance', function () {
-    $router = new Router();
+    $router = new Router;
     expect($router)->toBeInstanceOf(Router::class);
     $router = new Router('my-api', 'v45');
     expect($router)->toBeInstanceOf(Router::class);
@@ -206,7 +206,7 @@ test('Skipping registering a router via hook', function () {
         ->with(true, Mockery::type(Router::class))
         ->andReturn(false);
 
-    $router = new Router();
+    $router = new Router;
     $router->register();
     $this->assertSame(Filters\applied('fastendpoints_is_to_register'), 1);
     $this->assertSame(Actions\did('fastendpoints_before_register'), 0);
@@ -235,7 +235,7 @@ test('Register router with invalid version', function () {
     Functions\when('wp_die')->alias(function ($msg) {
         throw new Exception($msg);
     });
-    $router = new Router();
+    $router = new Router;
     expect(function () use ($router) {
         $router->register();
     })->toThrow(Exception::class, 'No api version specified in the parent router');
