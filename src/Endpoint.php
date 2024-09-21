@@ -212,7 +212,7 @@ class Endpoint implements EndpointInterface
      *
      * @since 0.9.0
      */
-    public function hasCap(string $capability, ...$args): Endpoint
+    public function hasCap(string $capability, ...$args): self
     {
         if (! $capability) {
             \wp_die(\esc_html__('Invalid capability. Empty capability given'));
@@ -243,7 +243,7 @@ class Endpoint implements EndpointInterface
      *
      * @param  string|array  $schema  Filepath to the JSON schema or a JSON schema as an array.
      */
-    public function schema(string|array $schema): Endpoint
+    public function schema(string|array $schema): self
     {
         $this->schema = new SchemaMiddleware($schema, $this->schemaResolver);
         $this->onRequestHandlers[] = [$this->schema, 'onRequest'];
@@ -264,7 +264,7 @@ class Endpoint implements EndpointInterface
      *                                                        If true removes all additional properties from the response. If false allows additional properties to be retrieved.
      *                                                        If null it will use the JSON schema additionalProperties value. If a string allows only those variable types (e.g. integer)
      */
-    public function returns(string|array $schema, string|bool|null $removeAdditionalProperties = true): Endpoint
+    public function returns(string|array $schema, string|bool|null $removeAdditionalProperties = true): self
     {
         $this->responseSchema = new ResponseMiddleware($schema, $removeAdditionalProperties, $this->schemaResolver);
         $this->onResponseHandlers[] = [$this->responseSchema, 'onResponse'];
@@ -279,7 +279,7 @@ class Endpoint implements EndpointInterface
      *
      * @param  Middleware  $middleware  Middleware to be plugged.
      */
-    public function middleware(Middleware $middleware): Endpoint
+    public function middleware(Middleware $middleware): self
     {
         if (method_exists($middleware, 'onRequest')) {
             $this->onRequestHandlers[] = [$middleware, 'onRequest'];
@@ -294,7 +294,7 @@ class Endpoint implements EndpointInterface
     /**
      * Specifies a set of plugins that are needed by the endpoint
      */
-    public function depends(string|array $plugins): Endpoint
+    public function depends(string|array $plugins): self
     {
         if (is_string($plugins)) {
             $plugins = [$plugins];
@@ -336,7 +336,7 @@ class Endpoint implements EndpointInterface
      *
      * @param  callable  $permissionCb  Method to be called to check current user permissions.
      */
-    public function permission(callable $permissionCb): Endpoint
+    public function permission(callable $permissionCb): self
     {
         $this->permissionHandlers[] = $permissionCb;
 
