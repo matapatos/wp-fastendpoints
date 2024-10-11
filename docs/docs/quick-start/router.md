@@ -93,12 +93,12 @@ $router->put('(?P<ID>[\d]+)', function (\WP_REST_Request $request): int|\WP_Erro
     return wp_update_post($payload, true);
 })
     ->schema('Posts/CreateOrUpdate')
-    ->hasCap('edit_post', '{ID}');
+    ->hasCap('edit_post', '<ID>');
 ```
 
 The code above is not that different from the one for creating a post. However, in the last line
-`hasCap('edit_post', '{post_id}')` the second parameter is a special one for FastEndpoints
-which will try to replace it by the _post_id_ parameter.
+`hasCap('edit_post', '<ID>')` the second parameter is a special one for FastEndpoints
+which will try to replace it by the _ID_ parameter.
 
 !!! warning
     FastEndpoints will only replace the *{PARAM_NAME}* if that parameter
@@ -117,7 +117,7 @@ $router->delete('(?P<ID>[\d]+)', function ($ID) {
     return $post ?: new WpError(500, 'Unable to delete post');
 })
     ->returns('Posts/Get')
-    ->hasCap('delete_post', '{ID}');
+    ->hasCap('delete_post', '<ID>');
 ```
 
 ## Everything together
@@ -161,7 +161,7 @@ $router->put('(?P<ID>[\d]+)', function (\WP_REST_Request $request): int|\WP_Erro
     return wp_update_post($payload, true);
 })
     ->schema('Posts/CreateOrUpdate')
-    ->hasCap('edit_post', '{ID}');
+    ->hasCap('edit_post', '<ID>');
 
 // Deletes a post
 $router->delete('(?P<ID>[\d]+)', function ($ID) {
@@ -170,7 +170,7 @@ $router->delete('(?P<ID>[\d]+)', function ($ID) {
     return $post ?: new WpError(500, 'Unable to delete post');
 })
     ->returns('Posts/Get')
-    ->hasCap('delete_post', '{ID}');
+    ->hasCap('delete_post', '<ID>');
 
 // IMPORTANT: If no service provider is used make sure to set a version to the $router and call
 //            the following function here:
