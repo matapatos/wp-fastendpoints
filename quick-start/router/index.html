@@ -1114,10 +1114,10 @@ real world we sometimes also need to check for a particular resource.</p>
     return wp_update_post($payload, true);
 })
     -&gt;schema('Posts/CreateOrUpdate')
-    -&gt;hasCap('edit_post', '{ID}');</code></pre>
+    -&gt;hasCap('edit_post', '&lt;ID&gt;');</code></pre>
 <p>The code above is not that different from the one for creating a post. However, in the last line
-<code>hasCap('edit_post', '{post_id}')</code> the second parameter is a special one for FastEndpoints
-which will try to replace it by the <em>post_id</em> parameter.</p>
+<code>hasCap('edit_post', '&lt;ID&gt;')</code> the second parameter is a special one for FastEndpoints
+which will try to replace it by the <em>ID</em> parameter.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>FastEndpoints will only replace the <em>{PARAM_NAME}</em> if that parameter
@@ -1134,7 +1134,7 @@ $router-&gt;delete('(?P&lt;ID&gt;[\d]+)', function ($ID) {
     return $post ?: new WpError(500, 'Unable to delete post');
 })
     -&gt;returns('Posts/Get')
-    -&gt;hasCap('delete_post', '{ID}');</code></pre>
+    -&gt;hasCap('delete_post', '&lt;ID&gt;');</code></pre>
 <h2 id="everything-together">Everything together</h2>
 <pre class="highlight"><code class="language-php">"""
 Api/Endpoints/Posts.php
@@ -1174,7 +1174,7 @@ $router-&gt;put('(?P&lt;ID&gt;[\d]+)', function (\WP_REST_Request $request): int
     return wp_update_post($payload, true);
 })
     -&gt;schema('Posts/CreateOrUpdate')
-    -&gt;hasCap('edit_post', '{ID}');
+    -&gt;hasCap('edit_post', '&lt;ID&gt;');
 
 // Deletes a post
 $router-&gt;delete('(?P&lt;ID&gt;[\d]+)', function ($ID) {
@@ -1183,7 +1183,7 @@ $router-&gt;delete('(?P&lt;ID&gt;[\d]+)', function ($ID) {
     return $post ?: new WpError(500, 'Unable to delete post');
 })
     -&gt;returns('Posts/Get')
-    -&gt;hasCap('delete_post', '{ID}');
+    -&gt;hasCap('delete_post', '&lt;ID&gt;');
 
 // IMPORTANT: If no service provider is used make sure to set a version to the $router and call
 //            the following function here:

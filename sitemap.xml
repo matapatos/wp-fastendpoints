@@ -2,87 +2,87 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://matapatos.github.io/wp-fastendpoints/</loc>
-         <lastmod>2024-05-24</lastmod>
+         <lastmod>2024-10-11</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://matapatos.github.io/wp-fastendpoints/release/</loc>
-         <lastmod>2024-05-24</lastmod>
+         <lastmod>2024-10-11</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://matapatos.github.io/wp-fastendpoints/advanced-user-guide/</loc>
-         <lastmod>2024-05-24</lastmod>
+         <lastmod>2024-10-11</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://matapatos.github.io/wp-fastendpoints/advanced-user-guide/dependency-injection/</loc>
-         <lastmod>2024-05-24</lastmod>
+         <lastmod>2024-10-11</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://matapatos.github.io/wp-fastendpoints/advanced-user-guide/middlewares/</loc>
-         <lastmod>2024-05-24</lastmod>
+         <lastmod>2024-10-11</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://matapatos.github.io/wp-fastendpoints/advanced-user-guide/request-life-cycle/</loc>
-         <lastmod>2024-05-24</lastmod>
+         <lastmod>2024-10-11</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://matapatos.github.io/wp-fastendpoints/advanced-user-guide/responses/</loc>
-         <lastmod>2024-05-24</lastmod>
+         <lastmod>2024-10-11</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://matapatos.github.io/wp-fastendpoints/advanced-user-guide/json-schemas/multiple-root-dirs/</loc>
-         <lastmod>2024-05-24</lastmod>
+         <lastmod>2024-10-11</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://matapatos.github.io/wp-fastendpoints/advanced-user-guide/json-schemas/references/</loc>
-         <lastmod>2024-05-24</lastmod>
+         <lastmod>2024-10-11</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://matapatos.github.io/wp-fastendpoints/advanced-user-guide/json-schemas/validator/</loc>
-         <lastmod>2024-05-24</lastmod>
+         <lastmod>2024-10-11</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://matapatos.github.io/wp-fastendpoints/quick-start/</loc>
-         <lastmod>2024-05-24</lastmod>
+         <lastmod>2024-10-11</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://matapatos.github.io/wp-fastendpoints/quick-start/json-schemas/</loc>
-         <lastmod>2024-05-24</lastmod>
+         <lastmod>2024-10-11</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://matapatos.github.io/wp-fastendpoints/quick-start/router/</loc>
-         <lastmod>2024-05-24</lastmod>
+         <lastmod>2024-10-11</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://matapatos.github.io/wp-fastendpoints/quick-start/service-provider/</loc>
-         <lastmod>2024-05-24</lastmod>
+         <lastmod>2024-10-11</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://matapatos.github.io/wp-fastendpoints/quick-start/tests/</loc>
-         <lastmod>2024-05-24</lastmod>
+         <lastmod>2024-10-11</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://matapatos.github.io/wp-fastendpoints/quick-start/tests/integration/</loc>
-         <lastmod>2024-05-24</lastmod>
+         <lastmod>2024-10-11</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://matapatos.github.io/wp-fastendpoints/quick-start/tests/unit/</loc>
-         <lastmod>2024-05-24</lastmod>
+         <lastmod>2024-10-11</lastmod>
          <changefreq>daily</changefreq>
     </url>
 </urlset>

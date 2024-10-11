@@ -76,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#v122" class="md-skip">
+        <a href="#v200" class="md-skip">
           Skip to content
         </a>
       
@@ -890,6 +890,15 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#v200" class="md-nav__link">
+    <span class="md-ellipsis">
+      v2.0.0
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#v122" class="md-nav__link">
     <span class="md-ellipsis">
       v1.2.2
@@ -967,6 +976,15 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#v200" class="md-nav__link">
+    <span class="md-ellipsis">
+      v2.0.0
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#v122" class="md-nav__link">
     <span class="md-ellipsis">
       v1.2.2
@@ -1031,6 +1049,21 @@
 
   <h1>Release Notes</h1>
 
+<h2 id="v200">v2.0.0</h2>
+<p>Support for treating plugins as dependencies.</p>
+<ul>
+<li><code>depends(['buddypress''])</code> - Only loads the BuddyPress plugin for this given endpoint</li>
+</ul>
+<pre class="highlight"><code class="language-php">$router-&gt;get('/users/(?P&lt;ID&gt;[\d]+)', function ($ID) {
+    return get_user_by('id', $ID);
+})
+-&gt;returns('Users/Get')
+-&gt;depends(['buddypress']);  // Only BuddyPress plugin will be loaded for this REST endpoint</code></pre>
+<div class="admonition warn">
+<p class="admonition-title">Warn</p>
+</div>
+<p>Make sure to run the following WP-CLI command after a successfull deployment:
+<code>wp</code></p>
 <h2 id="v122">v1.2.2</h2>
 <p>Three new filters that allows us to customise our JSON schema validator's.</p>
 <ul>
