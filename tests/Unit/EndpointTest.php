@@ -43,8 +43,7 @@ test('Creating Endpoint instance', function () {
         ->and(Helpers::getNonPublicClassProperty($endpoint, 'route'))->toBe('/my-endpoint')
         ->and(Helpers::getNonPublicClassProperty($endpoint, 'handler'))->toBe('__return_false')
         ->and(Helpers::getNonPublicClassProperty($endpoint, 'args'))->toEqual(['my-args'])
-        ->and(Helpers::getNonPublicClassProperty($endpoint, 'override'))->toBeFalse()
-        ->and($endpoint->getHttpMethod())->toBe('GET');
+        ->and(Helpers::getNonPublicClassProperty($endpoint, 'override'))->toBeFalse();
 })->group('endpoint', 'constructor');
 
 // Register
@@ -94,8 +93,8 @@ test('Registering an endpoint', function (bool $withSchema, bool $withResponseSc
 
             return true;
         });
-    expect($endpoint->register('my-namespace', 'v1/users', ['my-schema-dir']))->toBeTrue()
-        ->and($endpoint->getFullRestRoute())->toBe('/my-namespace/v1/users/my-endpoint');
+    expect($endpoint->register('my-namespace', 'v1/users'))
+        ->toBeTrue();
 })->with([true, false])->with([true, false])->with([null, '__return_false'])->group('endpoint', 'register');
 
 test('Skipping registering endpoint if no args specified', function () {
@@ -441,31 +440,25 @@ test('Specifying endpoint dependencies', function (array|string $dependencies) {
     $endpoint = new Endpoint('GET', '/dependencies', '__return_false');
     $endpoint->depends($dependencies);
     $dependencies = is_string($dependencies) ? [$dependencies] : $dependencies;
-    Filters\expectApplied('fastendpoints_endpoint_plugins')
-        ->once()
-        ->with($dependencies, $endpoint);
-    expect($endpoint->getRequiredPlugins())
+    $plugins = Helpers::getNonPublicClassProperty($endpoint, 'plugins');
+    expect($plugins)
         ->toBeArray()
         ->toBe($dependencies);
 })->with([
     'plugin1',
     [['plugin1', 'plugin2']],
-])->group('endpoint', 'getRoute');
+])->group('endpoint', 'depends');
 
 test('Specifying endpoint dependencies multiple times', function (string $firstDependency, string $secondDependency) {
     $endpoint = new Endpoint('GET', '/dependencies', '__return_false');
     $endpoint->depends($firstDependency);
-    Filters\expectApplied('fastendpoints_endpoint_plugins')
-        ->once()
-        ->with([$firstDependency], $endpoint);
-    expect($endpoint->getRequiredPlugins())
+    $plugins = Helpers::getNonPublicClassProperty($endpoint, 'plugins');
+    expect($plugins)
         ->toBeArray()
         ->toBe([$firstDependency]);
     $endpoint->depends($secondDependency);
-    Filters\expectApplied('fastendpoints_endpoint_plugins')
-        ->once()
-        ->with([$firstDependency, $secondDependency], $endpoint);
-    expect($endpoint->getRequiredPlugins())
+    $plugins = Helpers::getNonPublicClassProperty($endpoint, 'plugins');
+    expect($plugins)
         ->toBeArray()
         ->toBe([$firstDependency, $secondDependency]);
-})->with([['plugin1', 'plugin2']])->group('endpoint', 'getRoute');
+})->with([['plugin1', 'plugin2']])->group('endpoint', 'depends');
