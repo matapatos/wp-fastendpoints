@@ -183,14 +183,21 @@ test('Append schema directories', function ($dir) {
 test('Register endpoints', function () {
     $endpointMock1 = Mockery::mock(Endpoint::class)
         ->expects()
+        ->depends(['router-plugin'])
+        ->getMock()
+        ->expects()
         ->register('custom-api/v3', '')
         ->getMock();
     $endpointMock2 = Mockery::mock(Endpoint::class)
+        ->expects()
+        ->depends(['router-plugin'])
+        ->getMock()
         ->expects()
         ->register('custom-api/v3', '')
         ->getMock();
 
     $router = new Router('custom-api', 'v3');
+    $router->depends('router-plugin');
     Helpers::setNonPublicClassProperty($router, 'schemaDirs', ['fake-prefix' => 'tests-schema-dir']);
     Helpers::setNonPublicClassProperty($router, 'endpoints', [$endpointMock1, $endpointMock2]);
     expect(Helpers::getNonPublicClassProperty($router, 'registered'))->toBeFalse();
@@ -324,3 +331,62 @@ test('Register router with sub-routers', function () {
     $this->assertSame(Actions\did('fastendpoints_before_register'), 1);
     $this->assertSame(Actions\did('fastendpoints_after_register'), 1);
 })->group('router', 'register');
+
+test('Register routers with dependencies', function () {
+    Functions\when('esc_html__')->returnArg();
+
+    $router = new Router('api', 'v1');
+    $router->depends(['api-plugin']);
+
+    $subNoDependsRouter = new Router('sub-no-dependencies');
+
+    $subRouter = new Router('sub');
+    $subRouter->depends('sub-plugin');
+
+    $childSubRouter = new Router('child');
+    $childSubRouter->depends(['child-plugin', 'child-2-plugin']);
+
+    $router->includeRouter($subNoDependsRouter);
+    $subRouter->includeRouter($childSubRouter);
+    $router->includeRouter($subRouter);
+
+    $router->register();
+
+    expect(Helpers::getNonPublicClassProperty($router, 'plugins'))
+        ->toBe(['api-plugin'])
+        ->and(Helpers::getNonPublicClassProperty($subNoDependsRouter, 'plugins'))
+        ->toBe(['api-plugin'])
+        ->and(Helpers::getNonPublicClassProperty($subRouter, 'plugins'))
+        ->toBe(['sub-plugin', 'api-plugin'])
+        ->and(Helpers::getNonPublicClassProperty($childSubRouter, 'plugins'))
+        ->toBe(['child-plugin', 'child-2-plugin', 'sub-plugin', 'api-plugin']);
+})->group('router', 'register');
+
+// depends
+
+test('Specifying router dependencies', function (array|string $dependencies) {
+    $router = new Router('api', 'v1');
+    $router->depends($dependencies);
+    $dependencies = is_string($dependencies) ? [$dependencies] : $dependencies;
+    $plugins = Helpers::getNonPublicClassProperty($router, 'plugins');
+    expect($plugins)
+        ->toBeArray()
+        ->toBe($dependencies);
+})->with([
+    'plugin1',
+    [['plugin1', 'plugin2']],
+])->group('router', 'depends');
+
+test('Specifying router dependencies multiple times', function (string $firstDependency, string $secondDependency) {
+    $router = new Router('api', 'v1');
+    $router->depends($firstDependency);
+    $plugins = Helpers::getNonPublicClassProperty($router, 'plugins');
+    expect($plugins)
+        ->toBeArray()
+        ->toBe([$firstDependency]);
+    $router->depends($secondDependency);
+    $plugins = Helpers::getNonPublicClassProperty($router, 'plugins');
+    expect($plugins)
+        ->toBeArray()
+        ->toBe([$firstDependency, $secondDependency]);
+})->with([['plugin1', 'plugin2']])->group('router', 'depends');

@@ -92,6 +92,13 @@ class Router implements RouterContract
     protected string $version;
 
     /**
+     * Required dependencies for this router
+     *
+     * @since 2.1.0
+     */
+    protected string|array|null $plugins = null;
+
+    /**
      * Looks for the correct JSON schema to be loaded
      *
      * @since 1.2.1
@@ -104,6 +111,7 @@ class Router implements RouterContract
      * @param  string  $base  Router base path if this router is the parent router would be used as
      *                        the namespace. Default value: 'api'.
      * @param  string  $version  Router version. Default value: ''.
+     * @param  string|array|null  $dependencies  Router dependencies. Default value: [].
      */
     public function __construct(string $base = 'api', string $version = '')
     {
@@ -264,6 +272,10 @@ class Router implements RouterContract
             foreach ($this->schemaDirs as $uriPrefix => $dir) {
                 $router->appendSchemaDir($dir, $uriPrefix);
             }
+            if ($this->plugins !== null) {
+                $router->depends($this->plugins);
+            }
+
             $router->register();
         }
 
@@ -284,6 +296,10 @@ class Router implements RouterContract
         $namespace = $this->getNamespace();
         $restBase = $this->getRestBase();
         foreach ($this->endpoints as $e) {
+            if ($this->plugins !== null) {
+                $e->depends($this->plugins);
+            }
+
             $e->register($namespace, $restBase);
         }
         $this->registered = true;
@@ -367,7 +383,7 @@ class Router implements RouterContract
      * @param  callable  $handler  User specified handler for the endpoint.
      * @param  array  $args  Same as the WordPress register_rest_route $args parameter. If set it can override the default
      *                       WP FastEndpoints arguments. Default value: [].
-     * @param  bool  $override  Same as the WordPress register_rest_route $override parameter. Defaul value: false.
+     * @param  bool  $override  Same as the WordPress register_rest_route $override parameter. Default value: false.
      */
     public function endpoint(
         string $method,
@@ -380,5 +396,19 @@ class Router implements RouterContract
         $this->endpoints[] = $endpoint;
 
         return $endpoint;
+    }
+
+    /**
+     * Specifies a set of plugins that are needed by this router and all sub-routers
+     */
+    public function depends(string|array $plugins): self
+    {
+        if (is_string($plugins)) {
+            $plugins = [$plugins];
+        }
+
+        $this->plugins = array_merge($this->plugins ?: [], $plugins);
+
+        return $this;
     }
 }
