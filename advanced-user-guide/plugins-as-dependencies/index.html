@@ -1084,23 +1084,21 @@ $router-&gt;get('/example/buddypress', function () {
 })-&gt;depends(['my-plugin', 'buddypress']);</code></pre>
 </div>
 <div class="tabbed-block">
-<p>```php
-// Loads all active plugins
+<pre class="highlight"><code class="language-php">// Loads all active plugins
 register_rest_route('native/v1', 'example/all-plugins', [
     'methods' =&gt; 'GET',
-    // (...)
-]);</p>
-<p>// Only MyPlugin and BuddyPress plugins are loaded
+    (...)
+]);
+
+// Only MyPlugin and BuddyPress plugins are loaded
 register_rest_route('native/v1', 'example/buddypress', [
     'methods' =&gt; 'GET',
     'depends' =&gt; ['my-plugin', 'buddypress'],
-    // (...)
-]);</p>
+    (...)
+]);</code></pre>
 </div>
 </div>
 </div>
-<p>});
-    ```</p>
 <details class="tip" open="open">
 <summary>Tip</summary>
 <p>By default, if no dependencies are specified in an endpoint it assumes that all active plugins needs
