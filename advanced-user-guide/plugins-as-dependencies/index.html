@@ -1085,13 +1085,13 @@ $router-&gt;get('/example/buddypress', function () {
 </div>
 <div class="tabbed-block">
 <p>```php
-// Loads all active plugins
 register_rest_route('native/v1', 'example/all-plugins', [
+    // Loads all active plugins
     'methods' =&gt; 'GET',
     (...)
 ]);</p>
-<p>// Only MyPlugin and BuddyPress plugins are loaded
-register_rest_route('native/v1', 'example/buddypress', [
+<p>register_rest_route('native/v1', 'example/buddypress', [
+    // Only MyPlugin and BuddyPress plugins are loaded
     'methods' =&gt; 'GET',
     'depends' =&gt; ['my-plugin', 'buddypress'],
     (...)
