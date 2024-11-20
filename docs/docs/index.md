@@ -23,6 +23,7 @@ hide:
 - IDE auto completion support
 - No magic router. It uses WordPress [`register_rest_route`](https://developer.wordpress.org/reference/functions/register_rest_route/)
 - Support for newer JSON schema drafts thanks to [opis/json-schema](https://opis.io/json-schema/2.x/)
+- Able to treat plugins as dependencies via [WP-FastEndpoints Depends](https://github.com/matapatos/wp-fastendpoints-depends)
 
 ## Requirements
 

@@ -62,6 +62,7 @@ nav:
       - Multiple Root Dirs: advanced-user-guide/json-schemas/multiple-root-dirs.md
       - Validator: advanced-user-guide/json-schemas/validator.md
       - References: advanced-user-guide/json-schemas/references.md
+    - Treat plugins as dependencies: advanced-user-guide/plugins-as-dependencies.md
   - Release Notes: release.md
 extra:
   social:

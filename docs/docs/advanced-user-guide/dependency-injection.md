@@ -34,4 +34,3 @@ With dependency injection our endpoints do look much cleaner ✨🧹
         return $allPosts ? $allPosts[array_rand($allPosts)] : new WpError(404, 'No posts found');
     });
     ```
-
