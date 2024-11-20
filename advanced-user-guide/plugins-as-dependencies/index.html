@@ -928,6 +928,24 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#endpoint-dependencies-config" class="md-nav__link">
+    <span class="md-ellipsis">
+      Endpoint dependencies config
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#useful-constants" class="md-nav__link">
+    <span class="md-ellipsis">
+      Useful constants
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1030,6 +1048,24 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#endpoint-dependencies-config" class="md-nav__link">
+    <span class="md-ellipsis">
+      Endpoint dependencies config
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#useful-constants" class="md-nav__link">
+    <span class="md-ellipsis">
+      Useful constants
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1118,6 +1154,20 @@ $router-&gt;depends(['my-plugin']); // All endpoints and sub-routers would have 
 For instance, if your endpoints reside inside a plugin with a slug <code>my-plugin</code> you have to set the dependencies
 to <code>['my-plugin']</code> otherwise when a request is received for that endpoint <code>my-plugin</code> will not be loaded.</p>
 </div>
+<h3 id="endpoint-dependencies-config">Endpoint dependencies config</h3>
+<p>Under the hood, this plugin generates a config file with all the route dependencies. To have the most
+up-to-date endpoint dependencies, make sure to either:</p>
+<ul>
+<li>run the <code>wp fastendpoints depends</code> command or </li>
+<li>activate any plugin on the website - this also triggers the re-generation of the route dependencies</li>
+</ul>
+<h3 id="useful-constants">Useful constants</h3>
+<ul>
+<li><em>FASTENDPOINTS_DEPENDS_ENABLED</em> - If set to false always loads all active plugins. <strong>Useful for local development</strong>  </li>
+<li><em>FASTENDPOINTS_DEPENDS_CONFIG_FILEPATH</em> - Overrides dependencies config file path</li>
+<li><em>FASTENDPOINTS_DEPENDS_REFRESH_ON_PLUGIN_ACTIVATION</em> - If set to false, disables re-generating endpoint dependencies
+when any plugin is activated</li>
+</ul>
 
 
 
