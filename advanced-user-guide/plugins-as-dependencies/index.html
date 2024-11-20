@@ -1155,8 +1155,8 @@ For instance, if your endpoints reside inside a plugin with a slug <code>my-plug
 to <code>['my-plugin']</code> otherwise when a request is received for that endpoint <code>my-plugin</code> will not be loaded.</p>
 </div>
 <h3 id="endpoint-dependencies-config">Endpoint dependencies config</h3>
-<p>Under the hood, this plugin generates a config file with all the route dependencies. To have the most
-up-to-date endpoint dependencies, make sure to either:</p>
+<p>Under the hood, this plugin generates a config file with all the route dependencies (see <a href="https://github.com/matapatos/wp-fastendpoints-depends/blob/main/tests/Data/config.php">example</a>).
+To have the most up-to-date endpoint dependencies, make sure to either:</p>
 <ul>
 <li>run the <code>wp fastendpoints depends</code> command or </li>
 <li>activate any plugin on the website - this also triggers the re-generation of the route dependencies</li>
