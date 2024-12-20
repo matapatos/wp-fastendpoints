@@ -12,13 +12,10 @@ declare(strict_types=1);
 
 namespace Wp\FastEndpoints;
 
-use Invoker\Invoker;
 use Wp\FastEndpoints\Contracts\Http\Endpoint as EndpointInterface;
 use Wp\FastEndpoints\Contracts\Middlewares\Middleware;
+use Wp\FastEndpoints\DependencyInjection\Invoker;
 use Wp\FastEndpoints\Helpers\WpError;
-use Wp\FastEndpoints\Schemas\ResponseMiddleware;
-use Wp\FastEndpoints\Schemas\SchemaMiddleware;
-use Wp\FastEndpoints\Schemas\SchemaResolver;
 use WP_Error;
 use WP_Http;
 use WP_REST_Request;
@@ -73,32 +70,11 @@ class Endpoint implements EndpointInterface
     protected ?array $plugins = null;
 
     /**
-     * Finds the correct JSON schema to be loaded
-     *
-     * @since 1.2.1
-     */
-    protected SchemaResolver $schemaResolver;
-
-    /**
      * Same as the register_rest_route $override parameter
      *
      * @since 0.9.0
      */
     protected bool $override;
-
-    /**
-     * JSON SchemaMiddleware used to validate request params
-     *
-     * @since 0.9.0
-     */
-    public ?SchemaMiddleware $schema = null;
-
-    /**
-     * JSON SchemaMiddleware used to retrieve data to client - ignores additional properties
-     *
-     * @since 0.9.0
-     */
-    public ?ResponseMiddleware $responseSchema = null;
 
     /**
      * Set of functions used inside the permissionCallback endpoint
@@ -128,7 +104,7 @@ class Endpoint implements EndpointInterface
     protected array $onResponseHandlers = [];
 
     /**
-     * Dependency injection
+     * Invokes callable's with necessary dependencies
      *
      * @since 1.2.0
      */
@@ -146,15 +122,13 @@ class Endpoint implements EndpointInterface
      *                       WP FastEndpoints arguments.
      * @param  bool  $override  Same as the WordPress register_rest_route $override parameter. Default value: false.
      */
-    public function __construct(string $method, string $route, callable $handler, array $args = [], bool $override = false, ?SchemaResolver $schemaResolver = null)
+    public function __construct(string $method, string $route, callable $handler, array $args = [], bool $override = false)
     {
         $this->method = $method;
         $this->route = $route;
         $this->handler = $handler;
         $this->args = $args;
         $this->override = $override;
-        $this->schemaResolver = $schemaResolver ?? new SchemaResolver;
-        $this->invoker = new Invoker;
     }
 
     /**
@@ -176,9 +150,6 @@ class Endpoint implements EndpointInterface
             'permission_callback' => $this->permissionHandlers ? [$this, 'permissionCallback'] : '__return_true',
             'depends' => $this->plugins,
         ];
-        if ($this->schema) {
-            $args['schema'] = [$this->schema, 'getSchema'];
-        }
         // Override default arguments.
         $args = \array_merge($args, $this->args);
         $args = \apply_filters('fastendpoints_endpoint_args', $args, $namespace, $restBase, $this);
@@ -228,43 +199,6 @@ class Endpoint implements EndpointInterface
 
             return true;
         });
-    }
-
-    /**
-     * Adds a schema validation to the validationHandlers, which will be later called in advance to
-     * validate a REST request according to the given JSON schema.
-     *
-     * @since 0.9.0
-     *
-     * @param  string|array  $schema  Filepath to the JSON schema or a JSON schema as an array.
-     */
-    public function schema(string|array $schema): self
-    {
-        $this->schema = new SchemaMiddleware($schema, $this->schemaResolver);
-        $this->onRequestHandlers[] = [$this->schema, 'onRequest'];
-
-        return $this;
-    }
-
-    /**
-     * Adds a response schema to the endpoint. This JSON schema will later on filter the response before sending
-     * it to the client. This can be great to:
-     * 1) Discard unnecessary properties in the response to avoid the leakage of sensitive data and
-     * 2) Making sure that the required data is retrieved.
-     *
-     * @since 0.9.0
-     *
-     * @param  string|array  $schema  Filepath to the JSON schema or a JSON schema as an array.
-     * @param  string|bool|null  $removeAdditionalProperties  Option which defines if we want to remove additional properties.
-     *                                                        If true removes all additional properties from the response. If false allows additional properties to be retrieved.
-     *                                                        If null it will use the JSON schema additionalProperties value. If a string allows only those variable types (e.g. integer)
-     */
-    public function returns(string|array $schema, string|bool|null $removeAdditionalProperties = true): self
-    {
-        $this->responseSchema = new ResponseMiddleware($schema, $removeAdditionalProperties, $this->schemaResolver);
-        $this->onResponseHandlers[] = [$this->responseSchema, 'onResponse'];
-
-        return $this;
     }
 
     /**
@@ -328,10 +262,15 @@ class Endpoint implements EndpointInterface
     public function callback(WP_REST_Request $request): WP_REST_Response|WP_Error
     {
         $dependencies = [
-            'endpoint' => $this,
-            'request' => $request,
-            'response' => new WP_REST_Response,
+            '_endpoint' => $this,
+            '_request' => $request,
+            '_response' => new WP_REST_Response,
         ] + $request->get_url_params();
+        $this->invoker = new Invoker([
+            Endpoint::class => $this,
+            WP_REST_Request::class => $request,
+            WP_REST_Response::class => $dependencies['_response'],
+        ]);
         // onRequest handlers.
         $result = $this->runHandlers($this->onRequestHandlers, $dependencies);
         if (\is_wp_error($result) || $result instanceof WP_REST_Response) {
@@ -343,7 +282,7 @@ class Endpoint implements EndpointInterface
         if (\is_wp_error($result) || $result instanceof WP_REST_Response) {
             return $result;
         }
-        $dependencies['response']->set_data($result);
+        $dependencies['_response']->set_data($result);
 
         // onResponse handlers.
         $result = $this->runHandlers($this->onResponseHandlers, $dependencies);
@@ -351,7 +290,7 @@ class Endpoint implements EndpointInterface
             return $result;
         }
 
-        return $dependencies['response'];
+        return $dependencies['_response'];
     }
 
     /**
@@ -367,9 +306,13 @@ class Endpoint implements EndpointInterface
     public function permissionCallback(WP_REST_Request $request): bool|WP_Error
     {
         $dependencies = [
-            'endpoint' => $this,
-            'request' => $request,
+            '_endpoint' => $this,
+            '_request' => $request,
         ] + $request->get_url_params();
+        $this->invoker = new Invoker([
+            Endpoint::class => $this,
+            WP_REST_Request::class => $request,
+        ]);
         $result = $this->runHandlers($this->permissionHandlers, $dependencies);
         if (\is_wp_error($result)) {
             return $result;

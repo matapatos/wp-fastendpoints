@@ -14,7 +14,6 @@ namespace Wp\FastEndpoints;
 
 use Wp\FastEndpoints\Contracts\Http\Endpoint as EndpointContract;
 use Wp\FastEndpoints\Contracts\Http\Router as RouterContract;
-use Wp\FastEndpoints\Schemas\SchemaResolver;
 
 /**
  * A Router can help developers in creating groups of endpoints. This way developers can aggregate
@@ -76,15 +75,6 @@ class Router implements RouterContract
     protected array $endpoints = [];
 
     /**
-     * Dictionary of prefix and directories
-     *
-     * @since 0.9.0
-     *
-     * @var array<string,string>
-     */
-    protected array $schemaDirs = [];
-
-    /**
      * Router version used only if it's a parent router
      *
      * @since 0.9.0
@@ -99,25 +89,16 @@ class Router implements RouterContract
     protected string|array|null $plugins = null;
 
     /**
-     * Looks for the correct JSON schema to be loaded
-     *
-     * @since 1.2.1
-     */
-    protected SchemaResolver $schemaResolver;
-
-    /**
      * Creates a new Router instance
      *
      * @param  string  $base  Router base path if this router is the parent router would be used as
      *                        the namespace. Default value: 'api'.
      * @param  string  $version  Router version. Default value: ''.
-     * @param  string|array|null  $dependencies  Router dependencies. Default value: [].
      */
     public function __construct(string $base = 'api', string $version = '')
     {
         $this->base = $base;
         $this->version = $version;
-        $this->schemaResolver = new SchemaResolver;
     }
 
     /**
@@ -214,29 +195,6 @@ class Router implements RouterContract
     }
 
     /**
-     * Appends an additional directory where to look for the schema
-     *
-     * @param  string  $dir  Directory path where to look for JSON schemas.
-     * @param  string  $uriPrefix  Prefix used to associate schema directory.
-     *
-     * @since 0.9.0
-     */
-    public function appendSchemaDir(string $dir, string $uriPrefix): void
-    {
-        if (! $dir) {
-            \wp_die(\esc_html__('Invalid schema directory'));
-        }
-
-        if (! \is_dir($dir)) {
-            /* translators: 1: SchemaMiddleware directory */
-            \wp_die(\sprintf(\esc_html__('Invalid or not found schema directory: %s'), \esc_html($dir)));
-        }
-
-        $this->schemaDirs[$uriPrefix] = $dir;
-        $this->schemaResolver->registerPrefix($uriPrefix, $dir);
-    }
-
-    /**
      * Adds all actions required to register the defined endpoints
      *
      * @since 0.9.0
@@ -269,9 +227,6 @@ class Router implements RouterContract
 
         // Register each sub router, if any.
         foreach ($this->subRouters as $router) {
-            foreach ($this->schemaDirs as $uriPrefix => $dir) {
-                $router->appendSchemaDir($dir, $uriPrefix);
-            }
             if ($this->plugins !== null) {
                 $router->depends($this->plugins);
             }
@@ -303,26 +258,6 @@ class Router implements RouterContract
             $e->register($namespace, $restBase);
         }
         $this->registered = true;
-    }
-
-    /**
-     * Retrieves all the attached endpoints
-     *
-     * @return array<Endpoint>
-     */
-    public function getEndpoints(): array
-    {
-        return $this->endpoints;
-    }
-
-    /**
-     * Retrieves all attached sub-routers
-     *
-     * @return array<Router>
-     */
-    public function getSubRouters(): array
-    {
-        return $this->subRouters;
     }
 
     /**
@@ -392,7 +327,7 @@ class Router implements RouterContract
         array $args = [],
         bool $override = false
     ): EndpointContract {
-        $endpoint = new Endpoint($method, $route, $handler, $args, $override, $this->schemaResolver);
+        $endpoint = new Endpoint($method, $route, $handler, $args, $override);
         $this->endpoints[] = $endpoint;
 
         return $endpoint;

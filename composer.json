@@ -10,10 +10,10 @@
     "license": "MIT",
     "require": {
         "php": "^8.1",
-        "opis/json-schema": "^2.3",
-        "ext-json": "*",
         "php-di/invoker": "^2.3",
-        "matapatos/wp-fastendpoints-contracts": "^1.1"
+        "matapatos/wp-fastendpoints-contracts": "dev-typing-validation",
+        "symfony/validator": "^6.4",
+        "symfony/serializer": "^6.4"
     },
     "autoload": {
         "psr-4": {

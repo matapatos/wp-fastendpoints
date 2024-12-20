@@ -14,7 +14,6 @@ use Wp\FastEndpoints\Helpers\WpError;
 use Wp\FastEndpoints\Router;
 
 $router = new Router('my-posts', 'v1');
-$router->appendSchemaDir(\SCHEMAS_DIR, 'https://www.wp-fastendpoints.com');
 
 // Fetches a single post
 $router->get('(?P<ID>[\d]+)', function (string $ID) {
