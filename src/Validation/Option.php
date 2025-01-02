@@ -16,9 +16,9 @@ use Invoker\Invoker;
 use Invoker\ParameterResolver\AssociativeArrayResolver;
 use Invoker\ParameterResolver\ResolverChain;
 use UnitEnum;
-use Wp\FastEndpoints\Contracts\Validation\BaseModel;
 use Wp\FastEndpoints\Contracts\Exceptions\OptionAlreadyExists;
 use Wp\FastEndpoints\Contracts\Exceptions\OptionNotFound;
+use Wp\FastEndpoints\Contracts\Validation\BaseModel;
 use Wp\FastEndpoints\DependencyInjection\ParameterResolver\TypeHintMappingResolver;
 
 /**
@@ -42,9 +42,10 @@ class Option
     /**
      * Applies all options of a BaseModel to retrieve the data to be used to populate the model
      *
-     * @param BaseModel $model - Validation model used
-     * @param array<string,mixed> $typeHintMappings - Dependencies to be injected e.g. WP_REST_Request
+     * @param  BaseModel  $model  - Validation model used
+     * @param  array<string,mixed>  $typeHintMappings  - Dependencies to be injected e.g. WP_REST_Request
      * @return array<string,mixed> - Request parameters to populate model
+     *
      * @throws OptionNotFound
      * @throws \Invoker\Exception\InvocationException
      * @throws \Invoker\Exception\NotCallableException
@@ -57,16 +58,16 @@ class Option
             $invoker = self::getInvoker($option, $model, $typeHintMappings);
             $requestParams = $invoker->call(Option::get($option::class), ['data' => $requestParams]);
         }
+
         return $requestParams;
     }
 
     /**
      * Retrieves the dependency injection invoker for the given option and model
      *
-     * @param UnitEnum $option - Current option
-     * @param BaseModel $model - Current validation model
-     * @param array<string,mixed> $typeHintMappings - Dependencies to be injected e.g. WP_REST_Request
-     * @return Invoker
+     * @param  UnitEnum  $option  - Current option
+     * @param  BaseModel  $model  - Current validation model
+     * @param  array<string,mixed>  $typeHintMappings  - Dependencies to be injected e.g. WP_REST_Request
      */
     private static function getInvoker(UnitEnum $option, BaseModel $model, array $typeHintMappings): Invoker
     {
@@ -78,18 +79,17 @@ class Option
             new TypeHintMappingResolver($dependencies),
             new AssociativeArrayResolver,
         ]);
+
         return new Invoker(parameterResolver: $parameterResolver);
     }
 
     /**
      * Retrieves a singleton of Option
-     *
-     * @return Option
      */
     protected static function getInstance(): Option
     {
-        if (!isset(self::$instance)) {
-            self::$instance = new Option();
+        if (! isset(self::$instance)) {
+            self::$instance = new Option;
         }
 
         return self::$instance;
@@ -98,14 +98,14 @@ class Option
     /**
      * Retrieves the handler for the given option
      *
-     * @param string $optionClassName
      * @return mixed
+     *
      * @throws OptionNotFound - if no handler has been found
      */
     protected static function get(string $optionClassName): callable
     {
         $instance = self::getInstance();
-        if (!isset($instance->availableOptions[$optionClassName])) {
+        if (! isset($instance->availableOptions[$optionClassName])) {
             throw new OptionNotFound($optionClassName);
         }
 
@@ -115,16 +115,12 @@ class Option
     /**
      * Registers a new option to populate the data into validation models
      *
-     * @param string $option
-     * @param callable $handler
-     * @param bool $override
-     * @return void
      * @throws OptionAlreadyExists
      */
     public static function add(string $option, callable $handler, bool $override = false): void
     {
         $instance = self::getInstance();
-        if (!$override && isset($instance->availableOptions[$option])) {
+        if (! $override && isset($instance->availableOptions[$option])) {
             throw new OptionAlreadyExists($option);
         }
 

@@ -14,7 +14,6 @@ namespace Wp\FastEndpoints;
 
 use Wp\FastEndpoints\Contracts\Http\Endpoint as EndpointInterface;
 use Wp\FastEndpoints\Contracts\Middlewares\Middleware;
-use Wp\FastEndpoints\DependencyInjection\Invoker;
 use Wp\FastEndpoints\Helpers\WpError;
 use WP_Error;
 use WP_Http;
@@ -30,6 +29,8 @@ use WP_REST_Response;
  */
 class Endpoint implements EndpointInterface
 {
+    use DependencyInjectionTrait;
+
     /**
      * HTTP endpoint method - also supports values from WP_REST_Server (e.g. WP_REST_Server::READABLE)
      *
@@ -102,13 +103,6 @@ class Endpoint implements EndpointInterface
      * @var array<callable>
      */
     protected array $onResponseHandlers = [];
-
-    /**
-     * Invokes callable's with necessary dependencies
-     *
-     * @since 1.2.0
-     */
-    protected Invoker $invoker;
 
     /**
      * Creates a new instance of Endpoint
@@ -256,41 +250,33 @@ class Endpoint implements EndpointInterface
      * @internal
      *
      * @param  WP_REST_Request  $req  Current REST Request.
-     *
-     * @uses rest_ensure_response
      */
     public function callback(WP_REST_Request $request): WP_REST_Response|WP_Error
     {
-        $dependencies = [
-            '___endpoint' => $this,
-            '___request' => $request,
-            '___response' => new WP_REST_Response,
-        ] + $request->get_url_params();
-        $this->invoker = new Invoker([
-            Endpoint::class => $this,
-            WP_REST_Request::class => $request,
-            WP_REST_Response::class => $dependencies['___response'],
-        ]);
+        $this->addDependencies($request);
+
+        $urlParams = $request->get_url_params();
+
         // onRequest handlers.
-        $result = $this->runHandlers($this->onRequestHandlers, $dependencies);
+        $result = $this->call($this->onRequestHandlers, $urlParams);
         if (\is_wp_error($result) || $result instanceof WP_REST_Response) {
             return $result;
         }
 
         // Main endpoint handler.
-        $result = $this->invoker->call($this->handler, $dependencies);
+        $result = $this->call($this->handler, $urlParams);
         if (\is_wp_error($result) || $result instanceof WP_REST_Response) {
             return $result;
         }
-        $dependencies['___response']->set_data($result);
+        $this->container->get('___response')->set_data($result);
 
         // onResponse handlers.
-        $result = $this->runHandlers($this->onResponseHandlers, $dependencies);
+        $result = $this->call($this->onResponseHandlers, $urlParams);
         if (\is_wp_error($result) || $result instanceof WP_REST_Response) {
             return $result;
         }
 
-        return $dependencies['___response'];
+        return $this->container->get('___response');
     }
 
     /**
@@ -305,15 +291,10 @@ class Endpoint implements EndpointInterface
      */
     public function permissionCallback(WP_REST_Request $request): bool|WP_Error
     {
-        $dependencies = [
-            '___endpoint' => $this,
-            '___request' => $request,
-        ] + $request->get_url_params();
-        $this->invoker = new Invoker([
-            Endpoint::class => $this,
-            WP_REST_Request::class => $request,
-        ]);
-        $result = $this->runHandlers($this->permissionHandlers, $dependencies);
+        $this->addDependencies($request);
+        $urlParams = $request->get_url_params();
+
+        $result = $this->call($this->permissionHandlers, $urlParams);
         if (\is_wp_error($result)) {
             return $result;
         }
@@ -363,27 +344,5 @@ class Endpoint implements EndpointInterface
         }
 
         return $request->get_param($newValue);
-    }
-
-    /**
-     * Calls each handler.
-     *
-     * @since 0.9.0
-     *
-     * @param  array<callable>  $allHandlers  Holds all callables that we wish to run.
-     * @param  array  $dependencies  Arguments to be passed in handlers.
-     * @return WP_Error|WP_REST_Response|null Returns the result of the last callable or if no handlers are set the
-     *                                        last result passed as argument if any. If an error occurs a WP_Error instance is returned.
-     */
-    protected function runHandlers(array &$allHandlers, array $dependencies): WP_Error|WP_REST_Response|null
-    {
-        foreach ($allHandlers as $handler) {
-            $result = $this->invoker->call($handler, $dependencies);
-            if (\is_wp_error($result) || $result instanceof \WP_REST_Response) {
-                return $result;
-            }
-        }
-
-        return null;
     }
 }
