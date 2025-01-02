@@ -5,18 +5,25 @@ declare(strict_types=1);
 namespace Wp\FastEndpoints\DependencyInjection\ParameterResolver;
 
 use Invoker\ParameterResolver\ParameterResolver;
+use ParaTest\Runners\PHPUnit\Options;
 use ReflectionFunctionAbstract;
 use ReflectionNamedType;
-use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Validation;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Wp\FastEndpoints\Contracts\Validation\BaseModel;
+use Wp\FastEndpoints\Contracts\Validation\Options\From;
+use Wp\FastEndpoints\Validation\Option;
+use WP_REST_Request;
 
 class ValidationResolver implements ParameterResolver
 {
-    private ValidatorInterface $validator;
+    protected ValidatorInterface $validator;
 
-    public function __construct(?ValidatorInterface $validator = null)
+    protected array $typeHintMappings;
+
+    public function __construct(array $typeHintMappings, ?ValidatorInterface $validator = null)
     {
+        $this->typeHintMappings = $typeHintMappings;
         $this->validator = $validator ?? Validation::createValidator();
     }
 
@@ -44,22 +51,38 @@ class ValidationResolver implements ParameterResolver
                 continue;
             }
 
-            if ($parameterType->isBuiltin()) {
-                $resolvedParameters[$index] = $this->getValidPrimitiveValue($parameter, $providedParameters);
+            $typeName = $parameterType->getName();
+            if (! is_subclass_of($typeName, BaseModel::class)) {
                 continue;
             }
 
-//            $resolvedParameters[$index] = $this->getValidPrimitiveValue($parameter, $providedParameters);
+            $model = $parameter->isDefaultValueAvailable() ? $parameter->getDefaultValue() : new $typeName;
+            $requestParams = Option::applyAll($model, $this->typeHintMappings);
+
+            $errors = $this->validator->validate($model);
+            $resolvedParameters[$index] = $this->getValidPrimitiveValue($parameter, $providedParameters);
         }
 
         return $resolvedParameters;
     }
 
-    protected function getValidPrimitiveValue($providedParameters): mixed
+
+    /**
+     * Retrieves the parameters to take into account according to the option
+     *
+     * @param WP_REST_Request $request
+     * @return array<string,mixed>
+     */
+    public function getRequestParams(WP_REST_Request $request, BaseModel $model): array
     {
-        $parameterValue = $providedParameters[$parameter->name];
-        $constraint = new Assert\Type(type: $parameterType->getName());
-        $this->validator->validate($parameterValue, $constraint);
-        $resolvedParameters[$index] = $providedParameters[$parameter->name];
+        return match($model->_from)
+        {
+            From::ANY => $request->get_params(),
+            From::JSON => $request->get_json_params(),
+            From::BODY => $request->get_body_params(),
+            From::FILE => $request->get_file_params(),
+            From::QUERY => $request->get_query_params(),
+            From::URL => $request->get_url_params(),
+        };
     }
 }

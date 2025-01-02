@@ -262,14 +262,14 @@ class Endpoint implements EndpointInterface
     public function callback(WP_REST_Request $request): WP_REST_Response|WP_Error
     {
         $dependencies = [
-            '_endpoint' => $this,
-            '_request' => $request,
-            '_response' => new WP_REST_Response,
+            '___endpoint' => $this,
+            '___request' => $request,
+            '___response' => new WP_REST_Response,
         ] + $request->get_url_params();
         $this->invoker = new Invoker([
             Endpoint::class => $this,
             WP_REST_Request::class => $request,
-            WP_REST_Response::class => $dependencies['_response'],
+            WP_REST_Response::class => $dependencies['___response'],
         ]);
         // onRequest handlers.
         $result = $this->runHandlers($this->onRequestHandlers, $dependencies);
@@ -282,7 +282,7 @@ class Endpoint implements EndpointInterface
         if (\is_wp_error($result) || $result instanceof WP_REST_Response) {
             return $result;
         }
-        $dependencies['_response']->set_data($result);
+        $dependencies['___response']->set_data($result);
 
         // onResponse handlers.
         $result = $this->runHandlers($this->onResponseHandlers, $dependencies);
@@ -290,7 +290,7 @@ class Endpoint implements EndpointInterface
             return $result;
         }
 
-        return $dependencies['_response'];
+        return $dependencies['___response'];
     }
 
     /**
@@ -306,8 +306,8 @@ class Endpoint implements EndpointInterface
     public function permissionCallback(WP_REST_Request $request): bool|WP_Error
     {
         $dependencies = [
-            '_endpoint' => $this,
-            '_request' => $request,
+            '___endpoint' => $this,
+            '___request' => $request,
         ] + $request->get_url_params();
         $this->invoker = new Invoker([
             Endpoint::class => $this,

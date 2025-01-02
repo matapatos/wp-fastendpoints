@@ -30,7 +30,7 @@ class Invoker extends BaseInvoker
     {
         return new ResolverChain([
             new TypeHintMappingResolver($this->typeHintMapping),
-            new ValidationResolver,
+            new ValidationResolver($this->typeHintMapping),
             new AssociativeArrayResolver,
             new DefaultValueResolver,
         ]);
